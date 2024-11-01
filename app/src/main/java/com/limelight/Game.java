@@ -1618,24 +1618,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private float[] getStreamViewRelativeNormalizedXY(View view, MotionEvent event, int pointerIndex) {
         float normalizedX;
         float normalizedY;
-        if(prefConfig.enableEnhancedTouch){
-            // Coords are replaced by NativeTouchContext here.
-            NativeTouchContext.Pointer pointer = nativeTouchPointerMap.get(event.getPointerId(pointerIndex));
-            if(pointer != null) {
-                float targetCoords[] = pointer.XYCoordSelector(); // decides to passthrough or manipulate coords.
-                normalizedX = targetCoords[0];
-                normalizedY = targetCoords[1];
-            }
-            else{
-                normalizedX = 0f; //in this case (pointer == null), pointers are already all up.
-                normalizedY = 0f;
-            }
-        }
-        else{
-            normalizedX = event.getX(pointerIndex);
-            normalizedY = event.getY(pointerIndex);
-        }
-
+        normalizedX = event.getX(pointerIndex);
+        normalizedY = event.getY(pointerIndex);
 
         // For the containing background view, we must subtract the origin
         // of the StreamView to get video-relative coordinates.
