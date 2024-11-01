@@ -210,9 +210,6 @@ public class GameMenu {
 
         options.add(new MenuOption(getString(R.string.game_menu_toggle_keyboard), true,
                 game::toggleKeyboard));
-        options.add(new MenuOption(getString(R.string.game_menu_toggle_host_keyboard), true,
-                () -> sendKeys(new short[]{KeyboardTranslator.VK_LWIN, KeyboardTranslator.VK_LCONTROL,
-                        KeyboardTranslator.VK_O})));
 
         if (device != null) {
             options.addAll(device.getGameMenuOptions());
@@ -236,7 +233,7 @@ public class GameMenu {
                 game::togglePerformanceOverlay));
         options.add(new MenuOption(getString(R.string.game_menu_send_keys), this::showSpecialKeysMenu));
         options.add(new MenuOption(getString(R.string.game_menu_disconnect), true, game::disconnect));
-        options.add(new MenuOption("断开并退出串流", true, () -> {
+        options.add(new MenuOption(getString(R.string.game_menu_exit), true, () -> {
             try {
                 game.disconnect();
                 conn.doStopAndQuit();
@@ -246,6 +243,6 @@ public class GameMenu {
         }));
         options.add(new MenuOption(getString(R.string.game_menu_cancel), null));
 
-        showMenuDialog("Game Menu", options.toArray(new MenuOption[0]));
+        showMenuDialog(getString(R.string.game_menu), options.toArray(new MenuOption[0]));
     }
 }
