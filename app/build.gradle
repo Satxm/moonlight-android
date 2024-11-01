@@ -12,7 +12,7 @@ android {
         minSdk 22
         targetSdk 34
 
-        versionName "12.1"
+        versionName "12.1-11.1"
         versionCode = 315
 
         // Generate native debug symbols to allow Google Play to symbolicate our native crashes
@@ -83,8 +83,8 @@ android {
     buildTypes {
         debug {
             applicationIdSuffix ".debug"
-            resValue "string", "app_label", "月光-威力加强版"
-            resValue "string", "app_label_root", "月光-威力加强版"
+            resValue "string", "app_label", "月光·威力加强版"
+            resValue "string", "app_label_root", "月光·威力加强版"
 
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -120,7 +120,7 @@ android {
             // is to please change the applicationId before you publish.
             //
             // TL;DR: Leave the following line alone!
-            applicationIdSuffix ".qiin"
+            applicationIdSuffix ".satxm"
             resValue "string", "app_label", "Moonlight"
             resValue "string", "app_label_root", "Moonlight (Root)"
 

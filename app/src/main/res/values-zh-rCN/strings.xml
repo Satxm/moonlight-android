@@ -339,4 +339,8 @@
     <string name="summary_analog_scrolling">在鼠标模式下选择用哪个摇杆控制鼠标移动</string>
     <string name="summary_seekbar_vibrate_fallback_strength">增强或减弱设备的震动强度</string>
     <string name="analogscroll_none">默认 (两个摇杆都控制鼠标)</string>
+
+    <!-- Accessibility -->
+    <string name="keyboard_service_label">Moonlight 屏蔽快捷键</string>
+    <string name="accessibility_description_text">此功能仅用于外接实体键盘时，屏蔽某些系统特定的键盘快捷键，以防止串流过程中无法将相关按键指令传输给目标PC的问题。\n\nMoonlight不会观察您输入的文本，也不会收集您的密码、信用卡号或任何其他信息。</string>
 </resources>

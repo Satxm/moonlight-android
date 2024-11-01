@@ -360,4 +360,8 @@
     <string name="analogscroll_none">None (both sticks move the mouse)</string>
     <string name="analogscroll_right">Right analog stick</string>
     <string name="analogscroll_left">Left analog stick</string>
+    
+    <!-- Accessibility -->
+    <string name="keyboard_service_label">Block shortcut keys for Moonlight</string>
+    <string name="accessibility_description_text">This function is only used when physical keyboard shortcut were intercepted by system.In some systems, several keyboard shortcut are defind and used by the Android system, causing them not being able to be passed through to the host PC. Moonlight will not look through your input, nor collecting your password, credit card number or any other private information.</string>
 </resources>
