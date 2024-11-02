@@ -180,8 +180,6 @@
     <string name="summary_checkbox_mouse_nav_buttons"> 在一些支持不佳的设备上启用此项可能会使其右键失效 </string>
 
     <string name="category_enhanced_touch_settings">多点触控设置</string>
-    <string name="title_checkbox_enable_enhanced_touch">打开增强型触控</string>
-    <string name="summary_checkbox_enable_enhanced_touch">关闭后可恢复经典模拟鼠标操作模式</string>
     <string name="title_checkbox_enhanced_touch_on_which_side">反转增强型触控区</string>
     <string name="summary_checkbox_enhanced_touch_on_which_side">反转增强型触控区 (增强区默认在右边)</string>
     <string name="title_enhanced_touch_zone_divider">触点灵敏度分区调控</string>

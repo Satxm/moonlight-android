@@ -256,7 +256,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         tombstonePrefs = Game.this.getSharedPreferences("DecoderTombstone", 0);
         // Set flat region size for long press jitter elimination.
         NativeTouchContext.INTIAL_ZONE_PIXELS = prefConfig.longPressflatRegionPixels;
-        NativeTouchContext.ENABLE_ENHANCED_TOUCH = prefConfig.enableEnhancedTouch;
         if(prefConfig.enhancedTouchOnWhichSide){
             NativeTouchContext.ENHANCED_TOUCH_ON_RIGHT = -1;
         }else{
@@ -1832,21 +1831,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
         if (event.getActionMasked() == MotionEvent.ACTION_MOVE) {
             // Move events may impact all active pointers
-            if(prefConfig.enableEnhancedTouch) {
                 for (int i = 0; i < event.getPointerCount(); i++) {
                     Objects.requireNonNull(nativeTouchPointerMap.get(event.getPointerId(i))).updatePointerCoords(event, i); // update pointer coords in the map.
                     if (!sendTouchEventForPointer(view, event, eventType, i)) {
                         return false;
                     }
                 }
-            }
-            else{
-                for (int i = 0; i < event.getPointerCount(); i++) {
-                    if (!sendTouchEventForPointer(view, event, eventType, i)) {
-                        return false;
-                    }
-                }
-            }
             return true;
         }
         else if (event.getActionMasked() == MotionEvent.ACTION_CANCEL) {
@@ -1860,10 +1850,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 case MotionEvent.ACTION_POINTER_DOWN:
                 multiFingerTapChecker(event);
                 case MotionEvent.ACTION_DOWN: // first & following finger down.
-                    if(prefConfig.enableEnhancedTouch) {
                         NativeTouchContext.Pointer pointer = new NativeTouchContext.Pointer(event); //create a Pointer Instance for new touch pointer, put it into the map.
                         nativeTouchPointerMap.put(pointer.getPointerId(), pointer);
-                    }
                     break;
                 case MotionEvent.ACTION_UP: // all fingers up
                     // toggle keyboard when all fingers lift up, just like how it works in trackpad mode.
@@ -1871,9 +1859,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                         toggleKeyboard();
                     }
                 case MotionEvent.ACTION_POINTER_UP:
-                    if(prefConfig.enableEnhancedTouch) {
                         nativeTouchPointerMap.remove(event.getPointerId(event.getActionIndex()));
-                    }
                     break;
             }
             // Up, Down, and Hover events are specific to the action index
@@ -2112,7 +2098,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 // cancelled touches from Android gestures and 3 finger taps to activate
                 // the software keyboard.
                 // 调整一下native touch passthrough的代码顺序
-                if (!prefConfig.touchscreenTrackpad && prefConfig.enableEnhancedTouch && trySendTouchEvent(view, event)) {
+                if (!prefConfig.touchscreenTrackpad && trySendTouchEvent(view, event)) {
                     // If this host supports touch events and absolute touch is enabled,
                     // send it directly as a touch event.
                     return true;
@@ -2154,16 +2140,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                         aTouchContext.cancelTouch();
                     }
 
-                    return true;
-                }
-
-
-                // TODO: Re-enable native touch when have a better solution for handling
-                // cancelled touches from Android gestures and 3 finger taps to activate
-                // the software keyboard.
-                if (!prefConfig.touchscreenTrackpad && trySendTouchEvent(view, event)) {
-                    // If this host supports touch events and absolute touch is enabled,
-                    // send it directly as a touch event.
                     return true;
                 }
 
