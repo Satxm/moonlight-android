@@ -79,8 +79,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     private boolean freezeUpdates, runningPolling, inForeground, completeOnCreateCalled;
     private final ServiceConnection serviceConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder binder) {
-            final ComputerManagerService.ComputerManagerBinder localBinder =
-                    ((ComputerManagerService.ComputerManagerBinder)binder);
+            final ComputerManagerService.ComputerManagerBinder localBinder = ((ComputerManagerService.ComputerManagerBinder) binder);
 
             // Wait in a separate thread to avoid stalling the UI
             new Thread() {
@@ -144,10 +143,10 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         }
 
         Glide.with(this)
-            .load(getBackgroundImageUrl()).skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.NONE)
-            .apply(RequestOptions.bitmapTransform(new BlurTransformation(2, 3)))
-            .transform(new ColorFilterTransformation(Color.argb(120, 0, 0, 0)))
-            .into((ImageView) findViewById(R.id.pcBackgroundImage));
+                .load(getBackgroundImageUrl()).skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.NONE)
+                .apply(RequestOptions.bitmapTransform(new BlurTransformation(2, 3)))
+                .transform(new ColorFilterTransformation(Color.argb(120, 0, 0, 0)))
+                .into((ImageView) findViewById(R.id.pcBackgroundImage));
 
         // Set default preferences if we've never been run
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
@@ -173,11 +172,12 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                 startActivity(i);
             }
         });
+        helpButton.setVisibility(View.GONE);
         helpButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-//                HelpLauncher.launchSetupGuide(PcView.this);
-                joinQQGroup("LlbLDIF_YolaM4HZyLx0xAXXo04ZmoBM");
+                // HelpLauncher.launchSetupGuide(PcView.this);
+                // joinQQGroup("LlbLDIF_YolaM4HZyLx0xAXXo04ZmoBM");
             }
         });
 
@@ -189,8 +189,8 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         }
 
         getFragmentManager().beginTransaction()
-            .replace(R.id.pcFragmentContainer, new AdapterFragment())
-            .commitAllowingStateLoss();
+                .replace(R.id.pcFragmentContainer, new AdapterFragment())
+                .commitAllowingStateLoss();
 
         noPcFoundLayout = findViewById(R.id.no_pc_found_layout);
         if (pcGridAdapter.getCount() == 0) {
@@ -356,15 +356,14 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
 
         // Call superclass
         super.onCreateContextMenu(menu, v, menuInfo);
-                
+
         AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
         ComputerObject computer = (ComputerObject) pcGridAdapter.getItem(info.position);
 
         // Add a header with PC status details
         menu.clearHeader();
         String headerTitle = computer.details.name + " - ";
-        switch (computer.details.state)
-        {
+        switch (computer.details.state) {
             case ONLINE:
                 headerTitle += getResources().getString(R.string.pcview_menu_header_online);
                 break;
@@ -381,7 +380,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
 
         // Inflate the context menu
         if (computer.details.state == ComputerDetails.State.OFFLINE ||
-            computer.details.state == ComputerDetails.State.UNKNOWN) {
+                computer.details.state == ComputerDetails.State.UNKNOWN) {
             menu.add(Menu.NONE, WOL_ID, 1, getResources().getString(R.string.pcview_menu_send_wol));
             menu.add(Menu.NONE, GAMESTREAM_EOL_ID, 2, getResources().getString(R.string.pcview_menu_eol));
         }
@@ -402,12 +401,12 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
             }
 
             menu.add(Menu.NONE, FULL_APP_LIST_ID, 4, getResources().getString(R.string.pcview_menu_app_list));
-            menu.add(Menu.NONE, SLEEP_ID, 8, "发送睡眠指令");
+            menu.add(Menu.NONE, SLEEP_ID, 8, getResources().getString(R.string.pcview_menu_send_sleep));
         }
 
         menu.add(Menu.NONE, TEST_NETWORK_ID, 5, getResources().getString(R.string.pcview_menu_test_network));
         menu.add(Menu.NONE, DELETE_ID, 6, getResources().getString(R.string.pcview_menu_delete_pc));
-        menu.add(Menu.NONE, VIEW_DETAILS_ID, 7,  getResources().getString(R.string.pcview_menu_details));
+        menu.add(Menu.NONE, VIEW_DETAILS_ID, 7, getResources().getString(R.string.pcview_menu_details));
     }
 
     @Override
@@ -452,8 +451,8 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
 
                         // Spin the dialog off in a thread because it blocks
                         Dialog.displayDialog(PcView.this, getResources().getString(R.string.pair_pairing_title),
-                                getResources().getString(R.string.pair_pairing_msg)+" "+pinStr+"\n\n"+
-                                getResources().getString(R.string.pair_pairing_help), false);
+                                getResources().getString(R.string.pair_pairing_msg) + " " + pinStr + "\n\n" +
+                                        getResources().getString(R.string.pair_pairing_help),  false);
 
                         PairingManager pm = httpConn.getPairingManager();
 
@@ -683,12 +682,11 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                 UiHelper.displayQuitConfirmationDialog(this, new Runnable() {
                     @Override
                     public void run() {
-                       ServerHelper.doQuit(PcView.this, computer.details,
-                               new NvApp("app", 0, false), managerBinder, null);
+                        ServerHelper.doQuit(PcView.this, computer.details, new NvApp("app", 0, false), managerBinder, null);
                     }
                 }, null);
                 return true;
-            
+
             case SLEEP_ID:
                 if (managerBinder == null) {
                     Toast.makeText(PcView.this, getResources().getString(R.string.error_manager_not_running), Toast.LENGTH_LONG).show();
@@ -697,7 +695,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
 
                 ServerHelper.pcSleep(PcView.this, computer.details, managerBinder, null);
                 return true;
-            
+
             case VIEW_DETAILS_ID:
                 Dialog.displayDialog(PcView.this, getResources().getString(R.string.title_details), computer.details.toString(), false);
                 return true;
@@ -714,7 +712,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                 return super.onContextItemSelected(item);
         }
     }
-    
+
     private void removeComputer(ComputerDetails details) {
         managerBinder.removeComputer(details);
 
@@ -746,7 +744,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
             }
         }
     }
-    
+
     private void updateComputer(ComputerDetails details) {
         ComputerObject existingEntry = null;
 
@@ -786,17 +784,18 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         listView.setAdapter(pcGridAdapter);
         listView.setOnItemClickListener(new OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> arg0, View arg1, int pos,
-                                    long id) {
+            public void onItemClick(AdapterView<?> arg0, View arg1, int pos, long id) {
                 ComputerObject computer = (ComputerObject) pcGridAdapter.getItem(pos);
                 if (computer.details.state == ComputerDetails.State.UNKNOWN ||
-                    computer.details.state == ComputerDetails.State.OFFLINE) {
+                        computer.details.state == ComputerDetails.State.OFFLINE) {
                     // Open the context menu if a PC is offline or refreshing
                     openContextMenu(arg1);
-                } else if (computer.details.pairState != PairState.PAIRED) {
+                }
+                else if (computer.details.pairState != PairState.PAIRED) {
                     // Pair an unpaired machine by default
                     doPair(computer.details);
-                } else {
+                }
+                else {
                     doAppList(computer.details, false, false);
                 }
             }
@@ -832,7 +831,8 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     public boolean joinQQGroup(String key) {
         Intent intent = new Intent();
         intent.setData(Uri.parse("mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D" + key));
-        // 此Flag可根据具体产品需要自定义，如设置，则在加群界面按返回，返回手Q主界面，不设置，按返回会返回到呼起产品界面    //intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        // 此Flag可根据具体产品需要自定义，如设置，则在加群界面按返回，返回手Q主界面，不设置，按返回会返回到呼起产品界面
+        // intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         try {
             startActivity(intent);
             return true;
