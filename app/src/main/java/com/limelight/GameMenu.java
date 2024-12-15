@@ -236,7 +236,7 @@ public class GameMenu {
                 game::togglePerformanceOverlay));
         options.add(new MenuOption(getString(R.string.game_menu_send_keys), this::showSpecialKeysMenu));
         options.add(new MenuOption(getString(R.string.game_menu_disconnect), true, game::disconnect));
-        options.add(new MenuOption("断开并退出串流", true, () -> {
+        options.add(new MenuOption(getString(R.string.game_menu_exit), true, () -> {
             try {
                 game.disconnect();
                 conn.doStopAndQuit();
@@ -246,6 +246,6 @@ public class GameMenu {
         }));
         options.add(new MenuOption(getString(R.string.game_menu_cancel), null));
 
-        showMenuDialog("Game Menu", options.toArray(new MenuOption[0]));
+        showMenuDialog(getString(R.string.game_menu), options.toArray(new MenuOption[0]));
     }
 }

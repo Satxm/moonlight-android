@@ -186,14 +186,8 @@
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_enhanced_touch_settings"
         android:key="category_enhanced_touch">
-        <CheckBoxPreference
-            android:defaultValue="true"
-            android:key="checkbox_enable_enhanced_touch"
-            android:summary="@string/summary_checkbox_enable_enhanced_touch"
-            android:title="@string/title_checkbox_enable_enhanced_touch" />
         <com.limelight.preferences.SeekBarPreference
             android:key="seekbar_flat_region_pixels"
-            android:dependency="checkbox_enable_enhanced_touch"
             android:dialogMessage="@string/summary_seekbar_long_press_flat_region"
             seekbar:min="0"
             android:max="250"
@@ -206,13 +200,11 @@
             android:title="@string/title_seekbar_long_press_flat_region" />
         <CheckBoxPreference
             android:key="checkbox_enhanced_touch_on_which_side"
-            android:dependency="checkbox_enable_enhanced_touch"
             android:title="@string/title_checkbox_enhanced_touch_on_which_side"
             android:summary="@string/summary_checkbox_enhanced_touch_on_which_side"
             android:defaultValue="false" />
         <com.limelight.preferences.SeekBarPreference
             android:key="enhanced_touch_zone_divider"
-            android:dependency="checkbox_enable_enhanced_touch"
             android:dialogMessage="@string/dialog_title_enhanced_touch_zone_divider"
             seekbar:min="0"
             seekbar:step="1"
@@ -223,7 +215,6 @@
             android:title="@string/title_enhanced_touch_zone_divider" />
         <com.limelight.preferences.SeekBarPreference
             android:key="pointer_velocity_factor"
-            android:dependency="checkbox_enable_enhanced_touch"
             android:dialogMessage="@string/dialog_title_pointer_velocity_factor"
             seekbar:min="0"
             seekbar:step="1"
@@ -274,17 +265,16 @@
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="checkbox_show_onscreen_keyboard"
-            android:summary="串流的过程中可以设置屏幕键盘和其他功能"
-            android:title="高级设置" />
+            android:title="@string/title_show_onscreen_keyboard"
+            android:summary="@string/summary_show_onscreen_keyboard" />
         <ListPreference
             android:key="export_advance_config"
-            android:title="导出配置文件"
-            android:summary="导出自定义按钮的和串流内设置的配置文件" />
+            android:title="@string/title_export_advance_config"
+            android:summary="@string/summary_export_advance_config" />
         <Preference
             android:key="import_advance_config"
-            android:title="导入配置文件"
-            android:summary="导入自定义按钮的和串流内设置的配置文件" />
-
+            android:title="@string/title_import_advance_config"
+            android:summary="@string/summary_import_advance_config" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_host_settings">
         <CheckBoxPreference
@@ -375,7 +365,7 @@
         <com.limelight.preferences.WebLauncherPreference
             android:title="@string/title_about_mode"
             android:summary="@string/summary_about_mode"
-            url="https://github.moeyy.xyz/https://github.com/qiin2333/moonlight-android/releases/tag/shortcut"/>
+            url="https://github.com/qiin2333/moonlight-android/releases/tag/shortcut"/>
         <com.limelight.preferences.WebLauncherPreference
             android:title="@string/title_privacy_policy"
             android:summary="@string/summary_privacy_policy"
