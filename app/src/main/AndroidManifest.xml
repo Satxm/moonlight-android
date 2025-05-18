@@ -59,7 +59,7 @@
         android:isGame="true"
         android:banner="@drawable/atv_banner"
         android:appCategory="game"
-        android:icon="@drawable/ic_gura"
+        android:icon="@mipmap/ic_launcher"
         android:installLocation="auto"
         android:gwpAsanMode="always"
         android:localeConfig="@xml/locales_config"
@@ -196,6 +196,22 @@
             <meta-data android:name="WindowManagerPreference:FreeformWindowSize" android:value="system-default" />
             <meta-data android:name="WindowManagerPreference:FreeformWindowOrientation" android:value="landscape" />
         </activity>
+
+        <!-- 无障碍 实体键盘 屏蔽某些快捷键 -->
+        <service
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+            android:name="com.limelight.KeyboardAccessibilityService"
+            android:label="@string/keyboard_service_label"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/keyboard_accessibility_service" />
+        </service>
+
     </application>
 
 </manifest>

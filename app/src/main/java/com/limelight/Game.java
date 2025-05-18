@@ -110,6 +110,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         OnGenericMotionListener, OnTouchListener, NvConnectionListener, EvdevListener,
         OnSystemUiVisibilityChangeListener, GameGestures, StreamView.InputCallbacks,
         PerfOverlayListener, UsbDriverService.UsbDriverStateListener, View.OnKeyListener {
+    public static Game instance;
+
     private int lastButtonState = 0;
     private static final int TOUCH_CONTEXT_LENGTH = 2;
 
@@ -140,6 +142,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     public interface PerformanceInfoDisplay{
         void display(Map<String,String> performanceAttrs);
     }
+
     private ControllerManager controllerManager;
     private List<PerformanceInfoDisplay> performanceInfoDisplays = new ArrayList<>();
 
@@ -151,7 +154,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private SpinnerDialog spinner;
     private boolean displayedFailureDialog = false;
     private boolean connecting = false;
-    private boolean connected = false;
+    public boolean connected = false;
     private boolean autoEnterPip = false;
     private boolean surfaceCreated = false;
     private boolean attemptedConnection = false;
@@ -228,6 +231,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        instance = this;
 
         UiHelper.setLocale(this);
 
@@ -1123,6 +1128,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     protected void onDestroy() {
         super.onDestroy();
 
+        instance = null;
+
         if (controllerHandler != null) {
             controllerHandler.destroy();
         }
@@ -1660,16 +1667,15 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 normalizedX = targetCoords[0];
                 normalizedY = targetCoords[1];
             }
-            else{
-                normalizedX = 0f; //in this case (pointer == null), pointers are already all up.
-                normalizedY = 0f;
+            else {
+                normalizedX = event.getX(pointerIndex);
+                normalizedY = event.getY(pointerIndex);
             }
         }
-        else{
+        else {
             normalizedX = event.getX(pointerIndex);
             normalizedY = event.getY(pointerIndex);
         }
-
 
         // For the containing background view, we must subtract the origin
         // of the StreamView to get video-relative coordinates.

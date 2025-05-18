@@ -306,7 +306,7 @@
             android:defaultValue="90"
             android:summary="@string/summary_osc_opacity"
             android:text="@string/suffix_osc_opacity"
-            android:title="@string/dialog_title_osc_opacity" />
+            android:title="@string/title_osc_opacity" />
         <com.limelight.preferences.ConfirmDeleteOscPreference
             android:title="@string/title_reset_osc"
             android:summary="@string/summary_reset_osc"
@@ -317,29 +317,29 @@
             />
     </PreferenceCategory>
     <PreferenceCategory 
-        android:title="增强版设置"
+        android:title="@string/category_cown_setting"
         android:icon="@drawable/ic_enhance">
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="checkbox_show_onscreen_keyboard"
-            android:summary="串流中自定义按键和一些设置，并将这些保存到自定义可快速切换的配置中"
-            android:title="王冠的超级功能" />
+            android:title="@string/title_show_onscreen_keyboard"
+            android:summary="@string/summary_show_onscreen_keyboard" />
         <ListPreference
             android:key="export_super_config"
-            android:title="导出配置"
-            android:summary="导出自定义按钮的和串流内设置的配置文件" />
+            android:title="@string/title_export_super_config"
+            android:summary="@string/summary_export_super_config" />
         <Preference
             android:key="import_super_config"
-            android:title="导入配置"
-            android:summary="导入自定义按钮的和串流内设置的配置文件" />
+            android:title="@string/title_import_super_config"
+            android:summary="@string/summary_import_super_config" />
         <ListPreference
             android:key="merge_super_config"
-            android:title="合并配置"
-            android:summary="将新的配置的按键合并到现有配置中" />
+            android:title="@string/title_merge_super_config"
+            android:summary="@string/summary_merge_super_config" />
         <Preference
             android:key="about_author"
-            android:title="这是 V+ X 皇家版本"
-            android:summary="王冠的B站:西瓜hub，请关注TA， github: https://github.com/WACrown/moonlight-android" />
+            android:title="@string/title_about_author"
+            android:summary="@string/summary_about_author" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_host_settings">
         <CheckBoxPreference

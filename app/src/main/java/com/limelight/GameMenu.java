@@ -34,7 +34,6 @@ public class GameMenu {
     private static final long TEST_GAME_FOCUS_DELAY = 10L;
     private static final long KEY_UP_DELAY = 25L;
     private static final float DIALOG_ALPHA = 0.7f;
-    private static final String GAME_MENU_TITLE = "Game Menu";
 
     public static class MenuOption {
         private final String label;
@@ -243,7 +242,7 @@ public class GameMenu {
         options.add(new MenuOption(getString(R.string.game_menu_toggle_host_keyboard), true,
                 () -> sendKeys(new short[]{KeyboardTranslator.VK_LWIN, KeyboardTranslator.VK_LCONTROL,
                         KeyboardTranslator.VK_O})));
-        options.add(new MenuOption(game.prefConfig.enableEnhancedTouch ? "切换到经典鼠标模式" : "切换到增强式多点触控",
+        options.add(new MenuOption(game.prefConfig.enableEnhancedTouch ? getString(R.string.game_menu_toggle_classic) : getString(R.string.game_menu_toggle_enhanced),
                 true, this::toggleEnhancedTouch));
 
         if (device != null) {
@@ -268,9 +267,9 @@ public class GameMenu {
                 game::togglePerformanceOverlay));
         options.add(new MenuOption(getString(R.string.game_menu_send_keys), this::showSpecialKeysMenu));
         options.add(new MenuOption(getString(R.string.game_menu_disconnect), true, game::disconnect));
-        options.add(new MenuOption("断开并退出串流", true, this::disconnectAndQuit));
+        options.add(new MenuOption(getString(R.string.game_menu_exit), true, this::disconnectAndQuit));
         options.add(new MenuOption(getString(R.string.game_menu_cancel), null));
 
-        showMenuDialog(GAME_MENU_TITLE, options.toArray(new MenuOption[0]));
+        showMenuDialog(getString(R.string.game_menu), options.toArray(new MenuOption[0]));
     }
 }
