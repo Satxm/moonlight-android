@@ -188,7 +188,11 @@
     <string name="summary_audio_config_list">为家庭影院系统启用5.1或7.1环绕声</string>
     <string name="title_checkbox_enable_audiofx">启用对系统均衡器的支持</string>
     <string name="summary_checkbox_enable_audiofx">串流时允许音效工作，可能会导致音频延迟增加</string>
-
+    <string name="title_checkbox_enable_mic">启用麦克风重定向</string>
+    <string name="summary_checkbox_enable_mic">将设备麦克风重定向到主计算机进行语音聊天和通信，需要主机上安装 Sunshine-Foundation 版本 20250720 或更高版本。</string>
+    <string name="title_seekbar_mic_bitrate">麦克风比特率</string>
+    <string name="summary_seekbar_mic_bitrate">调整麦克风重定向的音频质量。更高的比特率提供更好的音频质量，但会使用更多的带宽。</string>
+    <string name="suffix_seekbar_mic_bitrate_kbps">kbps</string>
     <string name="category_gamepad_settings">手柄设置</string>
     <string name="title_checkbox_multi_controller">自动检测手柄</string>
     <string name="summary_checkbox_multi_controller">禁用此项所有手柄将视为一个手柄</string>
@@ -205,8 +209,8 @@
     <string name="title_checkbox_usb_bind_all">覆盖安卓手柄支持</string>
     <string name="summary_checkbox_usb_bind_all">强制Moonlight的USB驱动接管所有受支持的Xbox手柄</string>
     <string name="title_checkbox_mouse_emulation">通过手柄模拟鼠标</string>
-    <string name="summary_checkbox_mouse_emulation">长按开始键将手柄切换为鼠标模式</string>
     <string name="title_checkbox_flip_face_buttons">反转技能键</string>
+    <string name="summary_checkbox_mouse_emulation">长按开始键将手柄切换为鼠标模式</string>
     <string name="title_analog_scrolling">使用摇杆控制鼠标移动</string>
     <string name="summary_analog_scrolling">在鼠标模式下选择用哪个摇杆控制鼠标移动</string>
     <string name="summary_checkbox_flip_face_buttons">为手柄和虚拟手柄调转A/B和X/Y技能键</string>
@@ -226,11 +230,13 @@
     <string name="summary_checkbox_enable_keyboard_toggle_in_native_touch">\t</string>
     <string name="title_seekbar_keyboard_toggle_fingers_native_touch">轻敲手指数量</string>
     <string name="summary_seekbar_keyboard_toggle_fingers_native_touch">轻敲切换本地键盘的最少手指数量。\n仅在多点触控模式生效，触摸板模式3指即可切换本地键盘(不受此配置影响)。</string>
-    <string name="suffix_seekbar_keyboard_toggle_fingers_native_touch"></string>
+    <string name="suffix_seekbar_keyboard_toggle_fingers_native_touch"> </string>
     <string name="title_checkbox_mouse_nav_buttons">启用前进后退鼠标键</string>
     <string name="summary_checkbox_mouse_nav_buttons">在一些支持不佳的设备上启用此项可能会使其右键失效</string>
     <string name="title_checkbox_absolute_mouse_mode">适合远程桌面的鼠标模式</string>
     <string name="summary_checkbox_absolute_mouse_mode">这可以使得鼠标加速在远程桌面使用中表现得更自然，但它与许多游戏不兼容。</string>
+    <string name="title_checkbox_enable_esc_menu">允许 ESC 键打开返回菜单</string>
+    <string name="summary_checkbox_enable_esc_menu">启用时，双击 ESC 键会打开流返回菜单，单击 ESC 键则传递给主机。</string>
 
     <string name="category_enhanced_touch_settings">多点触控设置</string>
     <string name="title_checkbox_enable_enhanced_touch">打开增强型触控</string>
@@ -307,8 +313,17 @@
     <string name="summary_full_range">如果你的设备无法正确显示全范围视频内容，这会导致明暗区域的细节丢失。</string>
     <string name="title_enable_perf_overlay">性能监控图层</string>
     <string name="summary_enable_perf_overlay">显示实时的串流监控数据，盯帧必备！</string>
+    <string name="title_perf_overlay_orientation">性能统计显示方向</string>
+    <string name="summary_perf_overlay_orientation">选择性能统计信息的显示方向</string>
+    <string name="title_perf_overlay_position">性能统计显示位置</string>
+    <string name="summary_perf_overlay_position">水平时选择顶部/底部，垂直时选择四个角位置</string>
+    <string name="title_reset_perf_overlay_position">重置性能统计位置</string>
+    <string name="summary_reset_perf_overlay_position">将性能统计重置到预设位置</string>
+    <string name="title_perf_overlay_display_items">性能统计显示项目</string>
+    <string name="summary_perf_overlay_display_items">选择要在性能覆盖层中显示的信息项目</string>
     <string name="title_enable_post_stream_toast">串流完毕显示延迟信息</string>
     <string name="summary_enable_post_stream_toast">串流结束后显示延迟信息</string>
+    <string name="mic_stats_continuity">音频连续性: %.1f%% (捕获:%d 编码:%d 发送:%d 丢弃:%d)</string>
 
     <string name="category_help">帮助</string>
     <string name="title_setup_guide">安装向导</string>
@@ -361,6 +376,11 @@
     <string name="analogscroll_none">默认 (两个摇杆都控制鼠标)</string>
     <string name="analogscroll_left">左摇杆</string>
     <string name="analogscroll_right">右摇杆</string>
+
+    <string name="mic_button">麦克风</string>
+    <string name="mic_enabled">麦克风已启用</string>
+    <string name="mic_disabled">麦克风已禁用</string>
+    <string name="mic_permission_required">需要麦克风权限</string>
 
     <string name="videoformat_auto">自动（推荐）</string>
     <string name="videoformat_av1always">首选 AV1（实验性）</string>

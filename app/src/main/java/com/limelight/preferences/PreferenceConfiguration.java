@@ -109,6 +109,11 @@ public class PreferenceConfiguration {
     private static final String GAMEPAD_MOTION_SENSORS_PREF_STRING = "checkbox_gamepad_motion_sensors";
     private static final String GAMEPAD_MOTION_FALLBACK_PREF_STRING = "checkbox_gamepad_motion_fallback";
 
+    // 麦克风设置
+    private static final String ENABLE_MIC_PREF_STRING = "checkbox_enable_mic";
+    private static final String MIC_BITRATE_PREF_STRING = "seekbar_mic_bitrate_kbps";
+    private static final String ENABLE_ESC_MENU_PREF_STRING = "checkbox_enable_esc_menu";
+
     //wg
     private static final String ONSCREEN_CONTROLLER_PREF_STRING = "checkbox_show_onscreen_controls";
     static final String IMPORT_CONFIG_STRING = "import_super_config";
@@ -157,6 +162,11 @@ public class PreferenceConfiguration {
     private static final boolean DEFAULT_GAMEPAD_TOUCHPAD_AS_MOUSE = false;
     private static final boolean DEFAULT_GAMEPAD_MOTION_SENSORS = true;
     private static final boolean DEFAULT_GAMEPAD_MOTION_FALLBACK = false;
+
+    // 麦克风设置默认值
+    private static final boolean DEFAULT_ENABLE_MIC = false;
+    private static final int DEFAULT_MIC_BITRATE = 96; // 默认128 kbps
+    private static final boolean DEFAULT_ENABLE_ESC_MENU = true; // 默认启用ESC菜单
 
     public static final int FRAME_PACING_MIN_LATENCY = 0;
     public static final int FRAME_PACING_BALANCED = 1;
@@ -255,6 +265,13 @@ public class PreferenceConfiguration {
     public boolean gamepadTouchpadAsMouse;
     public boolean gamepadMotionSensorsFallbackToDevice;
     public boolean reverseResolution;
+
+    // 麦克风设置
+    public boolean enableMic;
+    public int micBitrate;
+    
+    // ESC菜单设置
+    public boolean enableEscMenu;
 
     public ScreenPosition screenPosition;
     public int screenOffsetX;
@@ -705,6 +722,13 @@ public class PreferenceConfiguration {
         config.gamepadMotionSensorsFallbackToDevice = prefs.getBoolean(GAMEPAD_MOTION_FALLBACK_PREF_STRING, DEFAULT_GAMEPAD_MOTION_FALLBACK);
         config.enableSimplifyPerfOverlay = false;
 
+        // 读取麦克风设置
+        config.enableMic = prefs.getBoolean(ENABLE_MIC_PREF_STRING, DEFAULT_ENABLE_MIC);
+        config.micBitrate = prefs.getInt(MIC_BITRATE_PREF_STRING, DEFAULT_MIC_BITRATE);
+        
+        // 读取ESC菜单设置
+        config.enableEscMenu = prefs.getBoolean(ENABLE_ESC_MENU_PREF_STRING, DEFAULT_ENABLE_ESC_MENU);
+
         config.reverseResolution = prefs.getBoolean(REVERSE_RESOLUTION_PREF_STRING, DEFAULT_REVERSE_RESOLUTION);
 
         // 如果启用了分辨率反转，则交换宽度和高度
@@ -803,9 +827,12 @@ public class PreferenceConfiguration {
                     .putBoolean(ENABLE_PERF_OVERLAY_STRING, enablePerfOverlay)
                     .putBoolean(REVERSE_RESOLUTION_PREF_STRING, reverseResolution)
                     .putString(SCREEN_POSITION_PREF_STRING, positionString)
-                                    .putInt(SCREEN_OFFSET_X_PREF_STRING, screenOffsetX)
-                .putInt(SCREEN_OFFSET_Y_PREF_STRING, screenOffsetY)
-                .putBoolean("use_external_display", useExternalDisplay)
+                    .putInt(SCREEN_OFFSET_X_PREF_STRING, screenOffsetX)
+                    .putInt(SCREEN_OFFSET_Y_PREF_STRING, screenOffsetY)
+                    .putBoolean("use_external_display", useExternalDisplay)
+                    .putBoolean(ENABLE_MIC_PREF_STRING, enableMic)
+                    .putInt(MIC_BITRATE_PREF_STRING, micBitrate)
+                    .putBoolean(ENABLE_ESC_MENU_PREF_STRING, enableEscMenu)
                     .apply();
             return true;
         } catch (Exception e) {
@@ -830,6 +857,9 @@ public class PreferenceConfiguration {
         copy.screenOffsetX = this.screenOffsetX;
         copy.screenOffsetY = this.screenOffsetY;
         copy.useExternalDisplay = this.useExternalDisplay;
+        copy.enableMic = this.enableMic;
+        copy.micBitrate = this.micBitrate;
+        copy.enableEscMenu = this.enableEscMenu;
         return copy;
     }
 }
