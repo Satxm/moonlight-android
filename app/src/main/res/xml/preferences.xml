@@ -62,36 +62,32 @@
             android:defaultValue="false" />
         <CheckBoxPreference
             android:key="checkbox_reverse_resolution"
-            android:title="反转分辨率"
-            android:summary="交换宽度和高度值，用于特殊显示需求"
+            android:title="@string/title_reverse_resolution"
+            android:summary="@string/summary_reverse_resolution"
             android:defaultValue="false" />
     </PreferenceCategory>
-    <PreferenceCategory
-        android:title="画面位置设置"
+    <PreferenceCategory android:title="@string/category_screen_position"
         android:icon="@drawable/ic_screen_position">
         <com.limelight.preferences.IconListPreference
             android:key="list_screen_position"
-            android:title="画面位置"
-            android:summary="选择非全屏分辨率时画面的位置"
+            android:title="@string/title_list_screen_position"
+            android:summary="@string/summary_list_screen_position"
             android:entries="@array/screen_position_names"
             android:entryValues="@array/screen_position_values"
             android:defaultValue="center"
             app:entryIcons="@array/screen_position_icons" />
-        
         <SeekBarPreference
             android:key="seekbar_screen_offset_x"
-            android:title="水平偏移"
-            android:summary="画面水平方向的偏移量"
+            android:title="@string/title_seekbar_screen_offset_x"
+            android:summary="@string/summary_seekbar_screen_offset_x"
             android:defaultValue="0"
             android:max="100" />
-        
         <SeekBarPreference
             android:key="seekbar_screen_offset_y"
-            android:title="垂直偏移"
-            android:summary="画面垂直方向的偏移量"
+            android:title="@string/title_seekbar_screen_offset_y"
+            android:summary="@string/summary_seekbar_screen_offset_y"
             android:defaultValue="0"
             android:max="100" />
-        
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_audio_settings">
         <ListPreference
@@ -385,8 +381,8 @@
             android:defaultValue="false" />
         <com.limelight.preferences.ExternalDisplayPreference
             android:key="use_external_display"
-            android:title="使用外接显示器"
-            android:summary="如果连接了外接显示器，则在外接显示器上显示串流画面"
+            android:title="@string/title_use_external_display"
+            android:summary="@string/summary_use_external_display"
             android:defaultValue="false" />
         <com.limelight.preferences.LanguagePreference
             android:key="list_languages"
@@ -401,10 +397,10 @@
             android:summary="@string/summary_checkbox_small_icon_mode" />
         <EditTextPreference
             android:key="background_image_url"
-            android:title="背景图片API"
-            android:summary="输入自定义背景图片的API，也可以是单张图片地址哦，留空就是看随机涩图"
-            android:dialogTitle="背景图片API"
-            android:dialogMessage="请输入完整的图片API"
+            android:title="@string/title_background_image_url"
+            android:summary="@string/summary_background_image_url"
+            android:dialogTitle="@string/dialog_title_background_image_url"
+            android:dialogMessage="@string/dialog_text_background_image_url"
             android:defaultValue="" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_advanced_settings"
@@ -446,7 +442,7 @@
             android:title="@string/title_enable_perf_overlay"
             android:summary="@string/summary_enable_perf_overlay"
             android:defaultValue="false"/>
-                 <com.limelight.preferences.PerfOverlayOrientationPreference
+        <com.limelight.preferences.PerfOverlayOrientationPreference
             android:key="list_perf_overlay_orientation"
             android:title="@string/title_perf_overlay_orientation"
             android:summary="@string/summary_perf_overlay_orientation"

@@ -184,6 +184,16 @@
     <string name="title_custom_resolutions">Custom resolutions</string>
     <string name="summary_custom_resolutions">Create your own custom resolutions</string>
     <string name="title_checkbox_stretch_video">Stretch video to full-screen</string>
+    <string name="title_reverse_resolution">Reverse resolution</string>
+    <string name="summary_reverse_resolution">Swap the width and height values for special display requirements.</string>
+
+    <string name="category_screen_position">Screen Position Settings</string>
+    <string name="title_list_screen_position">Screen position</string>
+    <string name="summary_list_screen_position">Position of the screen when selecting a non-fullscreen resolution</string>
+    <string name="title_seekbar_screen_offset_x">horizontal offset</string>
+    <string name="summary_seekbar_screen_offset_x">Horizontal offset of the screen</string>
+    <string name="title_seekbar_screen_offset_y">Vertical offset</string>
+    <string name="summary_seekbar_screen_offset_y">Vertical offset of the screen</string>
 
     <string name="category_audio_settings">Audio Settings</string>
     <string name="title_audio_config_list">Surround sound configurationItem</string>
@@ -289,10 +299,16 @@
     <string name="category_ui_settings">UI Settings</string>
     <string name="title_checkbox_enable_pip">Enable Picture-in-Picture observer mode</string>
     <string name="summary_checkbox_enable_pip">Allows the stream to be viewed (but not controlled) while multitasking</string>
+    <string name="title_use_external_display">Use external monitor</string>
+    <string name="summary_use_external_display">If an external monitor is connected, the stream will be displayed on the external monitor.</string>
     <string name="title_language_list">Language</string>
     <string name="summary_language_list">Language to use for Moonlight</string>
     <string name="title_checkbox_small_icon_mode">Use small box art</string>
     <string name="summary_checkbox_small_icon_mode">Smaller box art in the app grid allows more apps to be visible on screen</string>
+    <string name="title_background_image_url">Background image API URL</string>
+    <string name="summary_background_image_url">Input a custom background image API, or it can be the address of a single image; leaving it blank will show a random image.</string>
+    <string name="dialog_title_background_image_url">Background image API URL</string>
+    <string name="dialog_text_background_image_url">Please enter the complete image API URL</string>
 
     <string name="category_host_settings">Host Settings</string>
     <string name="title_checkbox_enable_sops">Optimize game settings</string>
@@ -317,14 +333,14 @@
     <string name="summary_full_range">This will cause loss of detail in light and dark areas if your device doesn\'t properly display full range video content.</string>
     <string name="title_enable_perf_overlay">Show performance stats while streaming</string>
     <string name="summary_enable_perf_overlay">Display real-time stream performance information while streaming</string>
-    <string name="title_perf_overlay_orientation">性能统计显示方向</string>
-    <string name="summary_perf_overlay_orientation">选择性能统计信息的显示方向</string>
-    <string name="title_perf_overlay_position">性能统计显示位置</string>
-    <string name="summary_perf_overlay_position">水平时选择顶部/底部，垂直时选择四个角位置</string>
-    <string name="title_reset_perf_overlay_position">重置性能统计位置</string>
-    <string name="summary_reset_perf_overlay_position">将性能统计重置到预设位置</string>
-    <string name="title_perf_overlay_display_items">性能统计显示项目</string>
-    <string name="summary_perf_overlay_display_items">选择要在性能覆盖层中显示的信息项目</string>
+    <string name="title_perf_overlay_orientation">Performance overlay orientation</string>
+    <string name="summary_perf_overlay_orientation">Select the orientation of the performance overlay</string>
+    <string name="title_perf_overlay_position">Performance overlay position</string>
+    <string name="summary_perf_overlay_position">Select the top/bottom when horizontal, and select the four corner positions when vertical</string>
+    <string name="title_reset_perf_overlay_position">Reset performance overlay position</string>
+    <string name="summary_reset_perf_overlay_position">Reset performance overlay position to the preset position</string>
+    <string name="title_perf_overlay_display_items">Items to show </string>
+    <string name="summary_perf_overlay_display_items">Select the information items to show in the performance overlay</string>
     <string name="title_enable_post_stream_toast">Show latency message after streaming</string>
     <string name="summary_enable_post_stream_toast">Display a latency information message after the stream ends</string>
     <string name="mic_stats_continuity">Audio continuity: %.1f%% (Captured:%d Encoded:%d Sent:%d Dropped:%d)</string>
