@@ -35,7 +35,6 @@ Thumbs.db
 .gradle
 build/
 *.iml
-release/
 
 # Compiled JNI libraries folder
 **/jniLibs
