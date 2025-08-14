@@ -403,6 +403,9 @@
     <string name="videoformat_h264always">首选 H.264</string>
     <string name="videoformat_hevcalways">首选 HEVC</string>
 
+    <!-- Moonlight V+ PC download -->
+    <string name="title_moonlight_vplus_pc_download">Moonlight V+ PC版下载</string>
+
     <!-- Accessibility -->
     <string name="keyboard_service_label">Moonlight 屏蔽快捷键</string>
     <string name="accessibility_description_text">此功能仅用于外接实体键盘时，屏蔽某些系统特定的键盘快捷键，以防止串流过程中无法将相关按键指令传输给目标PC的问题。\nMoonlight不会观察您输入的文本，也不会收集您的密码、信用卡号或任何其他信息。</string>

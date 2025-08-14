@@ -407,6 +407,9 @@
     <string name="videoformat_h264always">Prefer H.264</string>
     <string name="videoformat_hevcalways">Prefer HEVC</string>
 
+    <!-- Moonlight V+ PC download -->
+    <string name="title_moonlight_vplus_pc_download">Moonlight V+ PC Download</string>
+
     <!-- Accessibility -->
     <string name="keyboard_service_label">Block shortcut keys for Moonlight</string>
     <string name="accessibility_description_text">This function is only used when physical keyboard shortcut were intercepted by system.In some systems, several keyboard shortcut are defind and used by the Android system, causing them not being able to be passed through to the host PC.\nMoonlight will not look through your input, nor collecting your password, credit card number or any other private information.</string>
