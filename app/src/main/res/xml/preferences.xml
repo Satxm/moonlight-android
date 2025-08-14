@@ -482,13 +482,13 @@
             android:title="@string/title_troubleshooting"
             android:summary="@string/summary_troubleshooting"
             url="https://github.com/moonlight-stream/moonlight-docs/wiki/Troubleshooting"/> -->
-        <com.limelight.preferences.WebLauncherPreference
+        <!-- <com.limelight.preferences.WebLauncherPreference
             android:title="@string/title_about_mode"
             android:summary="@string/summary_about_mode"
             url="https://github.com/qiin2333/moonlight-android/releases/tag/shortcut"/>
         <com.limelight.preferences.WebLauncherPreference
             android:title="@string/title_moonlight_vplus_pc_download"
-            url="https://github.com/qiin2333/moonlight-qt"/>
+            url="https://github.com/qiin2333/moonlight-qt"/> -->
         <com.limelight.preferences.WebLauncherPreference
             android:title="@string/title_privacy_policy"
             android:summary="@string/summary_privacy_policy"

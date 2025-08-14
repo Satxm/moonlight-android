@@ -83,8 +83,8 @@ android {
     buildTypes {
         debug {
             applicationIdSuffix ".debug"
-            resValue "string", "app_label", "Moonlight"
-            resValue "string", "app_label_root", "Moonlight (Root)"
+            resValue "string", "app_label", "Moonlight V+"
+            resValue "string", "app_label_root", "Moonlight V+ (Root)"
 
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -121,8 +121,8 @@ android {
             //
             // TL;DR: Leave the following line alone!
             applicationIdSuffix ".satxm"
-            resValue "string", "app_label", "Moonlight"
-            resValue "string", "app_label_root", "Moonlight (Root)"
+            resValue "string", "app_label", "Moonlight V+"
+            resValue "string", "app_label_root", "Moonlight V+ (Root)"
 
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
