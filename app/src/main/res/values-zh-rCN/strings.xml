@@ -92,6 +92,11 @@
     <string name="conn_terminated_msg">连接已被终结.</string>
     <string name="error_code_prefix">错误代码:</string>
 
+    <!-- Copy strings -->
+    <string name="copy_content">复制内容</string>
+    <string name="copy_success">内容已复制到剪贴板</string>
+    <string name="copy_details">复制详情</string>
+
     <!-- General strings -->
     <string name="ip_hint">串流电脑的IP地址</string>
     <string name="searching_pc">在你的本地网络中搜索串流主机PC...\n\n确保 Sunshine 在主机上运行，或在 GeForce Experience SHIELD 设置中启用 GameStream。</string>
@@ -137,13 +142,16 @@
     <string name="game_menu">串流选项</string>
     <string name="game_menu_toggle_keyboard">屏幕键盘</string>
     <string name="game_menu_toggle_performance_overlay">性能监控图层</string>
+    <string name="game_menu_toggle_virtual_controller">虚拟手柄</string>
     <string name="game_menu_toggle_host_keyboard">主机键盘</string>
+    <string name="game_menu_toggle_all_keyboard">切换 PC 键盘</string>
     <string name="game_menu_toggle_classic">切换到经典鼠标模式</string>
     <string name="game_menu_toggle_enhanced">切换到增强式多点触控</string>
     <string name="game_menu_toggle_mouse_on">手柄模拟鼠标-打开</string>
     <string name="game_menu_toggle_mouse_off">手柄模拟鼠标-关闭</string>
     <string name="game_menu_disconnect">断开连接</string>
     <string name="game_menu_exit">断开并退出串流</string>
+    <string name="game_menu_disconnect_and_quit">断开并退出串流</string>
     <string name="game_menu_cancel">取消</string>
     <string name="game_menu_send_keys">发送特殊按键</string>
     <string name="game_menu_send_keys_esc">发送 ESC</string>
@@ -165,9 +173,12 @@
     <string name="addpc_wrong_sitelocal">该地址似乎不正确。 您必须使用路由器的公共IP地址通过Internet进行串流。</string>
 
     <!-- Preferences -->
-    <string name="category_basic_settings">基本设置</string>
+    <string name="category_basic_settings">⚙️ 基本设置</string>
     <string name="title_resolution_list">视频分辨率</string>
     <string name="summary_resolution_list">高分辨率提升图像清晰度。低分辨率提升在低端设备和较慢网络中的串流体验。</string>
+    <string name="resolution_prefix_native">本地</string>
+    <string name="resolution_prefix_custom">自定义</string>
+    <string name="resolution_prefix_native_fullscreen">原生全屏</string>
     <string name="title_native_res_dialog">本地分辨率警告</string>
     <string name="text_native_res_dialog">流媒体服务器可能不支持原始分辨率或者 FPS。您可能需要手动为主机配置匹配的自定义显示模式。\n\n如果您选择在 NVIDIA 控制面板中创建与屏幕设置相匹配的自定义分辨率，请确保您已阅读并理解 NVIDIA 关于显示器可能损坏、电脑不稳定和其他潜在问题的警告。\n\n我们不对因在电脑上创建自定义分辨率而导致的任何问题负责。\n\n您的显示器可能不支持必要的显示配置。如果是这样，您可以尝试设置虚拟显示器。最后，如果您的设备或主机不支持以特定分辨率或刷新率进行流式传输，那就很不幸了。</string>
     <string name="title_fps_list">视频帧数</string>
@@ -182,20 +193,36 @@
     <string name="title_custom_resolutions">自定义分辨率</string>
     <string name="summary_custom_resolutions">杂鱼～那么多分辨率都不能满足你了啊！</string>
     <string name="title_checkbox_stretch_video">将画面拉伸至全屏</string>
-    <string name="title_reverse_resolution">反转分辨率</string>
-    <string name="summary_reverse_resolution">交换宽度和高度值，用于特殊显示需求</string>
+    <string name="title_checkbox_reverse_resolution">反转分辨率</string>
+    <string name="summary_checkbox_reverse_resolution">交换宽度和高度值，用于特殊显示需求</string>
 
-    <string name="category_screen_position">画面位置设置</string>
-    <string name="title_list_screen_position">画面位置</string>
-    <string name="summary_list_screen_position">选择非全屏分辨率时画面的位置</string>
-    <string name="title_seekbar_screen_offset_x">水平偏移</string>
-    <string name="summary_seekbar_screen_offset_x">画面水平方向的偏移量</string>
-    <string name="title_seekbar_screen_offset_y">垂直偏移</string>
-    <string name="summary_seekbar_screen_offset_y">画面垂直方向的偏移量</string>
+    <string name="category_screen_position_settings">📺 画面位置设置</string>
+    <string name="title_screen_position">画面位置</string>
+    <string name="summary_screen_position">选择非全屏分辨率时画面的位置</string>
+    <string name="title_screen_offset_x">水平偏移</string>
+    <string name="summary_screen_offset_x">画面水平方向的偏移量</string>
+    <string name="title_screen_offset_y">垂直偏移</string>
+    <string name="summary_screen_offset_y">画面垂直方向的偏移量</string>
+    <string name="resolution_prefix_native_landscape">（横向）</string>
+    <string name="resolution_prefix_native_portrait">（纵向）</string>
+    <string name="fps_suffix_fps">FPS</string>
+    <string name="title_native_fps_dialog">原生 FPS 警告</string>
+    <string name="custom_resolution_input_title">输入自定义分辨率</string>
+    <string name="width_label">宽度:</string>
+    <string name="height_label">高度:</string>
+    <string name="width_hint">3000</string>
+    <string name="height_hint">2000</string>
+    <string name="add_resolution">添加分辨率</string>
+    <string name="invalid_resolution_format">分辨率格式无效，请使用 宽度x高度 格式</string>
+    <string name="resolution_already_exists">该分辨率已存在</string>
+    <string name="resolution_added_successfully">分辨率添加成功</string>
 
-    <string name="category_audio_settings">音频设置</string>
+    <string name="category_audio_settings">🔊 音频设置</string>
     <string name="title_audio_config_list">环绕声设置</string>
     <string name="summary_audio_config_list">为家庭影院系统启用5.1或7.1环绕声</string>
+    <string name="audioconf_stereo">立体声</string>
+    <string name="audioconf_51surround">5.1环绕声</string>
+    <string name="audioconf_71surround">7.1环绕声</string>
     <string name="title_checkbox_enable_audiofx">启用对系统均衡器的支持</string>
     <string name="summary_checkbox_enable_audiofx">串流时允许音效工作，可能会导致音频延迟增加</string>
     <string name="title_checkbox_enable_mic">启用麦克风重定向</string>
@@ -203,7 +230,8 @@
     <string name="title_seekbar_mic_bitrate">麦克风比特率</string>
     <string name="summary_seekbar_mic_bitrate">调整麦克风重定向的音频质量。更高的比特率提供更好的音频质量，但会使用更多的带宽。</string>
     <string name="suffix_seekbar_mic_bitrate_kbps">kbps</string>
-    <string name="category_gamepad_settings">手柄设置</string>
+
+    <string name="category_gamepad_settings">🎮 手柄设置</string>
     <string name="title_checkbox_multi_controller">自动检测手柄</string>
     <string name="summary_checkbox_multi_controller">禁用此项所有手柄将视为一个手柄</string>
     <string name="title_checkbox_vibrate_fallback">用设备震动模拟游戏震动效果</string>
@@ -231,7 +259,7 @@
     <string name="title_checkbox_gamepad_motion_fallback">模拟游戏手柄运动传感器支持</string>
     <string name="summary_checkbox_gamepad_motion_fallback">如果你连接的游戏手柄或 Android 版本不支持游戏手柄传感器，请使用设备的内置运动传感器。\n注意：启用此选项可能会导致您的游戏手柄在主机上被识别为 PlayStation 4控制器。</string>
 
-    <string name="category_input_settings">输入设置</string>
+    <string name="category_input_settings">⌨️ 输入设置</string>
     <string name="title_checkbox_touchscreen_trackpad">将触控屏作为触控板使用</string>
     <string name="summary_checkbox_touchscreen_trackpad">如果启用，则将触控屏作为触控板使用。如果禁用，则启用多点触控模式</string>
     <string name="title_checkbox_sync_touch_event_with_display">触控事件与显示刷新同步</string>
@@ -248,8 +276,9 @@
     <string name="title_checkbox_enable_esc_menu">允许 ESC 键打开返回菜单</string>
     <string name="summary_checkbox_enable_esc_menu">启用时，双击 ESC 键会打开流返回菜单，单击 ESC 键则传递给主机。</string>
 
-    <string name="category_enhanced_touch_settings">多点触控设置</string>
+    <string name="category_enhanced_touch_settings">👆 多点触控设置</string>
     <string name="title_checkbox_enable_enhanced_touch">打开增强型触控</string>
+    <string name="summary_checkbox_enable_enhanced_touch">关闭后可恢复经典模拟鼠标操作模式</string>
     <string name="title_seekbar_long_press_flat_region">多点触控长按抖动消除区域</string>
     <string name="summary_seekbar_long_press_flat_region">全屏生效。像素值越高，抖动消除区域越大。抖动消除区域内，应用只发送触点的初始坐标</string>
     <string name="suffix_seekbar_flat_region_pixels">像素</string>
@@ -262,8 +291,13 @@
     <string name="title_pointer_velocity_factor">触点灵敏度</string>
     <string name="summary_pointer_velocity_factor">设置增强型触控区内的触点移速比例。100% = 禁用，小于100%为缩小，大于100%为放大</string>
     <string name="dialog_title_pointer_velocity_factor">增强型触控区内的触点移速比例</string>
+    <string name="suffix_pointer_velocity_factor">%</string>
+    <string name="title_fixed_x_velocity">设置增强型触控区内触点的水平方向固定移速</string>
+    <string name="summary_fixed_x_velocity">设置增强型触控区内触点的水平方向固定移速. 0像素 = 禁用，大于0将禁用水平方向的移速比例，改为固定移速</string>
+    <string name="dialog_title_fixed_x_velocity">触点水平方向固定移速</string>
+    <string name="suffix_fixed_x_velocity">像素</string>
 
-    <string name="category_on_screen_controls_settings">屏幕控制按钮设置</string>
+    <string name="category_on_screen_controls_settings">📱 屏幕控制按钮设置</string>
     <string name="title_checkbox_show_onscreen_controls">显示屏幕控制按钮</string>
     <string name="summary_checkbox_show_onscreen_controls">在触摸屏上显示一层虚拟手柄</string>
     <string name="title_checkbox_vibrate_osc">启用震动</string>
@@ -282,9 +316,9 @@
     <string name="dialog_title_reset_osc">重置按钮布局</string>
     <string name="dialog_text_reset_osc">你确定要删除所保存的屏幕按钮布局吗？</string>
 
-    <string name="category_cown_setting">王冠版设置</string>
-    <string name="title_show_onscreen_keyboard">王冠的超级功能</string>
-    <string name="summary_show_onscreen_keyboard">串流中自定义按键和一些设置，并将这些保存到自定义可快速切换的配置中</string>
+    <string name="category_crown_features">👑 王冠的功能区</string>
+    <string name="title_crown_super_features">王冠的超级功能</string>
+    <string name="summary_crown_super_features">串流中自定义按键和一些设置，并将这些保存到自定义可快速切换的配置中</string>
     <string name="title_export_super_config">导出配置文件</string>
     <string name="summary_export_super_config">导出自定义按钮的和串流内设置的配置文件</string>
     <string name="title_import_super_config">导入配置文件</string>
@@ -292,7 +326,7 @@
     <string name="title_about_author">这是 威力加强 × 王冠 版</string>
     <string name="summary_about_author">威力加强版：作者：Qiin2333，Github: https://github.com//moonlight-android \n王冠版：作者：ACrown，请关注他的B站：西瓜hub，Github: https://github.com/WACrown/moonlight-android</string>
 
-    <string name="category_ui_settings">界面设置</string>
+    <string name="category_ui_settings">🎨 界面设置</string>
     <string name="title_checkbox_enable_pip">启用画中画观察模式</string>
     <string name="summary_checkbox_enable_pip">允许多任务时观看串流画面（但不操作）</string>
     <string name="title_use_external_display">使用外接显示器</string>
@@ -301,18 +335,18 @@
     <string name="summary_language_list">选择 Moonlight 显示的语言</string>
     <string name="title_checkbox_small_icon_mode">使用小图标</string>
     <string name="summary_checkbox_small_icon_mode">使用小图标以在屏幕上显示更多项目</string>
-    <string name="title_background_image_url">背景图片 API</string>
-    <string name="summary_background_image_url">输入自定义背景图片的 API，也可以是单张图片地址哦，留空就是看随机涩图</string>
-    <string name="dialog_title_background_image_url">背景图片 API</string>
-    <string name="dialog_text_background_image_url">请输入完整的图片 API 地址</string>
+    <string name="title_background_image_api">背景图片 API</string>
+    <string name="summary_background_image_api">输入自定义背景图片的 API，也可以是单张图片地址哦，留空就是看随机涩图</string>
+    <string name="dialog_title_background_image_api">背景图片 API</string>
+    <string name="dialog_message_background_image_api">请输入完整的图片 API 地址</string>
 
-    <string name="category_host_settings">主机设置</string>
+    <string name="category_host_settings">🖥️ 主机设置</string>
     <string name="title_checkbox_enable_sops">优化游戏设置</string>
     <string name="summary_checkbox_enable_sops">允许GFE为最佳串流效果自动更改游戏设置</string>
     <string name="title_checkbox_host_audio">在电脑上播放声音</string>
     <string name="summary_checkbox_host_audio">在电脑和本设备同时输出声音</string>
 
-    <string name="category_advanced_settings">高级设置</string>
+    <string name="category_advanced_settings">🔧 高级设置</string>
     <string name="title_unlock_fps">解锁所有可用帧数</string>
     <string name="summary_unlock_fps">以 90 或 120 帧串流可能会减少在高端设备上的网络延迟，但会在不支持的设备上造成卡顿或崩溃</string>
     <string name="title_checkbox_reduce_refresh_rate">允许降低刷新率</string>
@@ -341,7 +375,7 @@
     <string name="summary_enable_post_stream_toast">串流结束后显示延迟信息</string>
     <string name="mic_stats_continuity">音频连续性: %.1f%% (捕获:%d 编码:%d 发送:%d 丢弃:%d)</string>
 
-    <string name="category_help">帮助</string>
+    <string name="category_help">📋 帮助</string>
     <string name="title_setup_guide">安装向导</string>
     <string name="summary_setup_guide">查看有关如何设置游戏电脑以进行流传输的说明</string>
     <string name="title_troubleshooting">解决方案向导</string>
@@ -357,21 +391,23 @@
     <string name="toast_controller_type_changed">游戏手柄类型可能会因运动传感器模拟而改变</string>
 
     <!-- Array strings -->
+    <string name="screen_position_current">当前：</string>
+    <string name="screen_position_top_left">左上</string>
+    <string name="screen_position_top_center">顶部居中</string>
+    <string name="screen_position_top_right">右上</string>
+    <string name="screen_position_center_left">左侧居中</string>
+    <string name="screen_position_center">居中</string>
+    <string name="screen_position_center_right">右侧居中</string>
+    <string name="screen_position_bottom_left">左下</string>
+    <string name="screen_position_bottom_center">底部居中</string>
+    <string name="screen_position_bottom_right">右下</string>
+
     <string name="resolution_360p">360p</string>
     <string name="resolution_480p">480p</string>
     <string name="resolution_720p">720p</string>
     <string name="resolution_1080p">1080p</string>
     <string name="resolution_1440p">1440p</string>
     <string name="resolution_4k">4K</string>
-
-    <string name="resolution_prefix_native">本地</string>
-    <string name="resolution_prefix_native_fullscreen">原生全屏</string>
-
-    <string name="resolution_prefix_native_landscape">（横向）</string>
-    <string name="resolution_prefix_native_portrait">（纵向）</string>
-
-    <string name="fps_suffix_fps">FPS</string>
-    <string name="title_native_fps_dialog">原生 FPS 警告</string>
 
     <string name="fps_30">30 FPS</string>
     <string name="fps_60">60 FPS</string>
@@ -384,10 +420,6 @@
     <string name="pacing_balanced">平衡</string>
     <string name="pacing_balanced_alt">有FPS限制的平衡</string>
     <string name="pacing_smoothness">优先视频流畅度（可能会显著增大延迟）</string>
-
-    <string name="audioconf_stereo">立体声</string>
-    <string name="audioconf_51surround">5.1环绕声</string>
-    <string name="audioconf_71surround">7.1环绕声</string>
 
     <string name="analogscroll_none">默认 (两个摇杆都控制鼠标)</string>
     <string name="analogscroll_left">左摇杆</string>
@@ -403,8 +435,27 @@
     <string name="videoformat_h264always">首选 H.264</string>
     <string name="videoformat_hevcalways">首选 HEVC</string>
 
+    <!-- Crown feature toggle -->
+    <string name="crown_toggle_button">王冠</string>
+    <string name="crown_mode_normal">普通模式</string>
+    <string name="crown_mode_crown">王冠模式</string>
+    <string name="crown_switch_to_normal">退出王冠模式</string>
+    <string name="crown_switch_to_crown">启用王冠模式</string>
+
     <!-- Moonlight V+ PC download -->
     <string name="title_moonlight_vplus_pc_download">Moonlight V+ PC版下载</string>
+
+    <!-- Tip strings -->
+    <string name="tip_esc_exit">💡 串流小课堂：使用"退出"按钮可以快速完全地退出串流，让屏幕恢复到串流前的状态哦～</string>
+    <string name="tip_double_tap_mouse">💡 串流小课堂：主机列表页面长按顶部空白区域可以下载当前涩图呢～</string>
+    <string name="tip_long_press_controller">💡 串流小课堂：长按应用可以选择使用虚拟显示器串流，超方便的！</string>
+    <string name="tip_volume_keys">💡 串流小课堂：建议使用5GHz WiFi获得更好体验，网速飞起来～</string>
+    <string name="tip_wallpaper_change">💡 串流小课堂：壁纸API选项可以设置随机壁纸来源的API，也可以是单张图片地址哦</string>
+    <string name="tip_5ghz_wifi">💡 串流小课堂：使用"平衡"的帧速率模式可以获得最佳的帧率与延迟平衡，完美！</string>
+    <string name="tip_close_apps">💡 串流小课堂：启用HDR可以获得更好的色彩与对比度表现，在Sunshine基地版中绑定对应的HDR配置文件可以更精准地与客户端屏幕同步，色彩绚丽～</string>
+    <string name="tip_home_saves">💡 串流小课堂：主页的5个小鲨牙可以快速保存和切换串流配置～</string>
+    <string name="tip_resolution_balance">💡 串流小课堂：关闭其他应用可以提升性能，让串流更顺畅～</string>
+    <string name="tip_hdr_colors">💡 串流小课堂：调整分辨率可以平衡画质和性能，找到最适合的设置～</string>
 
     <!-- Accessibility -->
     <string name="keyboard_service_label">Moonlight 屏蔽快捷键</string>

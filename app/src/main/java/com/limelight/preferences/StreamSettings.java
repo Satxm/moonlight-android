@@ -268,7 +268,7 @@ public class StreamSettings extends Activity {
                 int width = Integer.parseInt(resolution[0]);
                 int height = Integer.parseInt(resolution[1]);
                 String aspectRatio = AspectRatioConverter.getAspectRatio(width,height);
-                String displayText = "Custom ";
+                String displayText = getResources().getString(R.string.resolution_prefix_custom) + " ";
 
                 if(aspectRatio != null){
                     displayText+=aspectRatio+" ";

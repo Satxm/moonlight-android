@@ -94,6 +94,11 @@
     <string name="conn_terminated_msg">The connection was terminated.</string>
     <string name="error_code_prefix">Error code:</string>
 
+    <!-- Copy strings -->
+    <string name="copy_content">Copy Content</string>
+    <string name="copy_success">Content copied to clipboard</string>
+    <string name="copy_details">Copy Details</string>
+
     <!-- General strings -->
     <string name="ip_hint">IP address of host PC</string>
     <string name="searching_pc">Searching for host PCs on your local network…\n\nEnsure Sunshine is running on your host PC or GameStream is enabled in the GeForce Experience SHIELD settings.</string>
@@ -139,13 +144,16 @@
     <string name="game_menu">Game Menu</string>
     <string name="game_menu_toggle_keyboard">Toggle On-screen Keyboard</string>
     <string name="game_menu_toggle_performance_overlay">Toggle Performance Overlay</string>
+    <string name="game_menu_toggle_virtual_controller">Toggle Virtual Controller</string>
     <string name="game_menu_toggle_host_keyboard">Toggle Host Keyboard</string>
+    <string name="game_menu_toggle_all_keyboard">Toggle PC Keyboard</string>
     <string name="game_menu_toggle_classic">Switch to classic mouse mode</string>
     <string name="game_menu_toggle_enhanced">Switch to enhanced multi-touch</string>
     <string name="game_menu_toggle_mouse_on">Enable Controller Mouse Emulation</string>
     <string name="game_menu_toggle_mouse_off">Disable Controller Mouse Emulation</string>
     <string name="game_menu_disconnect">Disconnect</string>
     <string name="game_menu_exit">Disconnect and exit</string>
+    <string name="game_menu_disconnect_and_quit">Disconnect and Quit</string>
     <string name="game_menu_cancel">Cancel</string>
     <string name="game_menu_send_keys">Send special Key(s)</string>
     <string name="game_menu_send_keys_esc">Send ESC (Menu)</string>
@@ -167,9 +175,12 @@
     <string name="addpc_wrong_sitelocal">That address doesn\'t look right. You must use your router\'s public IP address for streaming over the Internet.</string>
 
     <!-- Preferences -->
-    <string name="category_basic_settings">Basic Settings</string>
+    <string name="category_basic_settings">⚙️ Basic Settings</string>
     <string name="title_resolution_list">Video resolution</string>
-    <string name="summary_resolution_list">Increase to improve image clarity. Decrease for better performance on lower end devices and slower networks.</string>
+    <string name="summary_resolution_list">Increase to improve image clarity. Decrease for better performance on lower end devices and slower networks.</string>    
+    <string name="resolution_prefix_native">Native</string>
+    <string name="resolution_prefix_custom">Custom</string>
+    <string name="resolution_prefix_native_fullscreen">Native Full-Screen</string>
     <string name="title_native_res_dialog">Native Resolution Warning</string>
     <string name="text_native_res_dialog">Native resolution and/or FPS may not be supported by the streaming server. You will probably need to configure a matching custom display mode for the host PC manually.\n\nIf you choose to create a custom resolution in NVIDIA Control Panel to match your screen settings, please ensure you have read and understood NVIDIA\'s warning regarding possible monitor damage, PC instability, and other potential problems.\n\nWe are not responsible for any problems resulting from creating a custom resolution on your PC.\n\nIt may be that your monitor does not support a necessary display configurationItem. If so, you may try to set up a virtual monitor. Finally, if your device or host PC does not support streaming at a specific resolution or refresh rate, you\'re out of luck unfortunately.</string>
     <string name="title_fps_list">Video frame rate</string>
@@ -184,28 +195,45 @@
     <string name="title_custom_resolutions">Custom resolutions</string>
     <string name="summary_custom_resolutions">Create your own custom resolutions</string>
     <string name="title_checkbox_stretch_video">Stretch video to full-screen</string>
-    <string name="title_reverse_resolution">Reverse resolution</string>
-    <string name="summary_reverse_resolution">Swap the width and height values for special display requirements.</string>
+    <string name="title_checkbox_reverse_resolution">Reverse Resolution</string>
+    <string name="summary_checkbox_reverse_resolution">Swap width and height values for special display requirements</string>
 
-    <string name="category_screen_position">Screen Position Settings</string>
-    <string name="title_list_screen_position">Screen position</string>
-    <string name="summary_list_screen_position">Position of the screen when selecting a non-fullscreen resolution</string>
-    <string name="title_seekbar_screen_offset_x">horizontal offset</string>
-    <string name="summary_seekbar_screen_offset_x">Horizontal offset of the screen</string>
-    <string name="title_seekbar_screen_offset_y">Vertical offset</string>
-    <string name="summary_seekbar_screen_offset_y">Vertical offset of the screen</string>
+    <string name="category_screen_position_settings">📺 Screen Position Settings</string>
+    <string name="title_screen_position">Screen Position</string>
+    <string name="summary_screen_position">Choose the position of the screen when using non-fullscreen resolution</string>
+    <string name="title_screen_offset_x">Horizontal Offset</string>
+    <string name="summary_screen_offset_x">Horizontal offset of the screen</string>
+    <string name="title_screen_offset_y">Vertical Offset</string>
+    <string name="summary_screen_offset_y">Vertical offset of the screen</string>
+    <string name="resolution_prefix_native_landscape">(Landscape)</string>
+    <string name="resolution_prefix_native_portrait">(Portrait)</string>
+    <string name="fps_suffix_fps">FPS</string>
+    <string name="title_native_fps_dialog">Native FPS Warning</string>
+    <string name="custom_resolution_input_title">Enter Custom Resolution</string>
+    <string name="width_label">Width:</string>
+    <string name="height_label">Height:</string>
+    <string name="width_hint">e.g. 1920</string>
+    <string name="height_hint">e.g. 1080</string>
+    <string name="add_resolution">Add Resolution</string>
+    <string name="invalid_resolution_format">Invalid resolution format, please use width x height format</string>
+    <string name="resolution_already_exists">This resolution already exists</string>
+    <string name="resolution_added_successfully">Resolution added successfully</string>
 
-    <string name="category_audio_settings">Audio Settings</string>
+    <string name="category_audio_settings">🔊 Audio Settings</string>
     <string name="title_audio_config_list">Surround sound configurationItem</string>
     <string name="summary_audio_config_list">Enable 5.1 or 7.1 surround sound for home-theater systems</string>
+    <string name="audioconf_stereo">Stereo</string>
+    <string name="audioconf_51surround">5.1 Surround Sound</string>
+    <string name="audioconf_71surround">7.1 Surround Sound</string>
     <string name="title_checkbox_enable_audiofx">Enable system equalizer support</string>
-    <string name="summary_checkbox_enable_audiofx">Allows audio effects to function while streaming, but may increase audio latency</string>
+    <string name="summary_checkbox_enable_audiofx">Allow audio effects to work during streaming, may increase audio latency</string>
     <string name="title_checkbox_enable_mic">Enable microphone redirection</string>
     <string name="summary_checkbox_enable_mic">Redirect device microphone to the host computer for voice chat and communication, requires Sunshine-Foundation version 20250720 or higher on the host.</string>
     <string name="title_seekbar_mic_bitrate">Microphone bitrate</string>
     <string name="summary_seekbar_mic_bitrate">Adjust the audio quality of microphone redirection. Higher bitrates provide better audio quality but use more bandwidth.</string>
     <string name="suffix_seekbar_mic_bitrate_kbps">kbps</string>
-    <string name="category_gamepad_settings">Gamepad Settings</string>
+
+    <string name="category_gamepad_settings">🎮 Gamepad Settings</string>
     <string name="title_checkbox_multi_controller">Automatic gamepad presence detection</string>
     <string name="summary_checkbox_multi_controller">Unchecking this option forces a gamepad to always be present</string>
     <string name="title_checkbox_vibrate_fallback">Emulate rumble support with vibration</string>
@@ -233,7 +261,7 @@
     <string name="title_checkbox_gamepad_motion_fallback">Emulate gamepad motion sensor support</string>
     <string name="summary_checkbox_gamepad_motion_fallback">Uses your device\'s built-in motion sensors if gamepad sensors are not supported by your connected gamepad or your Android version.\nNote: Enabling this option may cause your gamepad to appear as a PlayStation controller on the host.</string>
 
-    <string name="category_input_settings">Input Settings</string>
+    <string name="category_input_settings">⌨️ Input Settings</string>
     <string name="title_checkbox_touchscreen_trackpad">Use the touchscreen as a trackpad</string>
     <string name="summary_checkbox_touchscreen_trackpad">If enabled, the touchscreen acts like a trackpad. If disabled, multi-point touch will be enabled.</string>
     <string name="title_checkbox_sync_touch_event_with_display">Synchronize touch event with display refresh </string>
@@ -250,7 +278,7 @@
     <string name="title_checkbox_enable_esc_menu">Allow ESC key to open return menu</string>
     <string name="summary_checkbox_enable_esc_menu">When enabled, double-pressing ESC key opens the stream return menu, single ESC press is passed through to host</string>
 
-    <string name="category_enhanced_touch_settings">Enhanced Multi-Point Touch</string>
+    <string name="category_enhanced_touch_settings">👆 Enhanced Multi-Point Touch</string>
     <string name="title_checkbox_enable_enhanced_touch">Enable enhanced touch</string>
     <string name="summary_checkbox_enable_enhanced_touch">\t</string>
     <string name="title_seekbar_long_press_flat_region">Flat region for long press jitter elimination in multi-point touch mode</string>
@@ -259,15 +287,19 @@
     <string name="title_checkbox_enhanced_touch_on_which_side">Reverse enhanced touch zone</string>
     <string name="summary_checkbox_enhanced_touch_on_which_side">Reverse enhanced touch zone to the left (default: on the right side of screen)</string>
     <string name="title_enhanced_touch_zone_divider">Enhanced touch zone divider</string>
-    <string name="summary_enhanced_touch_zone_divider">Defines where to divide native-touch and enhanced-touch zones, less than 50% means divide from a point on the left, more than 50% means right</string>
-    <string name="dialog_title_enhanced_touch_zone_divider">Less than 50% means divide from a point on the left, more than 50% means right</string>
+    <string name="summary_enhanced_touch_zone_divider">Defines where to divide native-touch and enhanced-touch zones, less than 50% means divide from a point on the left, more than 50% means Right</string>
+    <string name="dialog_title_enhanced_touch_zone_divider">Less than 50% means divide from a point on the left, more than 50% means Right</string>
     <string name="suffix_enhanced_touch_zone_divider">%</string>
     <string name="title_pointer_velocity_factor">Pointer velocity factor</string>
     <string name="summary_pointer_velocity_factor">Set pointer velocity factor for enhanced touch zone. Set 100% to disable</string>
     <string name="dialog_title_pointer_velocity_factor">Set pointer velocity factor for enhanced touch zone. Set 100% to disable</string>
     <string name="suffix_pointer_velocity_factor">%</string>
+    <string name="title_fixed_x_velocity">Set fixed X (horizontal) velocity</string>
+    <string name="summary_fixed_x_velocity">Set fixed X (horizontal) velocity. Set 0 to disable fixed x velocity mode. Larger than 0 means disable horizontal velocity factor to use fixed velocity instead.</string>
+    <string name="dialog_title_fixed_x_velocity">Set fixed X (horizontal) velocity in pixels. Set 0 to disable fixed x velocity.</string>
+    <string name="suffix_fixed_x_velocity">pixels</string>
 
-    <string name="category_on_screen_controls_settings">On-screen Controls Settings</string>
+    <string name="category_on_screen_controls_settings">📱 On-screen Controls Settings</string>
     <string name="title_checkbox_show_onscreen_controls">Show on-screen controls</string>
     <string name="summary_checkbox_show_onscreen_controls">Show virtual controller overlay on touchscreen</string>
     <string name="title_checkbox_vibrate_osc">Enable vibration</string>
@@ -286,9 +318,9 @@
     <string name="dialog_title_reset_osc">Reset Layout</string>
     <string name="dialog_text_reset_osc">Are you sure you want to delete your saved on-screen controls layout?</string>
 
-    <string name="category_cown_setting">WACrown\'s Settings</string>
-    <string name="title_show_onscreen_keyboard">WACrown\'s super features</string>
-    <string name="summary_show_onscreen_keyboard">Customize buttons and some settings during streaming, and save them into custom configurations for quick switching</string>
+    <string name="category_crown_features">👑 Crown Feature Area</string>
+    <string name="title_crown_super_features">Crown Super Features</string>
+    <string name="summary_crown_super_features">Custom buttons and settings during streaming, saved to custom configurations for quick switching</string>
     <string name="title_export_super_config">Export super config</string>
     <string name="summary_export_super_config">Export the configuration files of custom buttons and stream settings</string>
     <string name="title_import_super_config">Import super config</string>
@@ -296,7 +328,7 @@
     <string name="title_about_author">This is V+ × WACrown\'s Edition</string>
     <string name="summary_about_author">V+ Edition: Author: Qiin2333，Github: https://github.com//moonlight-android \nWACrown\'s Edition: Author: WACrown, Please follow him\'s bilibili: 西瓜hub, Github: https://github.com/WACrown/moonlight-android</string>
 
-    <string name="category_ui_settings">UI Settings</string>
+    <string name="category_ui_settings">🎨 UI Settings</string>
     <string name="title_checkbox_enable_pip">Enable Picture-in-Picture observer mode</string>
     <string name="summary_checkbox_enable_pip">Allows the stream to be viewed (but not controlled) while multitasking</string>
     <string name="title_use_external_display">Use external monitor</string>
@@ -305,18 +337,18 @@
     <string name="summary_language_list">Language to use for Moonlight</string>
     <string name="title_checkbox_small_icon_mode">Use small box art</string>
     <string name="summary_checkbox_small_icon_mode">Smaller box art in the app grid allows more apps to be visible on screen</string>
-    <string name="title_background_image_url">Background image API URL</string>
-    <string name="summary_background_image_url">Input a custom background image API, or it can be the address of a single image; leaving it blank will show a random image.</string>
-    <string name="dialog_title_background_image_url">Background image API URL</string>
-    <string name="dialog_text_background_image_url">Please enter the complete image API URL</string>
+    <string name="title_background_image_api">Background Image API</string>
+    <string name="summary_background_image_api">Enter a custom background image API, or a single image URL. Leave empty to view random images</string>
+    <string name="dialog_title_background_image_api">Background Image API</string>
+    <string name="dialog_message_background_image_api">Please enter the complete image API</string>
 
-    <string name="category_host_settings">Host Settings</string>
+    <string name="category_host_settings">🖥️ Host Settings</string>
     <string name="title_checkbox_enable_sops">Optimize game settings</string>
     <string name="summary_checkbox_enable_sops">Allow GFE to modify game settings for optimal streaming</string>
     <string name="title_checkbox_host_audio">Play audio on PC</string>
     <string name="summary_checkbox_host_audio">Play audio from the computer and this device</string>
 
-    <string name="category_advanced_settings">Advanced Settings</string>
+    <string name="category_advanced_settings">🔧 Advanced Settings</string>
     <string name="title_unlock_fps">Unlock all possible frame rates</string>
     <string name="summary_unlock_fps">Streaming at 90 or 120 FPS may reduce latency on high-end devices but can cause lag or instability on devices that can\'t support it</string>
     <string name="title_checkbox_reduce_refresh_rate">Allow refresh rate reduction</string>
@@ -333,19 +365,19 @@
     <string name="summary_full_range">This will cause loss of detail in light and dark areas if your device doesn\'t properly display full range video content.</string>
     <string name="title_enable_perf_overlay">Show performance stats while streaming</string>
     <string name="summary_enable_perf_overlay">Display real-time stream performance information while streaming</string>
-    <string name="title_perf_overlay_orientation">Performance overlay orientation</string>
-    <string name="summary_perf_overlay_orientation">Select the orientation of the performance overlay</string>
-    <string name="title_perf_overlay_position">Performance overlay position</string>
-    <string name="summary_perf_overlay_position">Select the top/bottom when horizontal, and select the four corner positions when vertical</string>
-    <string name="title_reset_perf_overlay_position">Reset performance overlay position</string>
-    <string name="summary_reset_perf_overlay_position">Reset performance overlay position to the preset position</string>
-    <string name="title_perf_overlay_display_items">Items to show </string>
-    <string name="summary_perf_overlay_display_items">Select the information items to show in the performance overlay</string>
+    <string name="title_perf_overlay_orientation">Performance Overlay Orientation</string>
+    <string name="summary_perf_overlay_orientation">Choose the display orientation for performance statistics</string>
+    <string name="title_perf_overlay_position">Performance Overlay Position</string>
+    <string name="summary_perf_overlay_position">Choose top/bottom for horizontal orientation, or four corner positions for vertical orientation</string>
+    <string name="title_reset_perf_overlay_position">Reset Performance Overlay Position</string>
+    <string name="summary_reset_perf_overlay_position">Reset performance overlay to preset position</string>
+    <string name="title_perf_overlay_display_items">Performance Overlay Display Items</string>
+    <string name="summary_perf_overlay_display_items">Select information items to display in the performance overlay</string>
     <string name="title_enable_post_stream_toast">Show latency message after streaming</string>
     <string name="summary_enable_post_stream_toast">Display a latency information message after the stream ends</string>
     <string name="mic_stats_continuity">Audio continuity: %.1f%% (Captured:%d Encoded:%d Sent:%d Dropped:%d)</string>
 
-    <string name="category_help">Help</string>
+    <string name="category_help">📋 Help</string>
     <string name="title_setup_guide">Setup guide</string>
     <string name="summary_setup_guide">View instructions on how to set up your gaming PC for streaming</string>
     <string name="title_troubleshooting">Troubleshooting guide</string>
@@ -361,21 +393,23 @@
     <string name="toast_controller_type_changed">Gamepad type may be changed due to motion sensor emulation</string>
 
     <!-- Array strings -->
+    <string name="screen_position_current">Current: </string>
+    <string name="screen_position_top_left">Top Left</string>
+    <string name="screen_position_top_center">Top Center</string>
+    <string name="screen_position_top_right">Top Right</string>
+    <string name="screen_position_center_left">Center Left</string>
+    <string name="screen_position_center">Center</string>
+    <string name="screen_position_center_right">Center Right</string>
+    <string name="screen_position_bottom_left">Bottom Left</string>
+    <string name="screen_position_bottom_center">Bottom Center</string>
+    <string name="screen_position_bottom_right">Bottom Right</string>
+
     <string name="resolution_360p">360p</string>
     <string name="resolution_480p">480p</string>
     <string name="resolution_720p">720p</string>
     <string name="resolution_1080p">1080p</string>
     <string name="resolution_1440p">1440p</string>
     <string name="resolution_4k">4K</string>
-
-    <string name="resolution_prefix_native">Native</string>
-    <string name="resolution_prefix_native_fullscreen">Native Full-Screen</string>
-
-    <string name="resolution_prefix_native_landscape">(Landscape)</string>
-    <string name="resolution_prefix_native_portrait">(Portrait)</string>
-
-    <string name="fps_suffix_fps">FPS</string>
-    <string name="title_native_fps_dialog">Native FPS Warning</string>
 
     <string name="fps_30">30 FPS</string>
     <string name="fps_60">60 FPS</string>
@@ -388,10 +422,6 @@
     <string name="pacing_balanced">Balanced</string>
     <string name="pacing_balanced_alt">Balanced with FPS limit</string>
     <string name="pacing_smoothness">Prefer smoothest video (may significantly increase latency)</string>
-
-    <string name="audioconf_stereo">Stereo</string>
-    <string name="audioconf_51surround">5.1 Surround Sound</string>
-    <string name="audioconf_71surround">7.1 Surround Sound</string>
 
     <string name="analogscroll_none">None (both sticks move the mouse)</string>
     <string name="analogscroll_right">Right analog stick</string>
@@ -407,8 +437,27 @@
     <string name="videoformat_h264always">Prefer H.264</string>
     <string name="videoformat_hevcalways">Prefer HEVC</string>
 
+    <!-- Crown feature toggle -->
+    <string name="crown_toggle_button">Crown</string>
+    <string name="crown_mode_normal">Normal Mode</string>
+    <string name="crown_mode_crown">Crown Mode</string>
+    <string name="crown_switch_to_normal">Switch to Normal Mode</string>
+    <string name="crown_switch_to_crown">Switch to Crown Mode</string>
+
     <!-- Moonlight V+ PC download -->
     <string name="title_moonlight_vplus_pc_download">Moonlight V+ PC Download</string>
+
+    <!-- Tip strings -->
+    <string name="tip_esc_exit">💡 Tip: Use the "Exit" button to quickly and completely exit the stream, restoring your screen to its pre-stream state~</string>
+    <string name="tip_double_tap_mouse">💡 Tip: Long press the top blank area on the host list page to download the current wallpaper~</string>
+    <string name="tip_long_press_controller">💡 Tip: Long press an app to choose virtual display streaming, super convenient!</string>
+    <string name="tip_volume_keys">💡 Tip: Using 5GHz WiFi provides a better experience, lightning fast speeds~</string>
+    <string name="tip_wallpaper_change">💡 Tip: The wallpaper API option can set the API for random wallpaper sources, or a single image address</string>
+    <string name="tip_5ghz_wifi">💡 Tip: Using "Balanced" frame rate mode gives you the best balance of frame rate and latency, perfect!</string>
+    <string name="tip_close_apps">💡 Tip: Enabling HDR provides better color and contrast performance. In Sunshine base version, binding the corresponding HDR profile can more precisely sync with the client screen, gorgeous colors~</string>
+    <string name="tip_home_saves">💡 Tip: The 5 small sharks on the home page can quickly save and switch streaming configurations~</string>
+    <string name="tip_resolution_balance">💡 Tip: Closing other apps can improve performance, making streaming smoother~</string>
+    <string name="tip_hdr_colors">💡 Tip: Adjusting resolution can balance quality and performance, find the perfect settings~</string>
 
     <!-- Accessibility -->
     <string name="keyboard_service_label">Block shortcut keys for Moonlight</string>

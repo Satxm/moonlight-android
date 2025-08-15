@@ -49,6 +49,9 @@
         <item name="android:textViewStyle">@style/PreferenceTextWithShadow</item>
         <item name="android:titleTextAppearance">@style/PreferenceTitleWithShadow</item>
         <item name="android:subtitleTextAppearance">@style/PreferenceSummaryWithShadow</item>
+        <item name="android:colorAccent">@color/theme_pink_secondary</item>
+        <item name="android:textColorPrimary">@color/theme_pink_secondary</item>
+        <item name="android:listDivider">@color/theme_pink_secondary</item>
     </style>
 
     <style name="PreferenceTextWithShadow">
@@ -63,18 +66,18 @@
     <style name="PreferenceTitleWithShadow" parent="PreferenceTextWithShadow">
         <item name="android:textSize">18sp</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:textColor">#FFECF0</item> <!-- 柔和的粉白色 -->
+        <item name="android:textColor">@android:color/white</item>
     </style>
 
     <style name="PreferenceSummaryWithShadow" parent="PreferenceTextWithShadow">
         <item name="android:textSize">14sp</item>
-        <item name="android:textColor">#E1F5FE</item> <!-- 柔和的浅蓝色 -->
+        <item name="android:textColor">@color/theme_pink_light</item> <!-- 柔和的浅蓝色 -->
     </style>
 
     <style name="PreferenceCategoryWithShadow" parent="PreferenceTextWithShadow">
         <item name="android:textSize">20sp</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:textColor">#FFD0F4</item> <!-- 柔和的粉色 -->
+        <item name="android:textColor">@color/theme_pink_secondary</item> 
         <item name="android:shadowColor">#AA000000</item> <!-- 更强的阴影 -->
         <item name="android:shadowRadius">5</item> <!-- 更大的阴影半径 -->
     </style>

@@ -9,4 +9,13 @@
     <color name="control_highlight_color">#2196F3</color>
     <color name="scene_btn_stroke">#2196F3</color>
     <color name="btn_pressed_color">#4D2196F3</color>
+
+    <!-- 主题粉色 -->
+    <color name="theme_pink_primary">#FF6B9D</color>
+    <color name="theme_pink_secondary">#FF8FA3</color>
+    <color name="theme_pink_light">#FFE3F2FD</color>
+    <color name="theme_pink_gradient_start">#FF6B9D</color>
+    <color name="theme_pink_gradient_center">#FF8BB3</color>
+    <color name="theme_pink_gradient_end">#FFA3C7</color>
+    <color name="theme_pink_dark">#FF4A7C</color>
 </resources>

@@ -215,10 +215,11 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
             Intent i = new Intent(PcView.this, AddComputerManually.class);
             startActivity(i);
         });
-        helpButton.setOnClickListener(v -> {
-//                HelpLauncher.launchSetupGuide(PcView.this);
-            joinQQGroup("LlbLDIF_YolaM4HZyLx0xAXXo04ZmoBM");
-        });
+        helpButton.setVisibility(View.GONE);
+//         helpButton.setOnClickListener(v -> {
+// //                HelpLauncher.launchSetupGuide(PcView.this);
+//             joinQQGroup("LlbLDIF_YolaM4HZyLx0xAXXo04ZmoBM");
+//         });
 
         // Amazon review didn't like the help button because the wiki was not entirely
         // navigable via the Fire TV remote (though the relevant parts were). Let's hide
