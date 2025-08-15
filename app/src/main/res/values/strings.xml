@@ -392,6 +392,25 @@
     <!-- Toasts -->
     <string name="toast_controller_type_changed">Gamepad type may be changed due to motion sensor emulation</string>
 
+    <!-- Details -->
+    <string name="details_name">Name: </string>
+    <string name="details_state">State: </string>
+    <string name="details_activeaddress">Active Address: </string>
+    <string name="details_uuid">UUID: </string>
+    <string name="details_localaddress">Local Address: </string>
+    <string name="details_remoteaddress">Remote Address: </string>
+    <string name="details_ipv6address">IPv6 Address: </string>
+    <string name="details_manualaddress">Manual Address: </string>
+    <string name="details_macaddress">MAC Address: </string>
+    <string name="details_pairstate">Pair State: </string>
+    <string name="details_runninggameid">Running Game ID: </string>
+    <string name="details_httpsport">HTTPS Port: </string>
+    <string name="details_online">ONLINE</string>
+    <string name="details_offline">OFFLINE</string>
+    <string name="details_unknown">UNKNOWN</string>
+    <string name="details_paired">PAIRED</string>
+    <string name="details_not_paired">NOT PAIRED</string>
+
     <!-- Array strings -->
     <string name="screen_position_current">Current: </string>
     <string name="screen_position_top_left">Top Left</string>

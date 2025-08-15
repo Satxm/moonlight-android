@@ -450,7 +450,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
     }
 
     private void showSaveConfirmationDialog(int sceneNumber) {
-        new AlertDialog.Builder(this)
+        new AlertDialog.Builder(this, R.style.AppDialogStyle)
             .setTitle("保存到场景" + sceneNumber)
             .setMessage("是否覆盖当前配置？")
             .setPositiveButton("保存", (dialog, which) -> saveCurrentConfiguration(sceneNumber))
@@ -889,7 +889,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                 return true;
 
             case VIEW_DETAILS_ID:
-                Dialog.displayDialog(PcView.this, getResources().getString(R.string.title_details), computer.details.toString(), false);
+                Dialog.displayDetailsDialog(PcView.this, getResources().getString(R.string.title_details), computer.details.toString(), false);
                 return true;
 
             case TEST_NETWORK_ID:
