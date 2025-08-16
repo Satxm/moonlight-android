@@ -41,9 +41,9 @@
     <string name="pair_pc_offline">电脑离线中</string>
     <string name="pair_pc_ingame">电脑正在游戏中，在配对之前你必须先退出游戏。</string>
     <string name="pair_pairing_title">配对中</string>
-    <string name="pair_pairing_msg">请在目标电脑上输入以下PIN码：</string>
-    <string name="pair_pairing_help">如果你的主机运行的是 Sunshine，那请前往Sunshine的网页界面输入PIN码。</string>
-    <string name="pair_incorrect_pin">PIN码错误</string>
+    <string name="pair_pairing_msg">请在目标电脑上输入以下 PIN 码：</string>
+    <string name="pair_pairing_help">如果你的主机运行的是 Sunshine，那请前往 Sunshine 的网页界面输入 PIN 码。</string>
+    <string name="pair_incorrect_pin">PIN 码错误</string>
     <string name="pair_fail">配对失败</string>
     <string name="pair_already_in_progress">配对中，请稍候</string>
 
@@ -52,7 +52,7 @@
     <string name="wol_no_mac">无法唤醒电脑，因为没有存储的 MAC 地址</string>
     <string name="wol_waking_pc">唤醒电脑中……</string>
     <string name="wol_waking_msg">唤醒电脑需要一些时间。\n如果电脑没有唤醒，请确保 Wake-On-LAN 设置无误。</string>
-    <string name="wol_fail">无法发送Wake-On-LAN数据包</string>
+    <string name="wol_fail">无法发送 Wake-On-LAN 数据包</string>
 
     <!-- Unpair messages -->
     <string name="unpairing">取消配对中……</string>
@@ -62,19 +62,19 @@
 
     <!-- Errors -->
     <string name="error_pc_offline">电脑离线中</string>
-    <string name="error_manager_not_running">ComputerManager 服务未运行。请稍等几秒或重启App。</string>
+    <string name="error_manager_not_running">ComputerManager 服务未运行。请稍等几秒或重启 App。</string>
     <string name="error_unknown_host">无法解析主机地址</string>
-    <string name="error_404">GFE返回了HTTP 404 错误，确保你的电脑显卡支持串流。使用远程桌面软件同样会引起此错误，请尝试重启电脑或重装GFE。</string>
+    <string name="error_404">GFE 返回了 HTTP 404 错误，确保你的电脑显卡支持串流。使用远程桌面软件同样会引起此错误，请尝试重启电脑或重装GFE。</string>
     <string name="title_decoding_error">视频解码器崩溃</string>
-    <string name="message_decoding_error">由于与该设备的视频解码器不兼容，Moonlight已崩溃。如果崩溃继续，请尝试调整串流设置。</string>
+    <string name="message_decoding_error">由于与该设备的视频解码器不兼容，Moonlight 已崩溃。如果崩溃继续，请尝试调整串流设置。</string>
     <string name="title_decoding_reset">重置视频设置</string>
     <string name="message_decoding_reset">由于设备的视频解码器在你选择的串流设置上持续崩溃，已重置你的串流设置。</string>
-    <string name="error_usb_prohibited">设备管理员已禁止USB访问。请检查您的Knox或MDM设置。</string>
+    <string name="error_usb_prohibited">设备管理员已禁止 USB 访问。请检查您的 Knox 或 MDM 设置。</string>
     <string name="unable_to_pin_shortcut">您当前的桌面启动器不允许创建长按子菜单。</string>
     <string name="video_decoder_init_failed">视频解码器初始化失败。您的设备可能不支持选定的分辨率或帧数。</string>
     <string name="no_video_received_error">没有接收到来自主机的视频。</string>
     <string name="no_frame_received_error">您的网络连接质量不佳。请降低视频码率设置或更换更快的网络连接。</string>
-    <string name="early_termination_error">开始串流时您的主机电脑出了点问题。\n\n请确保没有在主机电脑上开启任何受DRM保护的内容。您也可以尝试重新启动主机电脑。</string>
+    <string name="early_termination_error">开始串流时您的主机电脑出了点问题。\n\n请确保没有在主机电脑上开启任何受 DRM 保护的内容。您也可以尝试重新启动主机电脑。</string>
     <string name="frame_conversion_error">主机 PC 报告了致命的视频编码错误。\n\n尝试禁用 HDR 模式、更改流分辨率或更改主机 PC 的显示分辨率。</string>
     <string name="check_ports_msg">请检查您的防火墙和端口转发规则中的端口：</string>
 
@@ -99,7 +99,7 @@
 
     <!-- General strings -->
     <string name="ip_hint">串流电脑的IP地址</string>
-    <string name="searching_pc">在你的本地网络中搜索串流主机PC...\n\n确保 Sunshine 在主机上运行，或在 GeForce Experience SHIELD 设置中启用 GameStream。</string>
+    <string name="searching_pc">在你的本地网络中搜索串流主机……\n\n确保 Sunshine 在主机上运行，或在 GeForce Experience SHIELD 设置中启用 GameStream。</string>
     <string name="yes">确定</string>
     <string name="no">取消</string>
     <string name="lost_connection">与电脑失去连接</string>

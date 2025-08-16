@@ -6,10 +6,6 @@
     <color name="scene_color_4">#B7A9B2</color>    <!-- 灰紫粉 -->
     <color name="scene_color_5">#C4B7C1</color>    <!-- 浅藕荷 -->
 
-    <!-- 可选补充色 -->
-    <color name="scene_color_6">#D1C0A8</color>    <!-- 浅驼色 -->
-    <color name="scene_color_7">#9E9E9E</color>    <!-- 高级灰 -->
-
     <color name="overlay_background_vertical">#00000000</color>
     <color name="overlay_background_horizontal">#80161616</color>
 </resources>
