@@ -5,39 +5,50 @@
     android:layout_height="wrap_content"
     android:padding="20dp"
     android:background="@drawable/pc_item_selector">
-    <TextView
-        android:id="@+id/grid_text"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/grid_image_layout"
-        android:gravity="center"
-        android:padding="8dp"
-        android:textSize="18sp">
-    </TextView>
     <RelativeLayout
         android:id="@+id/grid_image_layout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+        android:layout_width="match_parent"
+        android:layout_height="150dp">
         <ImageView
             android:id="@+id/grid_image"
-            android:layout_width="match_parent"
-            android:layout_height="125dp"
-            android:layout_centerHorizontal="true">
+            android:layout_width="24dp"
+            android:layout_height="24dp">
         </ImageView>
+
+        <TextView
+            android:id="@+id/grid_ip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_toRightOf="@+id/grid_image"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:textColor="@android:color/white"
+            android:textSize="16sp">
+        </TextView>
         <ImageView
             android:id="@+id/grid_overlay"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="28dp"
-            android:layout_width="50dp"
-            android:layout_height="50dp">
+            android:layout_width="55dp"
+            android:layout_height="55dp"
+            android:layout_centerInParent="true">
         </ImageView>
         <ProgressBar
             android:id="@+id/grid_spinner"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="28dp"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
+            android:layout_width="75dp"
+            android:layout_height="75dp"
+            android:layout_centerInParent="true"
             android:indeterminate="true">
         </ProgressBar>
+        <TextView
+            android:id="@+id/grid_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:gravity="center"
+            android:padding="8dp"
+            android:textColor="@android:color/white"
+            android:textSize="18sp"
+            android:textStyle="bold">
+        </TextView>
     </RelativeLayout>
 </RelativeLayout>

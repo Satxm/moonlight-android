@@ -54,7 +54,7 @@ public class PcGridAdapter extends GenericGridAdapter<PcView.ComputerObject> {
 
     @SuppressLint("SetTextI18n")
     @Override
-    public void populateView(View parentView, ImageView imgView, ProgressBar prgView, TextView txtView, ImageView overlayView, PcView.ComputerObject obj) {
+    public void populateView(View parentView, ImageView imgView, ProgressBar prgView, TextView txtView, TextView txtView2, ImageView overlayView, PcView.ComputerObject obj) {
         imgView.setImageResource(R.drawable.ic_computer);
         if (obj.details.state == ComputerDetails.State.ONLINE) {
             imgView.setAlpha(1.0f);
@@ -70,7 +70,7 @@ public class PcGridAdapter extends GenericGridAdapter<PcView.ComputerObject> {
             prgView.setVisibility(View.INVISIBLE);
         }
 
-        SpannableString spannableString = new SpannableString(obj.details.name);
+//        SpannableString spannableString = new SpannableString(obj.details.name);
 //        spannableString.setSpan(new RelativeSizeSpan(1.2f), 0, 2, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
 //        spannableString.setSpan(new AlignmentSpan.Standard(Gravity.TOP), 0, spannableString.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         txtView.setText(obj.details.name);
@@ -101,5 +101,29 @@ public class PcGridAdapter extends GenericGridAdapter<PcView.ComputerObject> {
         else {
             overlayView.setVisibility(View.GONE);
         }
+        if (obj.details.state != ComputerDetails.State.ONLINE) {
+            txtView2.setAlpha(0.4f);
+        } else {
+            txtView2.setAlpha(1.0f);
+        }
+        txtView2.setVisibility(View.VISIBLE);
+        if (obj.details.activeAddress != null) {
+            txtView2.setText(obj.details.activeAddress.address);
+        }
+        else if (obj.details.localAddress != null) {
+            txtView2.setText(obj.details.localAddress.address);
+        }
+        else if (obj.details.ipv6Address != null) {
+            txtView2.setText(obj.details.ipv6Address.address);
+        }
+        else if (obj.details.manualAddress != null) {
+            txtView2.setText(obj.details.manualAddress.address);
+        }
+        else if (obj.details.remoteAddress != null) {
+            txtView2.setText(obj.details.remoteAddress.address);
+        }
+        else {
+            txtView2.setVisibility(View.GONE);
+            }
     }
 }
