@@ -55,8 +55,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.ArrayList;
-import java.util.List;
 
 public class ControllerHandler implements InputManager.InputDeviceListener, UsbDriverListener {
 
@@ -2927,7 +2925,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             List<GameMenu.MenuOption> options = new ArrayList<>();
             options.add(new GameMenu.MenuOption(activityContext.getString(mouseEmulationActive ?
                     R.string.game_menu_toggle_mouse_off : R.string.game_menu_toggle_mouse_on),
-                    true, () -> toggleMouseEmulation()));
+                    true, this::toggleMouseEmulation, "game_menu_mouse_emulation", true));
 
             return options;
         }

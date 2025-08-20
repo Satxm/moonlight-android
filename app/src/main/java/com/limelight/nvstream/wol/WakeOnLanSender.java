@@ -1,13 +1,13 @@
 package com.limelight.nvstream.wol;
 
+import com.limelight.LimeLog;
+import com.limelight.nvstream.http.ComputerDetails;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.Scanner;
-
-import com.limelight.LimeLog;
-import com.limelight.nvstream.http.ComputerDetails;
 
 public class WakeOnLanSender {
     // These ports will always be tried as-is.

@@ -1,14 +1,14 @@
 package com.limelight.utils;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 
 import com.limelight.R;
+
+import java.util.ArrayList;
+import java.util.Iterator;
 
 public class SpinnerDialog implements Runnable,OnCancelListener {
     private final String title;

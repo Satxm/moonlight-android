@@ -1,6 +1,15 @@
 package com.limelight.nvstream.http;
 
-import android.provider.Settings;
+import com.limelight.BuildConfig;
+import com.limelight.LimeLog;
+import com.limelight.nvstream.ConnectionContext;
+import com.limelight.nvstream.http.PairingManager.PairState;
+import com.limelight.nvstream.jni.MoonBridge;
+
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,22 +44,10 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
-import javax.net.ssl.SSLSocket;
-import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
-
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlPullParserFactory;
-
-import com.limelight.BuildConfig;
-import com.limelight.LimeLog;
-import com.limelight.nvstream.ConnectionContext;
-import com.limelight.nvstream.http.PairingManager.PairState;
-import com.limelight.nvstream.jni.MoonBridge;
 
 import okhttp3.ConnectionPool;
 import okhttp3.HttpUrl;

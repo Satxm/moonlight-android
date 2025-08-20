@@ -5,12 +5,9 @@ import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
-import android.os.Build;
 import android.view.InputDevice;
 
 import com.limelight.LimeLog;
-
-import java.nio.ByteBuffer;
 
 public class Xbox360WirelessDongle extends AbstractController {
     private UsbDevice device;

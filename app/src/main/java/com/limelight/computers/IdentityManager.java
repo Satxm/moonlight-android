@@ -1,15 +1,15 @@
 package com.limelight.computers;
 
+import android.content.Context;
+
+import com.limelight.LimeLog;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.Locale;
 import java.util.Random;
-
-import com.limelight.LimeLog;
-
-import android.content.Context;
 
 public class IdentityManager {
     private static final String UNIQUE_ID_FILE_NAME = "uniqueid";

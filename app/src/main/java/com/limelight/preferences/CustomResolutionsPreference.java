@@ -3,17 +3,29 @@ package com.limelight.preferences;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.DialogPreference;
-import android.text.Editable;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.*;
+import android.widget.AbsListView;
+import android.widget.BaseAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.ScrollView;
+import android.widget.TextView;
+import android.widget.Toast;
+
 import com.limelight.R;
 
-import java.util.*;
-import java.util.regex.Matcher;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
@@ -317,6 +329,7 @@ public class CustomResolutionsPreference extends DialogPreference {
         body.setLayoutParams(layoutParams);
         body.setOrientation(LinearLayout.VERTICAL);
         body.setPadding(dpToPx(16), dpToPx(16), dpToPx(16), dpToPx(16));
+
         return body;
     }
     

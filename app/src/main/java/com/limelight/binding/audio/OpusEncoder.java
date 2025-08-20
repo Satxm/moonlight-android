@@ -1,7 +1,5 @@
 package com.limelight.binding.audio;
 
-import com.limelight.LimeLog;
-
 public class OpusEncoder {
     private long nativePtr;
     private final int sampleRate;

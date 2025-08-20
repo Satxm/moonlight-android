@@ -1,12 +1,9 @@
 package com.limelight.binding.input.touch;
 
-import android.view.MotionEvent;
-import android.util.Log;
 import android.content.res.Resources;
 import android.util.DisplayMetrics;
-
-import java.util.ArrayList;
-import java.util.Iterator;
+import android.util.Log;
+import android.view.MotionEvent;
 
 class ScreenUtils {
     public static float getScreenWidth() {

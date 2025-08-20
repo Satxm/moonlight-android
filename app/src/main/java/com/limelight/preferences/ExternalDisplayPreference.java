@@ -1,7 +1,6 @@
 package com.limelight.preferences;
 
 import android.content.Context;
-import android.content.res.TypedArray;
 import android.hardware.display.DisplayManager;
 import android.os.Build;
 import android.preference.CheckBoxPreference;

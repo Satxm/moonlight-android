@@ -1,7 +1,5 @@
 package com.limelight.utils;
 
-import android.util.Log;
-
 public class AspectRatioConverter {
     public static String getAspectRatio(int width, int height) {
         float ratio = (float) width / height;

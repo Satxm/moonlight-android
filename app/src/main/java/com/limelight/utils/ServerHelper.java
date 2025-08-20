@@ -1,7 +1,5 @@
 package com.limelight.utils;
 
-import static android.content.Context.MODE_PRIVATE;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.widget.Toast;

@@ -1,5 +1,17 @@
 package com.limelight.computers;
 
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
+
+import com.limelight.nvstream.http.ComputerDetails;
+import com.limelight.nvstream.http.NvHTTP;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.ByteArrayInputStream;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
@@ -8,19 +20,6 @@ import java.security.cert.X509Certificate;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
-
-import com.limelight.LimeLog;
-import com.limelight.nvstream.http.ComputerDetails;
-import com.limelight.nvstream.http.NvHTTP;
-
-import android.content.ContentValues;
-import android.content.Context;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteException;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 public class ComputerDatabaseManager {
     private static final String COMPUTER_DB_NAME = "computers4.db";

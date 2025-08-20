@@ -1,11 +1,30 @@
 package com.limelight;
 
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.HashSet;
-import java.util.List;
+import android.app.Activity;
+import android.app.Service;
+import android.content.ComponentName;
+import android.content.Intent;
+import android.content.ServiceConnection;
+import android.content.SharedPreferences;
+import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.IBinder;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.AbsListView;
+import android.widget.AdapterView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
 import com.limelight.computers.ComputerManagerListener;
 import com.limelight.computers.ComputerManagerService;
 import com.limelight.grid.AppGridAdapter;
@@ -16,6 +35,7 @@ import com.limelight.nvstream.http.PairingManager;
 import com.limelight.preferences.PreferenceConfiguration;
 import com.limelight.ui.AdapterFragment;
 import com.limelight.ui.AdapterFragmentCallbacks;
+import com.limelight.utils.BackgroundImageManager;
 import com.limelight.utils.CacheHelper;
 import com.limelight.utils.Dialog;
 import com.limelight.utils.ServerHelper;
@@ -23,33 +43,12 @@ import com.limelight.utils.ShortcutHelper;
 import com.limelight.utils.SpinnerDialog;
 import com.limelight.utils.UiHelper;
 
-import android.app.Activity;
-import android.app.Service;
-import android.content.ComponentName;
-import android.content.Intent;
-import android.content.ServiceConnection;
-import android.content.SharedPreferences;
-import android.content.res.Configuration;
-import android.database.DataSetObserver;
-import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
-import android.os.Build;
-import android.os.Bundle;
-import android.os.IBinder;
-import android.view.ContextMenu;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ContextMenu.ContextMenuInfo;
-import android.widget.AbsListView;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ImageView;
-import android.widget.TextView;
-import android.widget.Toast;
-import android.widget.AdapterView.AdapterContextMenuInfo;
-
 import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.HashSet;
+import java.util.List;
 
 public class AppView extends Activity implements AdapterFragmentCallbacks {
     private AppGridAdapter appGridAdapter;
@@ -65,6 +64,8 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
     private boolean inForeground;
     private boolean showHiddenApps;
     private HashSet<Integer> hiddenAppIds = new HashSet<>();
+    private ImageView appBackgroundImage;
+    private BackgroundImageManager backgroundImageManager;
 
     private final static int START_OR_RESUME_ID = 1;
     private final static int QUIT_ID = 2;
@@ -299,6 +300,10 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
                 | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
 
         setContentView(R.layout.activity_app_view);
+
+        // Initialize background image view
+        appBackgroundImage = findViewById(R.id.appBackgroundImage);
+        backgroundImageManager = new BackgroundImageManager(this, appBackgroundImage);
 
         // Allow floating expanded PiP overlays while browsing apps
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -636,14 +641,14 @@ public class AppView extends Activity implements AdapterFragmentCallbacks {
         });
     }
 
-    private void loadDefaultImage() {
+//     private void loadDefaultImage() {
 //        LimeLog.info("load app bg moonlight-bg3.webp");
 //        Glide.with(AppView.this)
 //            .load("https://raw.gitmirror.com/qiin2333/qiin.github.io/assets/img/moonlight-bg2.webp")
 //            .onlyRetrieveFromCache(true)
 //            .apply(RequestOptions.bitmapTransform(new BlurTransformation(15, 3)))
 //            .into((ImageView) findViewById(R.id.appBackgroundImage));
-    }
+//     }
 
     @Override
     public int getAdapterFragmentLayoutId() {

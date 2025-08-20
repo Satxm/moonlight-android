@@ -20,10 +20,10 @@ import android.widget.Toast;
 
 import com.limelight.Game;
 import com.limelight.R;
-import com.limelight.binding.input.advance_setting.superpage.ElementEditText;
-import com.limelight.binding.input.advance_setting.superpage.NumberSeekbar;
 import com.limelight.binding.input.advance_setting.PageDeviceController;
 import com.limelight.binding.input.advance_setting.sqlite.SuperConfigDatabaseHelper;
+import com.limelight.binding.input.advance_setting.superpage.ElementEditText;
+import com.limelight.binding.input.advance_setting.superpage.NumberSeekbar;
 import com.limelight.binding.input.advance_setting.superpage.SuperPageLayout;
 import com.limelight.binding.input.advance_setting.superpage.SuperPagesController;
 

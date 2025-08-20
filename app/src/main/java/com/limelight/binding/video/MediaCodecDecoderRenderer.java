@@ -1,33 +1,13 @@
 package com.limelight.binding.video;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.jcodec.codecs.h264.H264Utils;
-import org.jcodec.codecs.h264.io.model.SeqParameterSet;
-import org.jcodec.codecs.h264.io.model.VUIParameters;
-
-import com.limelight.BuildConfig;
-import com.limelight.LimeLog;
-import com.limelight.R;
-import com.limelight.nvstream.av.video.VideoDecoderRenderer;
-import com.limelight.nvstream.jni.MoonBridge;
-import com.limelight.preferences.PreferenceConfiguration;
-
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.media.MediaCodec;
-import android.media.MediaCodecInfo;
-import android.media.MediaFormat;
 import android.media.MediaCodec.BufferInfo;
 import android.media.MediaCodec.CodecException;
+import android.media.MediaCodecInfo;
+import android.media.MediaFormat;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -36,6 +16,25 @@ import android.os.SystemClock;
 import android.util.Range;
 import android.view.Choreographer;
 import android.view.SurfaceHolder;
+
+import com.limelight.BuildConfig;
+import com.limelight.LimeLog;
+import com.limelight.nvstream.av.video.VideoDecoderRenderer;
+import com.limelight.nvstream.jni.MoonBridge;
+import com.limelight.preferences.PreferenceConfiguration;
+
+import org.jcodec.codecs.h264.H264Utils;
+import org.jcodec.codecs.h264.io.model.SeqParameterSet;
+import org.jcodec.codecs.h264.io.model.VUIParameters;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements Choreographer.FrameCallback {
 

@@ -1,6 +1,5 @@
 package com.limelight.ui;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.KeyEvent;

@@ -1,12 +1,42 @@
 package com.limelight;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.net.UnknownHostException;
+import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.app.ActivityManager;
+import android.app.AlertDialog;
+import android.app.Service;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
+import android.content.SharedPreferences;
+import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.net.Uri;
+import android.opengl.GLSurfaceView;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Environment;
+import android.os.IBinder;
+import android.preference.PreferenceManager;
+import android.provider.Settings;
+import android.util.LruCache;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.AbsListView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+
+import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
 import com.limelight.binding.PlatformBinding;
@@ -33,54 +63,22 @@ import com.limelight.utils.ServerHelper;
 import com.limelight.utils.ShortcutHelper;
 import com.limelight.utils.UiHelper;
 
-import com.bumptech.glide.Glide;
-
-import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.app.ActivityManager;
-import android.app.Service;
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
-import android.content.res.Configuration;
-import android.graphics.Bitmap;
-import android.graphics.Color;
-import android.net.Uri;
-import android.opengl.GLSurfaceView;
-import android.os.Build;
-import android.os.Bundle;
-import android.os.Environment;
-import android.os.IBinder;
-import android.preference.PreferenceManager;
-import android.provider.Settings;
-import android.util.LruCache;
-import android.view.ContextMenu;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ContextMenu.ContextMenuInfo;
-import android.widget.AbsListView;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.RelativeLayout;
-import android.widget.Toast;
-import android.widget.AdapterView.AdapterContextMenuInfo;
-
-import androidx.annotation.NonNull;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.UnknownHostException;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 import jp.wasabeef.glide.transformations.BlurTransformation;
 import jp.wasabeef.glide.transformations.ColorFilterTransformation;
-
-import android.app.AlertDialog;
-import android.content.SharedPreferences;
 
 public class PcView extends Activity implements AdapterFragmentCallbacks {
     private RelativeLayout noPcFoundLayout;

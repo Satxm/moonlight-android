@@ -1,6 +1,7 @@
 package com.limelight.preferences;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.preference.ListPreference;
 import android.util.AttributeSet;
@@ -8,11 +9,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
-import android.widget.TextView;
-import android.content.res.Resources;
 
-import com.limelight.R;
 import com.limelight.Game;
+import com.limelight.R;
 
 public class IconListPreference extends ListPreference {
     private int[] mEntryIcons;

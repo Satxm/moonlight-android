@@ -12,6 +12,20 @@ import android.net.RouteInfo;
 import android.os.Build;
 import android.provider.Settings;
 
+import com.limelight.LimeLog;
+import com.limelight.nvstream.av.audio.AudioRenderer;
+import com.limelight.nvstream.av.video.VideoDecoderRenderer;
+import com.limelight.nvstream.http.ComputerDetails;
+import com.limelight.nvstream.http.HostHttpResponseException;
+import com.limelight.nvstream.http.LimelightCryptoProvider;
+import com.limelight.nvstream.http.NvApp;
+import com.limelight.nvstream.http.NvHTTP;
+import com.limelight.nvstream.http.PairingManager;
+import com.limelight.nvstream.input.MouseButtonPacket;
+import com.limelight.nvstream.jni.MoonBridge;
+
+import org.xmlpull.v1.XmlPullParserException;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -24,20 +38,6 @@ import java.util.concurrent.Semaphore;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
-
-import org.xmlpull.v1.XmlPullParserException;
-
-import com.limelight.LimeLog;
-import com.limelight.nvstream.av.audio.AudioRenderer;
-import com.limelight.nvstream.av.video.VideoDecoderRenderer;
-import com.limelight.nvstream.http.ComputerDetails;
-import com.limelight.nvstream.http.HostHttpResponseException;
-import com.limelight.nvstream.http.LimelightCryptoProvider;
-import com.limelight.nvstream.http.NvApp;
-import com.limelight.nvstream.http.NvHTTP;
-import com.limelight.nvstream.http.PairingManager;
-import com.limelight.nvstream.input.MouseButtonPacket;
-import com.limelight.nvstream.jni.MoonBridge;
 
 public class NvConnection {
     // Context parameters

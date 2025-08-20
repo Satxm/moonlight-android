@@ -3,10 +3,10 @@ package com.limelight.preferences;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Point;
 import android.os.Build;
 import android.preference.PreferenceManager;
 import android.view.Display;
-import android.graphics.Point;
 import android.view.WindowManager;
 
 import com.limelight.nvstream.jni.MoonBridge;

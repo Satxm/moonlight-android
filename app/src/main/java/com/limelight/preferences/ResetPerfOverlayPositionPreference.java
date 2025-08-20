@@ -6,8 +6,6 @@ import android.preference.Preference;
 import android.util.AttributeSet;
 import android.widget.Toast;
 
-import com.limelight.R;
-
 public class ResetPerfOverlayPositionPreference extends Preference {
     
     public ResetPerfOverlayPositionPreference(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {

@@ -1,5 +1,58 @@
 package com.limelight;
 
+import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
+import android.app.Activity;
+import android.app.PictureInPictureParams;
+import android.app.Presentation;
+import android.app.Service;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
+import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
+import android.content.res.Configuration;
+import android.graphics.Point;
+import android.graphics.Rect;
+import android.hardware.display.DisplayManager;
+import android.hardware.input.InputManager;
+import android.media.AudioManager;
+import android.net.ConnectivityManager;
+import android.net.TrafficStats;
+import android.net.wifi.WifiManager;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.IBinder;
+import android.util.DisplayMetrics;
+import android.util.Rational;
+import android.util.TypedValue;
+import android.view.Display;
+import android.view.Gravity;
+import android.view.InputDevice;
+import android.view.KeyCharacterMap;
+import android.view.KeyEvent;
+import android.view.MotionEvent;
+import android.view.Surface;
+import android.view.SurfaceHolder;
+import android.view.View;
+import android.view.View.OnGenericMotionListener;
+import android.view.View.OnSystemUiVisibilityChangeListener;
+import android.view.View.OnTouchListener;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.FrameLayout;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
 import com.limelight.binding.PlatformBinding;
 import com.limelight.binding.audio.AndroidAudioRenderer;
 import com.limelight.binding.audio.AudioDiagnostics;
@@ -10,11 +63,11 @@ import com.limelight.binding.input.KeyboardTranslator;
 import com.limelight.binding.input.advance_setting.ControllerManager;
 import com.limelight.binding.input.capture.InputCaptureManager;
 import com.limelight.binding.input.capture.InputCaptureProvider;
+import com.limelight.binding.input.driver.UsbDriverService;
+import com.limelight.binding.input.evdev.EvdevListener;
 import com.limelight.binding.input.touch.AbsoluteTouchContext;
 import com.limelight.binding.input.touch.NativeTouchContext;
 import com.limelight.binding.input.touch.RelativeTouchContext;
-import com.limelight.binding.input.driver.UsbDriverService;
-import com.limelight.binding.input.evdev.EvdevListener;
 import com.limelight.binding.input.touch.TouchContext;
 import com.limelight.binding.input.virtual_controller.VirtualController;
 import com.limelight.binding.video.CrashListener;
@@ -37,64 +90,11 @@ import com.limelight.preferences.PreferenceConfiguration;
 import com.limelight.ui.GameGestures;
 import com.limelight.ui.StreamView;
 import com.limelight.utils.Dialog;
+import com.limelight.utils.FullscreenProgressOverlay;
+import com.limelight.utils.NetHelper;
 import com.limelight.utils.ServerHelper;
 import com.limelight.utils.ShortcutHelper;
-import com.limelight.utils.SpinnerDialog;
 import com.limelight.utils.UiHelper;
-import com.limelight.utils.NetHelper;
-
-import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
-import android.app.Activity;
-import android.app.PictureInPictureParams;
-import android.app.Service;
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
-import android.content.SharedPreferences;
-import android.content.pm.ActivityInfo;
-import android.content.pm.PackageManager;
-import android.content.res.Configuration;
-import android.graphics.Point;
-import android.graphics.Rect;
-import android.hardware.input.InputManager;
-import android.media.AudioManager;
-import android.net.ConnectivityManager;
-import android.net.TrafficStats;
-import android.net.wifi.WifiManager;
-import android.os.Build;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.IBinder;
-import android.util.Rational;
-import android.util.TypedValue;
-import android.view.Display;
-import android.view.InputDevice;
-import android.view.KeyCharacterMap;
-import android.view.KeyEvent;
-import android.view.MotionEvent;
-import android.view.Surface;
-import android.view.SurfaceHolder;
-import android.view.View;
-import android.view.View.OnGenericMotionListener;
-import android.view.View.OnSystemUiVisibilityChangeListener;
-import android.view.View.OnTouchListener;
-import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
-import android.view.animation.AnimationUtils;
-import android.widget.FrameLayout;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.ImageButton;
-import android.widget.LinearLayout;
-import android.widget.TextView;
-import android.widget.Toast;
-import android.view.Gravity;
-import android.util.DisplayMetrics;
-import android.hardware.display.DisplayManager;
-import android.app.Presentation;
-import android.view.animation.Animation;
 
 import java.io.ByteArrayInputStream;
 import java.lang.reflect.InvocationTargetException;
@@ -103,10 +103,10 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class Game extends Activity implements SurfaceHolder.Callback,
         OnGenericMotionListener, OnTouchListener, NvConnectionListener, EvdevListener,
@@ -154,7 +154,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private SharedPreferences tombstonePrefs;
 
     private NvConnection conn;
-    private SpinnerDialog spinner;
+    private FullscreenProgressOverlay progressOverlay;
     private boolean displayedFailureDialog = false;
     private boolean connecting = false;
     public boolean connected = false;
@@ -291,11 +291,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         // Hack: allows use keyboard by dpad or controller
         getWindow().getDecorView().findViewById(android.R.id.content).setFocusable(true);
-
-        // Start the spinner
-        spinner = SpinnerDialog.displayDialog(this, getResources().getString(R.string.conn_establishing_title),
-                getResources().getString(R.string.conn_establishing_msg), true);
-
+        
         // Read the stream preferences
         prefConfig = PreferenceConfiguration.readPreferences(this);
         tombstonePrefs = Game.this.getSharedPreferences("DecoderTombstone", 0);
@@ -427,6 +423,19 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         if (cmdList != null) {
             app.setCmdList(cmdList);
         }
+
+        // Start the progress overlay
+        progressOverlay = new FullscreenProgressOverlay(this, app);
+        
+        // 设置computer信息
+        ComputerDetails computer = new ComputerDetails();
+        computer.name = pcName;
+        computer.uuid = getIntent().getStringExtra(EXTRA_PC_UUID);
+        progressOverlay.setComputer(computer);
+        
+        progressOverlay.show(getResources().getString(R.string.conn_establishing_title),
+                getResources().getString(R.string.conn_establishing_msg));
+
         X509Certificate serverCert = null;
         try {
             if (derCertData != null) {
@@ -643,9 +652,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
 
         if (!decoderRenderer.isAvcSupported()) {
-            if (spinner != null) {
-                spinner.dismiss();
-                spinner = null;
+            if (progressOverlay != null) {
+                progressOverlay.dismiss();
+                progressOverlay = null;
             }
 
             // If we can't find an AVC decoder, we can't proceed
@@ -1263,7 +1272,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     protected void onStop() {
         super.onStop();
 
-        SpinnerDialog.closeDialogs(this);
+        if (progressOverlay != null) {
+            progressOverlay.dismiss();
+            progressOverlay = null;
+        }
         Dialog.closeDialogs();
 
         if (virtualController != null) {
@@ -2558,8 +2570,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (spinner != null) {
-                    spinner.setMessage(getResources().getString(R.string.conn_starting) + " " + stage);
+                if (progressOverlay != null) {
+                    progressOverlay.setMessage(getResources().getString(R.string.conn_starting) + " " + stage);
                 }
             }
         });
@@ -2606,9 +2618,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (spinner != null) {
-                    spinner.dismiss();
-                    spinner = null;
+                if (progressOverlay != null) {
+                    progressOverlay.dismiss();
+                    progressOverlay = null;
                 }
 
                 if (!displayedFailureDialog) {
@@ -2757,9 +2769,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (spinner != null) {
-                    spinner.dismiss();
-                    spinner = null;
+                if (progressOverlay != null) {
+                    progressOverlay.dismiss();
+                    progressOverlay = null;
                 }
 
                 connected = true;
@@ -3212,7 +3224,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     @Override
     public void showGameMenu(GameInputDevice device) {
-        if (controllerManager != null){
+        if (controllerManager != null && prefConfig.onscreenKeyboard){
             controllerManager.getSuperPagesController().returnOperation();
         } else {
             new GameMenu(this, app, conn, device);
@@ -3280,6 +3292,78 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             performanceOverlayView.setVisibility(View.VISIBLE);
             performanceOverlayView.setAlpha(1.0f);
         }
+    }
+
+    /**
+     * 切换麦克风按钮的显示/隐藏状态
+     */
+    public void toggleMicrophoneButton() {
+        if (micButton != null) {
+            if (micButton.getVisibility() == View.VISIBLE) {
+                micButton.setVisibility(View.GONE);
+                Toast.makeText(this, "麦克风按钮已隐藏", Toast.LENGTH_SHORT).show();
+            } else {
+                micButton.setVisibility(View.VISIBLE);
+                Toast.makeText(this, "麦克风按钮已显示", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    /**
+     * 切换虚拟手柄覆盖层的显示/隐藏状态
+     */
+    public void toggleVirtualController() {
+        if (virtualController != null && !virtualController.getElements().isEmpty()) {
+            // 检查第一个元素的可见性来判断当前状态
+            boolean isVisible = virtualController.getElements().get(0).getVisibility() == View.VISIBLE;
+            
+            if (isVisible) {
+                virtualController.hide();
+                Toast.makeText(this, "虚拟手柄已隐藏", Toast.LENGTH_SHORT).show();
+            } else {
+                virtualController.show();
+                Toast.makeText(this, "虚拟手柄已显示", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            Toast.makeText(this, "虚拟手柄未启用", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /**
+     * 初始化控制器管理器（王冠功能）
+     */
+    public void initializeControllerManager() {
+        if (controllerManager == null) {
+            controllerManager = new ControllerManager((FrameLayout)streamView.getParent(), this);
+            controllerManager.refreshLayout();
+        }
+    }
+
+    /**
+     * 设置王冠功能状态
+     */
+    public void setCrownFeatureEnabled(boolean enabled) {
+        prefConfig.onscreenKeyboard = enabled;
+        if (enabled) {
+            // 启用王冠模式
+            if (controllerManager != null) {
+                controllerManager.show();
+            } else {
+                initializeControllerManager();
+            }
+        } else {
+            // 禁用王冠模式
+            if (controllerManager != null) {
+                controllerManager.hide();
+            }
+        }
+    }
+
+    /**
+     * 获取王冠功能状态
+     */
+    public boolean isCrownFeatureEnabled() {
+        return prefConfig.onscreenKeyboard;
     }
 
     /**

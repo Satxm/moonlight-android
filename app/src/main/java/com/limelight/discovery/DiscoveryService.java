@@ -1,18 +1,18 @@
 package com.limelight.discovery;
 
-import java.util.List;
-
-import com.limelight.nvstream.mdns.MdnsComputer;
-import com.limelight.nvstream.mdns.JmDNSDiscoveryAgent;
-import com.limelight.nvstream.mdns.MdnsDiscoveryAgent;
-import com.limelight.nvstream.mdns.MdnsDiscoveryListener;
-import com.limelight.nvstream.mdns.NsdManagerDiscoveryAgent;
-
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
+
+import com.limelight.nvstream.mdns.JmDNSDiscoveryAgent;
+import com.limelight.nvstream.mdns.MdnsComputer;
+import com.limelight.nvstream.mdns.MdnsDiscoveryAgent;
+import com.limelight.nvstream.mdns.MdnsDiscoveryListener;
+import com.limelight.nvstream.mdns.NsdManagerDiscoveryAgent;
+
+import java.util.List;
 
 public class DiscoveryService extends Service {
 

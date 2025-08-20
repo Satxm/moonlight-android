@@ -1,17 +1,17 @@
 package com.limelight.computers;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.StringReader;
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import android.app.Service;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
+import android.os.Binder;
+import android.os.Build;
+import android.os.IBinder;
+import android.os.SystemClock;
 
 import com.limelight.LimeLog;
 import com.limelight.binding.PlatformBinding;
@@ -27,20 +27,20 @@ import com.limelight.utils.CacheHelper;
 import com.limelight.utils.NetHelper;
 import com.limelight.utils.ServerHelper;
 
-import android.app.Service;
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
-import android.net.ConnectivityManager;
-import android.net.Network;
-import android.net.NetworkCapabilities;
-import android.os.Binder;
-import android.os.Build;
-import android.os.IBinder;
-import android.os.SystemClock;
-
 import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.StringReader;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class ComputerManagerService extends Service {
     private static final int SERVERINFO_POLLING_PERIOD_MS = 1500;
