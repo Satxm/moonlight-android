@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.content.res.Resources;
 
 import com.limelight.R;
 import com.limelight.Game;
@@ -56,8 +57,6 @@ public class IconListPreference extends ListPreference {
             return;
         }
 
-
-
         ArrayAdapter<CharSequence> adapter = new ArrayAdapter<CharSequence>(
                 getContext(), R.layout.icon_list_item, R.id.text, getEntries()) {
             @Override
@@ -95,12 +94,13 @@ public class IconListPreference extends ListPreference {
         if (entries == null || entryValues == null) {
             return;
         }
-        
+
         int index = findIndexOfValue(value);
         if (index >= 0) {
             // 组合原始summary和当前选择值
             String currentEntry = entries[index].toString();
-            String summary = mOriginalSummary + " (当前：" + currentEntry + ")";
+            Resources resources = getContext().getResources();
+            String summary = mOriginalSummary + " ("+ resources.getString(R.string.screen_position_current) + currentEntry + ")";
             super.setSummary(summary);
         } else {
             super.setSummary(mOriginalSummary);

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.res.Resources;
 import android.view.WindowManager;
 import android.widget.Button;
 
@@ -333,7 +334,9 @@ public class Dialog implements Runnable {
                     
                     // 根据不同的标签使用不同的图标
                     String icon = getIconForLabel(label);
-                    formatted.append(icon).append(" ").append(label).append(": ").append(value).append("\n");
+                    String tlabel = getTextForLabel(label);
+                    String tvalue = getTextForLabel(value);
+                    formatted.append(icon).append(" ").append(tlabel).append(" ").append(tvalue).append("\n");
                 } else {
                     formatted.append(line).append("\n");
                 }
@@ -377,6 +380,47 @@ public class Dialog implements Runnable {
             default:
                 return "🔹";
         }
+    }
+        private String getTextForLabel(String label) {
+            Resources res = activity.getResources();
+            switch (label.toLowerCase()) {
+                case "name":
+                    return res.getString(R.string.details_name);
+                case "state":
+                    return res.getString(R.string.details_state);
+                case "uuid":
+                    return res.getString(R.string.details_uuid);
+                case "local address":
+                    return res.getString(R.string.details_localaddress);
+                case "remote address":
+                    return res.getString(R.string.details_remoteaddress);
+                case "ipv6 address":
+                    return res.getString(R.string.details_ipv6address);
+                case "manual address":
+                    return res.getString(R.string.details_manualaddress);
+                case "active address":
+                    return res.getString(R.string.details_activeaddress);
+                case "mac address":
+                    return res.getString(R.string.details_macaddress);
+                case "pair state":
+                    return res.getString(R.string.details_pairstate);
+                case "running game id":
+                    return res.getString(R.string.details_runninggameid);
+                case "https port":
+                    return res.getString(R.string.details_httpsport);
+                case "online":
+                    return res.getString(R.string.details_online);
+                case "offline":
+                    return res.getString(R.string.details_offline);
+                case "unknown":
+                    return res.getString(R.string.details_unknown);
+                case "paired":
+                    return res.getString(R.string.details_paired);
+                case "not_paired":
+                    return res.getString(R.string.details_not_paired);
+                default:
+                    return label;
+            }
     }
 
 }

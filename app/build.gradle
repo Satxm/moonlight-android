@@ -1,10 +1,5 @@
 apply plugin: 'com.android.application'
 
-// 只在release版本中应用Google Services插件
-if (project.hasProperty('enableAnalytics') || gradle.startParameter.taskNames.any { it.contains('Release') }) {
-    apply plugin: 'com.google.gms.google-services'
-}
-
 android {
     ndkVersion "27.0.12077973"
 
@@ -17,8 +12,8 @@ android {
         minSdk 22
         targetSdk 34
 
-        versionName "12.2.2.gh"
-        versionCode = 323
+        versionName "12.2.2"
+        versionCode = 324
 
         // Generate native debug symbols to allow Google Play to symbolicate our native crashes
         ndk.debugSymbolLevel = 'FULL'
@@ -88,8 +83,8 @@ android {
     buildTypes {
         debug {
             applicationIdSuffix ".debug"
-            resValue "string", "app_label", "月光-威力加强版"
-            resValue "string", "app_label_root", "月光-威力加强版"
+            resValue "string", "app_label", "Moonlight V+"
+            resValue "string", "app_label_root", "Moonlight V+ (Root)"
 
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -125,9 +120,9 @@ android {
             // is to please change the applicationId before you publish.
             //
             // TL;DR: Leave the following line alone!
-            applicationIdSuffix ".qiin"
-            resValue "string", "app_label", "Moonlight"
-            resValue "string", "app_label_root", "Moonlight (Root)"
+            applicationIdSuffix ".satxm.new"
+            resValue "string", "app_label", "Moonlight V+"
+            resValue "string", "app_label_root", "Moonlight V+ (Root)"
 
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'

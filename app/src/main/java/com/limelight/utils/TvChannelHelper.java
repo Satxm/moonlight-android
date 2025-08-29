@@ -119,7 +119,7 @@ public class TvChannelHelper {
 
     private Bitmap drawableToBitmap(Drawable drawable) {
         int width = context.getResources().getDimensionPixelSize(R.dimen.tv_channel_logo_width);
-        int height = context.getResources().getDimensionPixelSize(R.dimen.tv_channel_logo_width);
+        int height = context.getResources().getDimensionPixelSize(R.dimen.tv_channel_logo_height);
 
         Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);

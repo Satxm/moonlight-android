@@ -43,6 +43,4 @@ public class PerfOverlayOrientationPreference extends ListPreference {
             }
         }
     }
-    
-
 } 

@@ -2,12 +2,8 @@ package com.limelight.grid;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.text.Spannable;
-import android.text.SpannableString;
-import android.text.style.RelativeSizeSpan;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.limelight.PcView;
@@ -84,7 +80,7 @@ public class PcGridAdapter extends GenericGridAdapter<PcView.ComputerObject> {
             }
         }
 
-        SpannableString spannableString = new SpannableString(obj.details.name);
+//        SpannableString spannableString = new SpannableString(obj.details.name);
 //        spannableString.setSpan(new RelativeSizeSpan(1.2f), 0, 2, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
 //        spannableString.setSpan(new AlignmentSpan.Standard(Gravity.TOP), 0, spannableString.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         txtView.setText(obj.details.name);
@@ -115,5 +111,30 @@ public class PcGridAdapter extends GenericGridAdapter<PcView.ComputerObject> {
         else {
             overlayView.setVisibility(View.GONE);
         }
+		TextView txtView2 = convertView.findViewById(R.id.grid_ip);
+        if (obj.details.state != ComputerDetails.State.ONLINE) {
+            txtView2.setAlpha(0.4f);
+        } else {
+            txtView2.setAlpha(1.0f);
+        }
+        txtView2.setVisibility(View.VISIBLE);
+        if (obj.details.activeAddress != null) {
+            txtView2.setText(obj.details.activeAddress.address);
+        }
+        else if (obj.details.localAddress != null) {
+            txtView2.setText(obj.details.localAddress.address);
+        }
+        else if (obj.details.ipv6Address != null) {
+            txtView2.setText(obj.details.ipv6Address.address);
+        }
+        else if (obj.details.manualAddress != null) {
+            txtView2.setText(obj.details.manualAddress.address);
+        }
+        else if (obj.details.remoteAddress != null) {
+            txtView2.setText(obj.details.remoteAddress.address);
+        }
+        else {
+            txtView2.setVisibility(View.GONE);
+            }
     }
 }

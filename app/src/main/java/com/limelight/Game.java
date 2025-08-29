@@ -42,7 +42,6 @@ import com.limelight.utils.ShortcutHelper;
 import com.limelight.utils.FullscreenProgressOverlay;
 import com.limelight.utils.UiHelper;
 import com.limelight.utils.NetHelper;
-import com.limelight.utils.AnalyticsManager;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
@@ -113,6 +112,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         OnGenericMotionListener, OnTouchListener, NvConnectionListener, EvdevListener,
         OnSystemUiVisibilityChangeListener, GameGestures, StreamView.InputCallbacks,
         PerfOverlayListener, UsbDriverService.UsbDriverStateListener, View.OnKeyListener {
+    public static Game instance;
+
     private int lastButtonState = 0;
     private static final int TOUCH_CONTEXT_LENGTH = 2;
 
@@ -121,7 +122,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private final TouchContext[] absoluteTouchContextMap = new TouchContext[TOUCH_CONTEXT_LENGTH];
     private final TouchContext[] relativeTouchContextMap = new TouchContext[TOUCH_CONTEXT_LENGTH];
     private long multiFingerDownTime = 0;
-    
+
     public static final int REFERENCE_HORIZ_RES = 1280;
     public static final int REFERENCE_VERT_RES = 720;
 
@@ -140,6 +141,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     public interface PerformanceInfoDisplay{
         void display(Map<String,String> performanceAttrs);
     }
+
     private ControllerManager controllerManager;
     private List<PerformanceInfoDisplay> performanceInfoDisplays = new ArrayList<>();
 
@@ -155,12 +157,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private FullscreenProgressOverlay progressOverlay;
     private boolean displayedFailureDialog = false;
     private boolean connecting = false;
-    private boolean connected = false;
+    public boolean connected = false;
     private boolean autoEnterPip = false;
     private boolean surfaceCreated = false;
     private boolean attemptedConnection = false;
-    private AnalyticsManager analyticsManager;
-    private long streamStartTime;
     private int suppressPipRefCount = 0;
     private String pcName;
     private String appName;
@@ -260,6 +260,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        instance = this;
 
         UiHelper.setLocale(this);
 
@@ -405,9 +407,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         appName = Game.this.getIntent().getStringExtra(EXTRA_APP_NAME);
         pcName = Game.this.getIntent().getStringExtra(EXTRA_PC_NAME);
-        
-        // 初始化统计分析管理器
-        analyticsManager = AnalyticsManager.getInstance(this);
 
         String host = Game.this.getIntent().getStringExtra(EXTRA_HOST);
         int port = Game.this.getIntent().getIntExtra(EXTRA_PORT, NvHTTP.DEFAULT_HTTP_PORT);
@@ -1211,6 +1210,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     protected void onDestroy() {
         super.onDestroy();
 
+        instance = null;
+
         if (controllerHandler != null) {
             controllerHandler.destroy();
         }
@@ -1249,12 +1250,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // 清理麦克风流
         if (microphoneManager != null) {
             microphoneManager.stopMicrophoneStream();
-        }
-        
-        // 记录游戏流媒体结束事件
-        if (analyticsManager != null && pcName != null && streamStartTime > 0) {
-            long streamDuration = System.currentTimeMillis() - streamStartTime;
-            analyticsManager.logGameStreamEnd(pcName, appName, streamDuration);
         }
     }
 
@@ -2857,12 +2852,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 }
             });
         }
-        
-        // 记录游戏流媒体开始事件
-        streamStartTime = System.currentTimeMillis();
-        if (analyticsManager != null && pcName != null) {
-            analyticsManager.logGameStreamStart(pcName, appName);
-        }
     }
 
     @Override
@@ -3687,7 +3676,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private void configureTextViewStyle(TextView textView, int gravity, boolean isVertical) {
         // 设置文字对齐方式
         textView.setGravity(gravity);
-        
         
         // 根据布局方向设置阴影效果
         if (isVertical) {

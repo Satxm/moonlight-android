@@ -34,6 +34,14 @@
             android:layout_centerInParent="true"
             android:layout_centerVertical="true"
             android:layout_centerHorizontal="true">
+            <ProgressBar
+                android:id="@+id/pcs_loading"
+                android:layout_width="200dp"
+                android:layout_height="8dp"
+                android:layout_below="@+id/searching_pc_text"
+                android:layout_centerHorizontal="true"
+                android:indeterminate="true"
+                style="?android:attr/progressBarStyleHorizontal"/>
             <TextView
                 android:id="@+id/searching_pc_text"
                 android:layout_width="wrap_content"
@@ -43,14 +51,6 @@
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:gravity="center"
                 android:text="@string/searching_pc"/>
-            <ProgressBar
-                android:id="@+id/pcs_loading"
-                android:layout_width="200dp"
-                android:layout_height="8dp"
-                android:layout_below="@+id/searching_pc_text"
-                android:layout_centerHorizontal="true"
-                android:indeterminate="true"
-                style="?android:attr/progressBarStyleHorizontal"/>
         </RelativeLayout>
 
     </RelativeLayout>

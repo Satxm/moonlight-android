@@ -286,6 +286,7 @@ public class CustomResolutionsPreference extends DialogPreference {
 
     @Override
     protected View onCreateDialogView() {
+        ScrollView sbody = new ScrollView(context);
         LinearLayout body = createMainLayout();
         ListView list = createListView();
         View inputRow = createInputRow();
@@ -293,7 +294,9 @@ public class CustomResolutionsPreference extends DialogPreference {
         body.addView(list);
         body.addView(inputRow);
 
-        return body;
+        sbody.addView(body);
+
+        return sbody;
     }
 
     /**
@@ -301,20 +304,20 @@ public class CustomResolutionsPreference extends DialogPreference {
      */
     private LinearLayout createMainLayout() {
         LinearLayout body = new LinearLayout(context);
-        
+
         // 设置弹窗宽度为屏幕宽度的80%，最小宽度400dp
         int screenWidth = context.getResources().getDisplayMetrics().widthPixels;
         int dialogWidth = Math.min((int) (screenWidth * 0.8), dpToPx(400));
-        
+
         LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
-                dialogWidth,
+                AbsListView.LayoutParams.WRAP_CONTENT,
                 AbsListView.LayoutParams.WRAP_CONTENT
         );
         layoutParams.gravity = Gravity.CENTER;
         body.setLayoutParams(layoutParams);
         body.setOrientation(LinearLayout.VERTICAL);
         body.setPadding(dpToPx(16), dpToPx(16), dpToPx(16), dpToPx(16));
-        
+
         return body;
     }
     
