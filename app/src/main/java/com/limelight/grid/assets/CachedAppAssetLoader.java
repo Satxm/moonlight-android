@@ -239,15 +239,15 @@ public class CachedAppAssetLoader {
             // Cache the bitmap
             if (bmp != null) {
                 // 压缩过大的Bitmap
-                Bitmap compressedBitmap = compressLargeBitmap(bmp.bitmap);
-                if (compressedBitmap != bmp.bitmap) {
+                // Bitmap compressedBitmap = compressLargeBitmap(bmp.bitmap);
+                // if (compressedBitmap != bmp.bitmap) {
                     // 如果压缩了，创建新的ScaledBitmap
-                    ScaledBitmap compressedScaledBitmap = new ScaledBitmap(bmp.originalWidth, bmp.originalHeight, compressedBitmap);
-                    memoryLoader.populateCache(tuple, compressedScaledBitmap);
-                } else {
+                    // ScaledBitmap compressedScaledBitmap = new ScaledBitmap(bmp.originalWidth, bmp.originalHeight, compressedBitmap);
+                    // memoryLoader.populateCache(tuple, compressedScaledBitmap);
+                // } else {
                     // 如果没有压缩，使用原始Bitmap
                     memoryLoader.populateCache(tuple, bmp);
-                }
+                // }
             }
 
             return bmp;

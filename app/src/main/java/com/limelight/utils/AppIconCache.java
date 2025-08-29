@@ -14,10 +14,9 @@ public class AppIconCache {
     private final LruCache<String, Bitmap> iconCache;
     
     private AppIconCache() {
-        // 获取应用可用内存的1/8作为缓存大小
         final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
-        final int cacheSize = maxMemory / 8;
-        
+        final int cacheSize = maxMemory;
+
         iconCache = new LruCache<String, Bitmap>(cacheSize) {
             @Override
             protected int sizeOf(String key, Bitmap bitmap) {

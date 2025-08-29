@@ -111,7 +111,7 @@ public class PcGridAdapter extends GenericGridAdapter<PcView.ComputerObject> {
         else {
             overlayView.setVisibility(View.GONE);
         }
-		TextView txtView2 = convertView.findViewById(R.id.grid_ip);
+		TextView txtView2 = parentView.findViewById(R.id.grid_ip);
         if (obj.details.state != ComputerDetails.State.ONLINE) {
             txtView2.setAlpha(0.4f);
         } else {

@@ -469,21 +469,7 @@
     <string name="crown_mode_crown">王冠模式</string>
     <string name="crown_switch_to_normal">退出王冠模式</string>
     <string name="crown_switch_to_crown">启用王冠模式</string>
-    
-    <!-- External display -->
-    <string name="title_use_external_display">使用外接显示器</string>
-    <string name="summary_use_external_display">如果连接了外接显示器，则在外接显示器上显示串流画面</string>
-    
-    <!-- Background image API -->
-    <string name="title_background_image_api">背景图片API</string>
-    <string name="summary_background_image_api">输入自定义背景图片的API，也可以是单张图片地址哦，留空就是看随机涩图</string>
-    <string name="dialog_title_background_image_api">背景图片API</string>
-    <string name="dialog_message_background_image_api">请输入完整的图片API</string>
-    
-    <!-- Reverse resolution -->
-    <string name="title_checkbox_reverse_resolution">反转分辨率</string>
-    <string name="summary_checkbox_reverse_resolution">交换宽度和高度值，用于特殊显示需求</string>
-    
+
     <!-- Moonlight V+ PC download -->
     <string name="title_moonlight_vplus_pc_download">Moonlight V+ PC版下载</string>
 

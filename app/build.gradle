@@ -120,7 +120,7 @@ android {
             // is to please change the applicationId before you publish.
             //
             // TL;DR: Leave the following line alone!
-            applicationIdSuffix ".satxm.new"
+            applicationIdSuffix ".satxm"
             resValue "string", "app_label", "Moonlight V+"
             resValue "string", "app_label_root", "Moonlight V+ (Root)"
 
