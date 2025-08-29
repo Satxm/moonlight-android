@@ -415,6 +415,11 @@
             android:dialogTitle="@string/dialog_title_background_image_api"
             android:dialogMessage="@string/dialog_message_background_image_api"
             android:defaultValue="" />
+        <CheckBoxPreference
+            android:key="checkbox_enable_analytics"
+            android:title="@string/title_enable_analytics"
+            android:summary="@string/summary_enable_analytics"
+            android:defaultValue="true" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_advanced_settings"
         android:key="category_advanced_settings"
@@ -503,10 +508,10 @@
             url="https://github.com/qiin2333/moonlight-android/releases/tag/shortcut"/>
         <com.limelight.preferences.WebLauncherPreference
             android:title="@string/title_moonlight_vplus_pc_download"
-            url="https://github.com/qiin2333/moonlight-qt"/> -->
+            url="https://github.com/qiin2333/moonlight-qt"/>
         <com.limelight.preferences.WebLauncherPreference
             android:title="@string/title_privacy_policy"
             android:summary="@string/summary_privacy_policy"
-            url="https://moonlight-stream.org/privacy.html"/>
+            url="https://github.com/qiin2333/moonlight-android/blob/master/PRIVACY_POLICY.md"/> -->
     </PreferenceCategory>
 </PreferenceScreen>

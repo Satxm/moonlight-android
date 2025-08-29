@@ -93,6 +93,7 @@
     <string name="conn_terminated_title">Connection Terminated</string>
     <string name="conn_terminated_msg">The connection was terminated.</string>
     <string name="error_code_prefix">Error code:</string>
+    <string name="notification_icon">Notification icon</string>
 
     <!-- Copy strings -->
     <string name="copy_content">Copy Content</string>
@@ -164,6 +165,15 @@
     <string name="game_menu_send_keys_win_g">Send WIN + G (Open Xbox Game Bar)</string>
     <string name="game_menu_send_keys_shift_tab">Send SHIFT + TAB (Open Steam Overlay)</string>
     <string name="game_menu_send_keys_alt_home">Send ALT + HOME (Toggle RTSS)</string>
+    <string name="game_menu_adjust_bitrate">Adjust Bitrate</string>
+    <string name="game_menu_bitrate_custom">Custom Bitrate</string>
+    <string name="game_menu_bitrate_current">Current: %d Mbps</string>
+    <string name="game_menu_bitrate_adjustment_success">Bitrate adjusted successfully to %d Mbps</string>
+    <string name="game_menu_bitrate_adjustment_failed">Failed to adjust bitrate</string>
+    <string name="game_menu_ok">OK</string>
+    <string name="game_menu_bitrate_range">Bitrate Range:</string>
+    <string name="game_menu_bitrate_range_value">0.5 - 200 Mbps</string>
+    <string name="game_menu_bitrate_tip">Drag the slider to adjust bitrate in real-time. Higher values mean better quality but require better network.</string>
 
     <!-- Add computer manually activity -->
     <string name="title_add_pc">Add PC Manually</string>
@@ -465,6 +475,10 @@
 
     <!-- Moonlight V+ PC download -->
     <string name="title_moonlight_vplus_pc_download">Moonlight V+ PC Download</string>
+    
+    <!-- Analytics settings -->
+    <string name="title_enable_analytics">Enable Analytics</string>
+    <string name="summary_enable_analytics">Help improve the app by sharing anonymous usage statistics</string>
 
     <!-- Tip strings -->
     <string name="tip_esc_exit">💡 Tip: Use the "Exit" button to quickly and completely exit the stream, restoring your screen to its pre-stream state~</string>
@@ -477,6 +491,44 @@
     <string name="tip_home_saves">💡 Tip: The 5 small sharks on the home page can quickly save and switch streaming configurations~</string>
     <string name="tip_resolution_balance">💡 Tip: Closing other apps can improve performance, making streaming smoother~</string>
     <string name="tip_hdr_colors">💡 Tip: Adjusting resolution can balance quality and performance, find the perfect settings~</string>
+
+    <!-- 触控模式切换菜单 -->
+    <string name="game_menu_switch_touch_mode">Switch touch mode</string>
+    <string name="game_menu_touch_mode_enhanced">Enhanced Multi Touch</string>
+    <string name="game_menu_touch_mode_classic">Classic Mouse Mode</string>
+    <string name="game_menu_touch_mode_trackpad">Touchpad mode</string>
+    <string name="toast_touch_mode_enhanced_on">Enhanced multi touch enabled</string>
+    <string name="toast_touch_mode_classic_on">Classic mouse mode enabled</string>
+    <string name="toast_touch_mode_trackpad_on">Touchpad mode enabled</string>
+
+    <!-- 自定义特殊按键 -->
+    <!-- 菜单项 -->
+    <string name="game_menu_add_custom_key">Add custom button</string>
+    <string name="game_menu_delete_custom_key">Delete custom button</string>
+
+    <!-- 添加自定义按键对话框 -->
+    <string name="dialog_title_add_custom_key">Add custom buttons</string>
+    <string name="dialog_hint_key_name">Key name (e.g. Ctrl+Shift+Esc)</string>
+    <string name="dialog_hint_key_codes">Key codes (e.g. 0x11, 0x10, 0x1B)</string>
+    <string name="dialog_button_save">SAVE</string>
+    <string name="dialog_button_cancel">CANCEL</string>
+    <string name="dialog_button_clear">CLEAR</string>
+
+    <!-- 删除自定义按键对话框 -->
+    <string name="dialog_title_select_keys_to_delete">Select the button to delete</string>
+    <string name="dialog_button_delete">DELETE</string>
+
+    <!-- Toast 提示信息 -->
+    <string name="toast_name_and_codes_cannot_be_empty">Name and key code cannot be empty</string>
+    <string name="toast_key_code_format_error">Format error, key code must start with "0x"</string>
+    <string name="toast_custom_key_saved">Custom button \'%s\' has been saved</string>
+    <string name="toast_save_failed">Save failed, please check the format</string>
+    <string name="toast_no_custom_keys_to_delete">There are no custom keys that can be deleted</string>
+    <string name="toast_selected_keys_deleted">The selected button has been deleted</string>
+    <string name="toast_delete_failed">Deletion failed</string>
+    <string name="toast_load_key_list_failed">Failed to load button list</string>
+    <string name="toast_load_custom_keys_corrupted">Failed to load custom button</string>
+
 
     <!-- Accessibility -->
     <string name="keyboard_service_label">Block shortcut keys for Moonlight</string>

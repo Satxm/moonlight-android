@@ -162,6 +162,15 @@
     <string name="game_menu_send_keys_win_g">发送 WIN + G (打开 Xbox Game Bar)</string>
     <string name="game_menu_send_keys_shift_tab">发送 SHIFT + TAB (打开 Steam 图层)</string>
     <string name="game_menu_send_keys_alt_home">发送 ALT + HOME (小飞机/RTSS 主机性能监控开关)</string>
+    <string name="game_menu_adjust_bitrate">调整码率</string>
+    <string name="game_menu_bitrate_custom">自定义码率</string>
+    <string name="game_menu_bitrate_current">当前: %d Mbps</string>
+    <string name="game_menu_bitrate_adjustment_success">码率调整成功至 %d Mbps</string>
+    <string name="game_menu_bitrate_adjustment_failed">码率调整失败</string>
+    <string name="game_menu_ok">确定</string>
+    <string name="game_menu_bitrate_range">码率范围:</string>
+    <string name="game_menu_bitrate_range_value">0.5 - 200 Mbps</string>
+    <string name="game_menu_bitrate_tip">拖动滑动条实时调整码率, 需要更高的码率请到设置菜单操作。</string>
 
     <!-- Add computer manually activity -->
     <string name="title_add_pc">手动添加电脑</string>
@@ -460,7 +469,21 @@
     <string name="crown_mode_crown">王冠模式</string>
     <string name="crown_switch_to_normal">退出王冠模式</string>
     <string name="crown_switch_to_crown">启用王冠模式</string>
-
+    
+    <!-- External display -->
+    <string name="title_use_external_display">使用外接显示器</string>
+    <string name="summary_use_external_display">如果连接了外接显示器，则在外接显示器上显示串流画面</string>
+    
+    <!-- Background image API -->
+    <string name="title_background_image_api">背景图片API</string>
+    <string name="summary_background_image_api">输入自定义背景图片的API，也可以是单张图片地址哦，留空就是看随机涩图</string>
+    <string name="dialog_title_background_image_api">背景图片API</string>
+    <string name="dialog_message_background_image_api">请输入完整的图片API</string>
+    
+    <!-- Reverse resolution -->
+    <string name="title_checkbox_reverse_resolution">反转分辨率</string>
+    <string name="summary_checkbox_reverse_resolution">交换宽度和高度值，用于特殊显示需求</string>
+    
     <!-- Moonlight V+ PC download -->
     <string name="title_moonlight_vplus_pc_download">Moonlight V+ PC版下载</string>
 
@@ -475,6 +498,43 @@
     <string name="tip_home_saves">💡 串流小课堂：主页的5个小鲨牙可以快速保存和切换串流配置～</string>
     <string name="tip_resolution_balance">💡 串流小课堂：关闭其他应用可以提升性能，让串流更顺畅～</string>
     <string name="tip_hdr_colors">💡 串流小课堂：调整分辨率可以平衡画质和性能，找到最适合的设置～</string>
+
+    <!-- 触控模式切换菜单 -->
+    <string name="game_menu_switch_touch_mode">切换触控模式</string>
+    <string name="game_menu_touch_mode_enhanced">增强式多点触控</string>
+    <string name="game_menu_touch_mode_classic">经典鼠标模式</string>
+    <string name="game_menu_touch_mode_trackpad">触控板模式</string>
+    <string name="toast_touch_mode_enhanced_on">增强式多点触控已开启</string>
+    <string name="toast_touch_mode_classic_on">经典鼠标模式已开启</string>
+    <string name="toast_touch_mode_trackpad_on">触控板模式已开启</string>
+
+    <!-- 自定义特殊按键 -->
+    <!-- 菜单项 -->
+    <string name="game_menu_add_custom_key">添加自定义按键…</string>
+    <string name="game_menu_delete_custom_key">删除自定义按键…</string>
+
+    <!-- 添加自定义按键对话框 -->
+    <string name="dialog_title_add_custom_key">添加自定义按键</string>
+    <string name="dialog_hint_key_name">按键名称 (例如: Ctrl+Shift+Esc)</string>
+    <string name="dialog_hint_key_codes">按键码 (例如: 0x11,0x10,0x1B)</string>
+    <string name="dialog_button_save">保存</string>
+    <string name="dialog_button_cancel">取消</string>
+
+    <!-- 删除自定义按键对话框 -->
+    <string name="dialog_button_clear">清除</string>
+    <string name="dialog_title_select_keys_to_delete">选择要删除的按键</string>
+    <string name="dialog_button_delete">删除</string>
+
+    <!-- Toast 提示信息 -->
+    <string name="toast_name_and_codes_cannot_be_empty">名称和按键码不能为空</string>
+    <string name="toast_key_code_format_error">格式错误，按键码必须以 \'0x\' 开头</string>
+    <string name="toast_custom_key_saved">自定义按键 \'%s\' 已保存</string>
+    <string name="toast_save_failed">保存失败，请检查格式</string>
+    <string name="toast_no_custom_keys_to_delete">没有可删除的自定义按键</string>
+    <string name="toast_selected_keys_deleted">已删除所选按键</string>
+    <string name="toast_delete_failed">删除失败</string>
+    <string name="toast_load_key_list_failed">加载按键列表失败</string>
+    <string name="toast_load_custom_keys_corrupted">加载自定义按键失败</string>
 
     <!-- Accessibility -->
     <string name="keyboard_service_label">Moonlight 屏蔽快捷键</string>
