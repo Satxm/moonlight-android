@@ -142,7 +142,7 @@
     <string name="applist_details_id">App ID:</string>
 
     <!-- In Game menu -->
-    <string name="game_menu">Game Menu</string>
+    <string name="game_menu">🍥🍬 V+ Game Menu</string>
     <string name="game_menu_toggle_keyboard">Toggle On-screen Keyboard</string>
     <string name="game_menu_toggle_performance_overlay">Toggle Performance Overlay</string>
     <string name="game_menu_toggle_virtual_controller">Toggle Virtual Controller</string>
@@ -341,8 +341,8 @@
     <string name="category_ui_settings">🎨 UI Settings</string>
     <string name="title_checkbox_enable_pip">Enable Picture-in-Picture observer mode</string>
     <string name="summary_checkbox_enable_pip">Allows the stream to be viewed (but not controlled) while multitasking</string>
-    <string name="title_use_external_display">Use external monitor</string>
-    <string name="summary_use_external_display">If an external monitor is connected, the stream will be displayed on the external monitor.</string>
+    <string name="title_use_external_display">Use External Display</string>
+    <string name="summary_use_external_display">If an external display is connected, display the stream on the external display</string>
     <string name="title_language_list">Language</string>
     <string name="summary_language_list">Language to use for Moonlight</string>
     <string name="title_checkbox_small_icon_mode">Use small box art</string>
@@ -395,7 +395,17 @@
     <string name="title_privacy_policy">Privacy policy</string>
     <string name="summary_privacy_policy">View Moonlight\'s privacy policy</string>
     <string name="title_about_mode">About</string>
-    <string name="summary_about_mode">Check for updates</string>
+    <string name="summary_about_mode">View app information and project details</string>
+
+    <!-- About dialog strings -->
+    <string name="about_dialog_description">Moonlight V+ is an enhanced version of Moonlight Android client, providing better streaming experience with additional features.</string>
+    <string name="about_dialog_project_info">Based on Moonlight-Android project, enhanced by V+ team</string>
+    <string name="about_dialog_thanks">Thank you for using Moonlight V+! If you like it, please give us a star on GitHub.</string>
+    <string name="about_dialog_github">GitHub</string>
+    <string name="about_dialog_star">Star Project</string>
+    <string name="about_dialog_close">Close</string>
+    <string name="check_for_updates">Check for updates</string>
+    <string name="summary_check_for_updates">Check if there is a new version available</string>
     <string name="title_merge_super_config">Merge super config</string>
     <string name="summary_merge_super_config">Merge super config to local configs.</string>
 
@@ -472,10 +482,17 @@
     <string name="crown_mode_crown">Crown Mode</string>
     <string name="crown_switch_to_normal">Switch to Normal Mode</string>
     <string name="crown_switch_to_crown">Switch to Crown Mode</string>
+    <string name="game_menu_crown_function">Crown Function</string>
+    <string name="game_menu_toggle_elements_visibility">Show/Hide Virtual Keys</string>
+    <string name="game_menu_configure_crown_function">Configure Crown Function</string>
+    <string name="toast_elements_visible">Virtual button displayed</string>
+    <string name="toast_elements_hidden">Virtual button hidden</string>
+    <string name="toast_back_key_menu_switch_1">The crown function configuration has been exited</string>
+    <string name="toast_back_key_menu_switch_2">Entered the crown function configuration</string>
 
     <!-- Moonlight V+ PC download -->
     <string name="title_moonlight_vplus_pc_download">Moonlight V+ PC Download</string>
-    
+
     <!-- Analytics settings -->
     <string name="title_enable_analytics">Enable Analytics</string>
     <string name="summary_enable_analytics">Help improve the app by sharing anonymous usage statistics</string>
@@ -497,9 +514,11 @@
     <string name="game_menu_touch_mode_enhanced">Enhanced Multi Touch</string>
     <string name="game_menu_touch_mode_classic">Classic Mouse Mode</string>
     <string name="game_menu_touch_mode_trackpad">Touchpad mode</string>
+    <string name="game_menu_touch_mode_native_mouse">Native mouse pointer</string>
     <string name="toast_touch_mode_enhanced_on">Enhanced multi touch enabled</string>
     <string name="toast_touch_mode_classic_on">Classic mouse mode enabled</string>
-    <string name="toast_touch_mode_trackpad_on">Touchpad mode enabled</string>
+    <string name="toast_touch_mode_trackpad_on">Trackpad mode enabled</string>
+    <string name="toast_touch_mode_native_mouse_on">Native mouse pointer enabled</string>
 
     <!-- 自定义特殊按键 -->
     <!-- 菜单项 -->
@@ -513,6 +532,7 @@
     <string name="dialog_button_save">SAVE</string>
     <string name="dialog_button_cancel">CANCEL</string>
     <string name="dialog_button_clear">CLEAR</string>
+    <string name="dialog_virtual_keyboard_hint">Click on the keys to create a combination</string>
 
     <!-- 删除自定义按键对话框 -->
     <string name="dialog_title_select_keys_to_delete">Select the button to delete</string>
@@ -528,7 +548,6 @@
     <string name="toast_delete_failed">Deletion failed</string>
     <string name="toast_load_key_list_failed">Failed to load button list</string>
     <string name="toast_load_custom_keys_corrupted">Failed to load custom button</string>
-
 
     <!-- Accessibility -->
     <string name="keyboard_service_label">Block shortcut keys for Moonlight</string>

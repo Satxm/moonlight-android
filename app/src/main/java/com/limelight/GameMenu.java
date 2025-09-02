@@ -12,8 +12,11 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -77,6 +80,8 @@ public class GameMenu {
         ICON_MAP.put("game_menu_cancel", R.drawable.ic_cancel_cute);
         ICON_MAP.put("mouse_mode", R.drawable.ic_mouse_cute);
         ICON_MAP.put("game_menu_mouse_emulation", R.drawable.ic_mouse_emulation_cute);
+        ICON_MAP.put("crown_function_menu", R.drawable.ic_super_crown);
+        ICON_MAP.put("game_menu_test_local_rumble", R.drawable.ic_rumble_cute);
     }
 
     /**
@@ -290,18 +295,21 @@ public class GameMenu {
     }
 
     /**
-     * 显示一个菜单列表，用于在“增强式多点触控”,“经典鼠标模式”,“触控板模式”之间切换。
+     * 显示一个菜单列表，用于在"增强式多点触控","经典鼠标模式","触控板模式","本地鼠标指针"之间切换。
      */
     private void showTouchModeMenu() {
         boolean isEnhancedTouch = game.prefConfig.enableEnhancedTouch;
         boolean isTouchscreenTrackpad = game.prefConfig.touchscreenTrackpad;
+        boolean isNativeMousePointer = game.prefConfig.enableNativeMousePointer;
 
         MenuOption[] touchModeOptions = {
                 new MenuOption(
                         getString(R.string.game_menu_touch_mode_enhanced),
-                        isEnhancedTouch,
+                        isEnhancedTouch && !isTouchscreenTrackpad && !isNativeMousePointer,
                         () -> {
                             game.prefConfig.enableEnhancedTouch = true;
+                            game.prefConfig.enableNativeMousePointer = false;
+                            game.enableNativeMousePointer(false);  // 关闭本地鼠标模式
                             game.setTouchMode(false);
                             Toast.makeText(game, getString(R.string.toast_touch_mode_enhanced_on), Toast.LENGTH_SHORT).show();
                         },
@@ -310,9 +318,11 @@ public class GameMenu {
                 ),
                 new MenuOption(
                         getString(R.string.game_menu_touch_mode_classic),
-                        !isEnhancedTouch,
+                        !isEnhancedTouch && !isTouchscreenTrackpad && !isNativeMousePointer,
                         () -> {
                             game.prefConfig.enableEnhancedTouch = false;
+                            game.prefConfig.enableNativeMousePointer = false;
+                            game.enableNativeMousePointer(false);  // 关闭本地鼠标模式
                             game.setTouchMode(false);
                             Toast.makeText(game, getString(R.string.toast_touch_mode_classic_on), Toast.LENGTH_SHORT).show();
                         },
@@ -321,10 +331,25 @@ public class GameMenu {
                 ),
                 new MenuOption(
                         getString(R.string.game_menu_touch_mode_trackpad),
-                        isTouchscreenTrackpad,
+                        isTouchscreenTrackpad && !isNativeMousePointer,
                         () -> {
+                            game.prefConfig.enableNativeMousePointer = false;
+                            game.enableNativeMousePointer(false);  // 关闭本地鼠标模式
                             game.setTouchMode(true);
                             Toast.makeText(game, getString(R.string.toast_touch_mode_trackpad_on), Toast.LENGTH_SHORT).show();
+                        },
+                        null,
+                        false
+                ),
+                new MenuOption(
+                        getString(R.string.game_menu_touch_mode_native_mouse),
+                        isNativeMousePointer,
+                        () -> {
+                            game.prefConfig.enableNativeMousePointer = true;
+                            game.prefConfig.enableEnhancedTouch = false;
+                            game.setTouchMode(false);
+                            game.enableNativeMousePointer(true);
+                            Toast.makeText(game, getString(R.string.toast_touch_mode_native_mouse_on), Toast.LENGTH_SHORT).show();
                         },
                         null,
                         false
@@ -349,6 +374,70 @@ public class GameMenu {
     private void toggleCrownFeature() {
         game.setCrownFeatureEnabled(!game.isCrownFeatureEnabled());
         Toast.makeText(game, game.isCrownFeatureEnabled() ? getString(R.string.crown_switch_to_crown) : getString(R.string.crown_switch_to_normal), Toast.LENGTH_SHORT).show();
+    }
+
+    /**
+     * 显示“王冠功能”的二级菜单，包含显隐和配置选项。
+     */
+    private void showCrownFunctionMenu() {
+        // 检查 王冠功能是否开启，如果没有开启则不显示任何选项
+        if (!game.isCrownFeatureEnabled()) {
+            Toast.makeText(game, "王冠功能未启用", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        MenuOption[] crownFunctionOptions = {
+                // --- 选项1: 显示/隐藏虚拟按键 ---
+                new MenuOption(
+                        getString(R.string.game_menu_toggle_elements_visibility),
+                        false,
+                        game::toggleVirtualControllerVisibility,
+                        "crown_function_menu",
+                        true
+                ),
+                // --- 选项2: 配置王冠功能 ---
+                new MenuOption(
+                        getString(R.string.game_menu_configure_crown_function),
+                        false,
+                        game::toggleBackKeyMenuType,
+                        "crown_function_menu",
+                        true
+                )
+        };
+
+        // 使用 showSubMenu 方法来显示这个二级菜单
+        showSubMenu(getString(R.string.game_menu_crown_function), crownFunctionOptions);
+    }
+
+    /**
+     * 本地测试震动：对控制器 0..3 发送 1 秒强震动
+     */
+    private void testLocalRumbleAll() {
+        try {
+            com.limelight.binding.input.ControllerHandler ch = game.getControllerHandler();
+            if (ch == null) {
+                Toast.makeText(game, "无法访问控制器", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            short on = (short) 0xFFFF;
+            short off = 0;
+            for (short n = 0; n < 4; n++) {
+                ch.handleRumble(n, on, on);
+            }
+
+            handler.postDelayed(() -> {
+                try {
+                    for (short n = 0; n < 4; n++) {
+                        ch.handleRumble(n, off, off);
+                    }
+                } catch (Exception ignored) {}
+            }, 1000);
+
+            Toast.makeText(game, "已发送本地震动测试", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Toast.makeText(game, "震动测试失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
 
@@ -402,8 +491,6 @@ public class GameMenu {
         }
     }
 
-
-
     /**
      * 显示菜单对话框
      */
@@ -435,11 +522,45 @@ public class GameMenu {
         // 设置超级菜单
         setupSuperMenu(customView, superOptions, dialog);
 
-        // 设置码率调整区域
-        setupBitrateAdjustmentArea(customView, dialog);
+        // 设置码率调整区域（委托卡片控制器）
+        if (game.prefConfig.showBitrateCard) {
+            new BitrateCardController(game, conn).setup(customView, dialog);
+        } else {
+            View bitrate = customView.findViewById(R.id.bitrateAdjustmentContainer);
+            if (bitrate != null) bitrate.setVisibility(View.GONE);
+        }
+
+        // 设置陀螺仪控制卡片（委托卡片控制器）
+        if (game.prefConfig.showGyroCard) {
+            new GyroCardController(game).setup(customView, dialog);
+        } else {
+            View gyro = customView.findViewById(R.id.gyroAdjustmentContainer);
+            if (gyro != null) gyro.setVisibility(View.GONE);
+        }
+
+        // 卡片编辑入口
+        View cardEditor = customView.findViewById(R.id.cardEditorButton);
+        if (cardEditor != null) {
+            cardEditor.setOnClickListener(v -> showCardEditorDialog());
+        }
 
         // 设置对话框属性
         setupDialogProperties(dialog);
+
+        // 设置返回键监听器，处理二级菜单返回
+        dialog.setOnKeyListener((dialogInterface, keyCode, event) -> {
+            if (keyCode == android.view.KeyEvent.KEYCODE_BACK && event.getAction() == android.view.KeyEvent.ACTION_DOWN) {
+                // 如果菜单栈不为空，说明在二级菜单中，需要返回一级菜单
+                if (!menuStack.isEmpty()) {
+                    MenuState previousState = menuStack.pop();
+                    replaceNormalMenuInDialog(dialog, previousState.title, previousState.normalOptions, false);
+                    return true; // 消费返回键事件
+                }
+                // 如果菜单栈为空，说明在一级菜单，正常关闭对话框
+                return false; // 不消费返回键事件，让系统正常关闭对话框
+            }
+            return false;
+        });
 
         // 在对话框关闭时清理状态
         dialog.setOnDismissListener(d -> {
@@ -450,6 +571,32 @@ public class GameMenu {
         });
 
         dialog.show();
+    }
+
+    private void showCardEditorDialog() {
+        final String[] items = new String[] {"Bitrate", "Gyro"};
+        final boolean[] checked = new boolean[] {game.prefConfig.showBitrateCard, game.prefConfig.showGyroCard};
+        new AlertDialog.Builder(game, R.style.AppDialogStyle)
+                .setTitle("Visible cards")
+                .setMultiChoiceItems(items, checked, (d, which, isChecked) -> {
+                    checked[which] = isChecked;
+                })
+                .setPositiveButton("OK", (d, w) -> {
+                    game.prefConfig.showBitrateCard = checked[0];
+                    game.prefConfig.showGyroCard = checked[1];
+                    // Persist
+                    game.prefConfig.writePreferences(game);
+                    // Update UI within current dialog
+                    View root = activeCustomView != null ? activeCustomView : d instanceof AlertDialog ? ((AlertDialog) d).getOwnerActivity().findViewById(android.R.id.content) : null;
+                    if (root != null) {
+                        View bitrate = root.findViewById(R.id.bitrateAdjustmentContainer);
+                        if (bitrate != null) bitrate.setVisibility(game.prefConfig.showBitrateCard ? View.VISIBLE : View.GONE);
+                        View gyro = root.findViewById(R.id.gyroAdjustmentContainer);
+                        if (gyro != null) gyro.setVisibility(game.prefConfig.showGyroCard ? View.VISIBLE : View.GONE);
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
     /**
@@ -530,13 +677,14 @@ public class GameMenu {
             }
 
             // 添加一些padding和margin
-            totalHeight += (int) ((maxItems*2 + 8) * game.getResources().getDisplayMetrics().density);
+            totalHeight += (int) ((maxItems*2 + 48) * game.getResources().getDisplayMetrics().density);
+            totalHeight = Math.max(totalHeight, (int) (270 * game.getResources().getDisplayMetrics().density));
 
             return totalHeight;
 
         } catch (Exception e) {
             // 如果计算失败，返回默认高度
-            return (int) (220 * game.getResources().getDisplayMetrics().density);
+            return (int) (270 * game.getResources().getDisplayMetrics().density);
         }
     }
 
@@ -789,6 +937,10 @@ public class GameMenu {
             lastActionOpenedSubmenu = true;
             // 尝试读取当前普通菜单并保存到栈，以便回退
             if (this.activeCustomView != null) {
+                // 获取当前标题
+                TextView titleTextView = this.activeCustomView.findViewById(R.id.customTitleTextView);
+                String currentTitle = titleTextView != null ? titleTextView.getText().toString() : null;
+                
                 ListView normalListView = this.activeCustomView.findViewById(R.id.gameMenuList);
                 if (normalListView != null && normalListView.getAdapter() != null) {
                     int count = normalListView.getAdapter().getCount();
@@ -796,7 +948,7 @@ public class GameMenu {
                     for (int i = 0; i < count; i++) {
                         currentOptions[i] = (MenuOption) normalListView.getAdapter().getItem(i);
                     }
-                    menuStack.push(new MenuState(null, currentOptions));
+                    menuStack.push(new MenuState(currentTitle, currentOptions));
                 }
             }
 
@@ -821,93 +973,6 @@ public class GameMenu {
         } else {
             setupEmptySuperMenu(superListView);
         }
-    }
-
-    /**
-     * 设置码率调整区域
-     */
-    private void setupBitrateAdjustmentArea(View customView, AlertDialog dialog) {
-        View bitrateContainer = customView.findViewById(R.id.bitrateAdjustmentContainer);
-        SeekBar bitrateSeekBar = customView.findViewById(R.id.bitrateSeekBar);
-        TextView currentBitrateText = customView.findViewById(R.id.currentBitrateText);
-        TextView bitrateValueText = customView.findViewById(R.id.bitrateValueText);
-        ImageView bitrateTipIcon = customView.findViewById(R.id.bitrateTipIcon);
-
-        if (bitrateContainer == null || bitrateSeekBar == null || 
-            currentBitrateText == null || bitrateValueText == null || bitrateTipIcon == null) {
-            return;
-        }
-
-        int currentBitrate = conn.getCurrentBitrate();
-        int currentBitrateMbps = currentBitrate / 1000;
-
-        currentBitrateText.setText(String.format(getString(R.string.game_menu_bitrate_current), currentBitrateMbps));
-
-        // 设置滑动条
-        bitrateSeekBar.setMax(1995); // 200000 - 500 = 199500，每100kbps一个单位
-        bitrateSeekBar.setProgress((currentBitrate - 500) / 100);
-
-        bitrateValueText.setText(String.format("%d Mbps", currentBitrateMbps));
-
-        bitrateTipIcon.setOnClickListener(v -> {
-            // 显示提示对话框
-            new AlertDialog.Builder(game, R.style.AppDialogStyle)
-                .setMessage(getString(R.string.game_menu_bitrate_tip))
-                .setPositiveButton("懂了", null)
-                .show();
-        });
-
-        // 添加延迟应用码率的机制
-        final Handler bitrateHandler = new Handler();
-        final Runnable bitrateApplyRunnable = new Runnable() {
-            @Override
-            public void run() {
-                int newBitrate = (bitrateSeekBar.getProgress() * 100) + 500;
-                adjustBitrate(newBitrate);
-            }
-        };
-
-        bitrateSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (fromUser) {
-                    int newBitrate = (progress * 100) + 500; // 500 + progress * 100
-                    int newBitrateMbps = newBitrate / 1000;
-                    bitrateValueText.setText(String.format("%d Mbps", newBitrateMbps));
-                    
-                    bitrateHandler.removeCallbacks(bitrateApplyRunnable);
-                    bitrateHandler.postDelayed(bitrateApplyRunnable, 500);
-                }
-            }
-            
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-                // 开始拖动时取消之前的延迟应用
-                bitrateHandler.removeCallbacks(bitrateApplyRunnable);
-            }
-            
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                // 停止拖动时立即应用码率
-                bitrateHandler.removeCallbacks(bitrateApplyRunnable);
-                int newBitrate = (seekBar.getProgress() * 100) + 500;
-                adjustBitrate(newBitrate);
-            }
-        });
-
-        // 添加键盘/控制器事件支持
-        bitrateSeekBar.setOnKeyListener((v, keyCode, event) -> {
-            if (event.getAction() == android.view.KeyEvent.ACTION_DOWN) {
-                if (keyCode == android.view.KeyEvent.KEYCODE_DPAD_LEFT || 
-                    keyCode == android.view.KeyEvent.KEYCODE_DPAD_RIGHT) {
-                    // 控制器左右键改变滑动条值后，延迟应用码率
-                    bitrateHandler.removeCallbacks(bitrateApplyRunnable);
-                    bitrateHandler.postDelayed(bitrateApplyRunnable, 300);
-                    return false;
-                }
-            }
-            return false;
-        });
     }
 
     /**
@@ -1079,15 +1144,50 @@ public class GameMenu {
     }
 
     private void showAddCustomKeyDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(game, R.style.AppDialogStyle);
-        builder.setTitle(R.string.dialog_title_add_custom_key);
+        AlertDialog.Builder builder = new AlertDialog.Builder(game, R.style.VirtualKeyboardDialogStyle);
 
         View dialogView = LayoutInflater.from(game).inflate(R.layout.dialog_add_custom_key, null);
         builder.setView(dialogView);
 
+        final LinearLayout dialogContent = dialogView.findViewById(R.id.dialog_content);
         final EditText nameInput = dialogView.findViewById(R.id.edit_text_key_name);
         final TextView keysDisplay = dialogView.findViewById(R.id.text_view_key_codes);
         final Button clearButton = dialogView.findViewById(R.id.button_clear_keys);
+        final Button closeButton = dialogView.findViewById(R.id.button_close_dialog);
+        final Button saveButton = dialogView.findViewById(R.id.button_save_key);
+
+        AlertDialog dialog = builder.create();
+
+        // 设置返回键监听器，返回到二级菜单
+        dialog.setOnKeyListener((dialogInterface, keyCode, event) -> {
+            if (keyCode == android.view.KeyEvent.KEYCODE_BACK && event.getAction() == android.view.KeyEvent.ACTION_DOWN) {
+                dialog.dismiss();
+                return true; // 消费返回键事件
+            }
+            return false;
+        });
+
+        // 关闭按钮事件
+        if (closeButton != null) {
+            closeButton.setOnClickListener(v -> dialog.dismiss());
+        }
+
+        // 点击背景关闭对话框
+        if (dialogView instanceof FrameLayout) {
+            FrameLayout rootLayout = (FrameLayout) dialogView;
+            rootLayout.setOnClickListener(v -> {
+                // 只有点击背景区域才关闭对话框
+                dialog.dismiss();
+            });
+            
+            // 防止内容区域的点击事件传播到背景
+            View contentArea = rootLayout.getChildAt(0); // ScrollView
+            if (contentArea != null) {
+                contentArea.setOnClickListener(v -> {
+                    // 阻止事件传播，不关闭对话框
+                });
+            }
+        }
 
         // 初始化/重置 TextView 的数据存储 (tag) 和显示 (text)
         keysDisplay.setTag("");
@@ -1103,8 +1203,9 @@ public class GameMenu {
         // 递归设置键盘监听器
         setupCompactKeyboardListeners((ViewGroup) dialogView.findViewById(R.id.keyboard_drawing), keysDisplay);
 
-        // 保存按钮
-        builder.setPositiveButton(R.string.dialog_button_save, (dialog, which) -> {
+        // 保存按钮事件
+        if (saveButton != null) {
+            saveButton.setOnClickListener(v -> {
             String name = nameInput.getText().toString().trim();
             String androidKeyCodesStr = keysDisplay.getTag().toString(); // 从 tag 获取原始数据
 
@@ -1124,15 +1225,18 @@ public class GameMenu {
 
                     windowsCodesBuilder.append(windowsCode).append(i < androidCodes.length - 1 ? "," : "");
                 } catch (Exception e) {
-                    Toast.makeText(game, "错误: 包含无效的按键码", Toast.LENGTH_LONG).show();
+                    Toast.makeText(game, "error: invalid key code", Toast.LENGTH_LONG).show();
                     return;
                 }
             }
             saveCustomKey(name, windowsCodesBuilder.toString());
-        });
+            dialog.dismiss();
+            });
+        }
 
-        builder.setNegativeButton(R.string.dialog_button_cancel, null);
-        builder.create().show();
+        // 显示对话框
+        dialog.show();
+        dialogContent.setMinimumHeight(game.getResources().getDisplayMetrics().heightPixels);
     }
 
     /**
@@ -1256,9 +1360,10 @@ public class GameMenu {
 
         // 显示当前触控模式
         String touchModeText = getString(R.string.game_menu_switch_touch_mode) + ": " +
-                (game.prefConfig.touchscreenTrackpad ? getString(R.string.game_menu_touch_mode_trackpad) :
-                        game.prefConfig.enableEnhancedTouch ? getString(R.string.game_menu_touch_mode_enhanced) :
-                                getString(R.string.game_menu_touch_mode_classic));
+                (game.prefConfig.enableNativeMousePointer ? getString(R.string.game_menu_touch_mode_native_mouse) :
+                        game.prefConfig.touchscreenTrackpad ? getString(R.string.game_menu_touch_mode_trackpad) :
+                                game.prefConfig.enableEnhancedTouch ? getString(R.string.game_menu_touch_mode_enhanced) :
+                                        getString(R.string.game_menu_touch_mode_classic));
 
 
         // 此菜单是 UI 操作，不应该依赖游戏窗口焦点
@@ -1268,6 +1373,18 @@ public class GameMenu {
                 this::showTouchModeMenu,
                 "mouse_mode",
                 true, true));
+
+        // 王冠功能 - 只在开启王冠功能时显示
+        if (game.isCrownFeatureEnabled()) {
+            normalOptions.add(new MenuOption(
+                    getString(R.string.game_menu_crown_function),
+                    false,
+                    this::showCrownFunctionMenu,
+                    "crown_function_menu",
+                    true,
+                    true
+            ));
+        }
 
         if (device != null) {
             normalOptions.addAll(device.getGameMenuOptions());
@@ -1284,6 +1401,9 @@ public class GameMenu {
 
         normalOptions.add(new MenuOption(getString(R.string.game_menu_send_keys),
                 false, this::showSpecialKeysMenu, "game_menu_send_keys", true, true));
+
+        // 本地测试震动
+        normalOptions.add(new MenuOption("震动测试", false, this::testLocalRumbleAll, "game_menu_test_local_rumble", true));
 
         normalOptions.add(new MenuOption(getString(R.string.game_menu_disconnect), true,
                 game::disconnect, "game_menu_disconnect", true));

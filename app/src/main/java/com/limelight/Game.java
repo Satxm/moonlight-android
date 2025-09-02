@@ -32,7 +32,6 @@ import com.limelight.nvstream.input.KeyboardPacket;
 import com.limelight.nvstream.input.MouseButtonPacket;
 import com.limelight.nvstream.jni.MoonBridge;
 import com.limelight.preferences.GlPreferences;
-import com.limelight.preferences.PerfOverlayDisplayItemsPreference;
 import com.limelight.preferences.PreferenceConfiguration;
 import com.limelight.ui.GameGestures;
 import com.limelight.ui.StreamView;
@@ -68,7 +67,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.Rational;
-import android.util.TypedValue;
 import android.view.Display;
 import android.view.InputDevice;
 import android.view.KeyCharacterMap;
@@ -83,19 +81,14 @@ import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.animation.AnimationUtils;
 import android.widget.FrameLayout;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.view.Gravity;
 import android.util.DisplayMetrics;
-import android.hardware.display.DisplayManager;
-import android.app.Presentation;
-import android.view.animation.Animation;
 
 import java.io.ByteArrayInputStream;
 import java.lang.reflect.InvocationTargetException;
@@ -138,7 +131,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private ControllerHandler controllerHandler;
     private KeyboardTranslator keyboardTranslator;
     private VirtualController virtualController;
-
+    
     public interface PerformanceInfoDisplay{
         void display(Map<String,String> performanceAttrs);
     }
@@ -191,22 +184,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private androidx.cardview.widget.CardView notificationOverlayView;
     private TextView notificationTextView;
     private int requestedNotificationOverlayVisibility = View.GONE;
-    private LinearLayout performanceOverlayView;
-    private int requestedPerformanceOverlayVisibility = View.GONE;
-    private boolean hasShownPerfOverlay = false; // 跟踪性能覆盖层是否已经显示过
 
-    // 性能覆盖层拖动相关
-    private boolean isDraggingPerfOverlay = false;
-    private float perfOverlayStartX, perfOverlayStartY;
-    private float perfOverlayDeltaX, perfOverlayDeltaY;
-    private static final int SNAP_THRESHOLD = 100; // 吸附阈值（像素）
-    
-    // 8个吸附位置的枚举
-    private enum SnapPosition {
-        TOP_LEFT, TOP_CENTER, TOP_RIGHT,
-        CENTER_LEFT, CENTER_RIGHT,
-        BOTTOM_LEFT, BOTTOM_CENTER, BOTTOM_RIGHT
-    }
+    // 性能覆盖层管理器
+    private PerformanceOverlayManager performanceOverlayManager;
 
     private MediaCodecDecoderRenderer decoderRenderer;
     private boolean reportedCrash;
@@ -215,11 +195,53 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private WifiManager.WifiLock lowLatencyWifiLock;
     private Map<Integer, NativeTouchContext.Pointer> nativeTouchPointerMap = new HashMap<>();
 
+    private boolean currentBackKeyMenu = true; //默认为GAME_MENU
+
+    public void currentBackKeyMenu(boolean currentBackKeyMenu){
+        this.currentBackKeyMenu = currentBackKeyMenu;
+    }
+
+    private boolean areElementsVisible = true; // 用于追踪显隐状态
+
+
+    /**
+     * 切换虚拟控制器（虚拟按键）的可见性。
+     */
+    public void toggleVirtualControllerVisibility() {
+        if (controllerManager != null) {
+            areElementsVisible = !areElementsVisible;
+            if (areElementsVisible) {
+                controllerManager.getElementController().showAllElementsForTest();
+                Toast.makeText(this, getString(R.string.toast_elements_visible), Toast.LENGTH_SHORT).show();
+            } else {
+                controllerManager.getElementController().hideAllElementsForTest();
+                Toast.makeText(this, getString(R.string.toast_elements_hidden), Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    /**
+     * 王冠功能配置切换
+     */
+    public void toggleBackKeyMenuType() {
+        if (currentBackKeyMenu) {
+            currentBackKeyMenu = false;
+            areElementsVisible = true;
+            controllerManager.getElementController().showAllElementsForTest();
+            Toast.makeText(this, getString(R.string.toast_back_key_menu_switch_2), Toast.LENGTH_SHORT).show();
+        } else {
+            currentBackKeyMenu = true;
+            Toast.makeText(this, getString(R.string.toast_back_key_menu_switch_1), Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private boolean connectedToUsbDriverService = false;
+    private UsbDriverService.UsbDriverBinder usbDriverBinder;
     private ServiceConnection usbDriverServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             UsbDriverService.UsbDriverBinder binder = (UsbDriverService.UsbDriverBinder) iBinder;
+            usbDriverBinder = binder;
             binder.setListener(controllerHandler);
             binder.setStateListener(Game.this);
             binder.start();
@@ -229,16 +251,26 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
             connectedToUsbDriverService = false;
+            usbDriverBinder = null;
         }
     };
 
-    private TextView perfResView;
-    private TextView perfDecoderView;
-    private TextView perfRenderFpsView;
-    private TextView networkLatencyView;
-    private TextView decodeLatencyView;
-    private TextView hostLatencyView;
-    private TextView packetLossView;
+    private void stopAndUnbindUsbDriverService() {
+        if (connectedToUsbDriverService) {
+            if (usbDriverBinder != null) {
+                try {
+                    usbDriverBinder.stop();
+                } catch (Exception ignored) {}
+            }
+            try {
+                unbindService(usbDriverServiceConnection);
+            } catch (Exception ignored) {}
+            connectedToUsbDriverService = false;
+            usbDriverBinder = null;
+        }
+    }
+
+    // 性能覆盖层的各项视图由 PerformanceOverlayManager 管理
 
     public static final String EXTRA_HOST = "Host";
     public static final String EXTRA_PORT = "Port";
@@ -254,10 +286,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     public static final String EXTRA_PC_USEVDD = "usevdd";
     public static final String EXTRA_APP_CMD = "CmdList";
 
-    private DisplayManager displayManager;
-    private Display externalDisplay;
-    private boolean useExternalDisplay = false;
-    private DisplayManager.DisplayListener displayListener;
+    private ExternalDisplayManager externalDisplayManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -327,17 +356,17 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         // Listen for non-touch events on the game surface
         streamView = findViewById(R.id.surfaceView);
-        streamView.setOnGenericMotionListener(this);
-        streamView.setOnKeyListener(this);
-        streamView.setInputCallbacks(this);
-
+            streamView.setOnGenericMotionListener(this);
+            streamView.setOnKeyListener(this);
+            streamView.setInputCallbacks(this);
+        
         // Listen for touch events on the background touch view to enable trackpad mode
         // to work on areas outside of the StreamView itself. We use a separate View
         // for this rather than just handling it at the Activity level, because that
         // allows proper touch splitting, which the OSC relies upon.
         View backgroundTouchView = findViewById(R.id.backgroundTouchView);
-        backgroundTouchView.setOnTouchListener(this);
-
+            backgroundTouchView.setOnTouchListener(this);
+        
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             // Request unbuffered input event dispatching for all input classes we handle here.
             // Without this, input events are buffered to be delivered in lock-step with VBlank,
@@ -361,17 +390,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         notificationOverlayView = findViewById(R.id.notificationOverlay);
         notificationTextView = findViewById(R.id.notificationText);
 
-        performanceOverlayView = findViewById(R.id.performanceOverlay);
-
         micButton = findViewById(R.id.micButton);
 
-        perfResView = findViewById(R.id.perfRes);
-        perfDecoderView = findViewById(R.id.perfDecoder);
-        perfRenderFpsView = findViewById(R.id.perfRenderFps);
-        networkLatencyView = findViewById(R.id.perfNetworkLatency);
-        decodeLatencyView = findViewById(R.id.perfDecodeLatency);
-        hostLatencyView = findViewById(R.id.perfHostLatency);
-        packetLossView = findViewById(R.id.perfPacketLoss);
+        // 初始化性能覆盖层管理器
+        performanceOverlayManager = new PerformanceOverlayManager(this, prefConfig);
+        performanceOverlayManager.initialize();
 
         inputCaptureProvider = InputCaptureManager.getInputCaptureProvider(this, this);
 
@@ -463,7 +486,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         if (prefConfig.enableHdr) {
             // Start our HDR checklist
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                Display display = getTargetDisplay();
+                Display display = externalDisplayManager != null ?
+                        externalDisplayManager.getTargetDisplay() : getWindowManager().getDefaultDisplay();
                 Display.HdrCapabilities hdrCaps = display.getHdrCapabilities();
 
                 // We must now ensure our display is compatible with HDR10
@@ -485,16 +509,6 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             else {
                 Toast.makeText(this, "HDR requires Android 7.0 or later", Toast.LENGTH_LONG).show();
             }
-        }
-
-        // Check if the user has enabled performance stats overlay
-        if (prefConfig.enablePerfOverlay) {
-            requestedPerformanceOverlayVisibility = View.VISIBLE;
-            // 初始状态下设置为不可见，等待性能数据更新时再显示
-            performanceOverlayView.setVisibility(View.GONE);
-            performanceOverlayView.setAlpha(0.0f);
-            // 配置性能覆盖层的方向和位置
-            configurePerformanceOverlay();
         }
 
         decoderRenderer = new MediaCodecDecoderRenderer(
@@ -676,31 +690,44 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
 
         // Set up display position
-        setupDisplayPosition();
+        new DisplayPositionManager(this, prefConfig, streamView).setupDisplayPosition();
 
-        // 初始化显示管理器
-        displayManager = (DisplayManager) getSystemService(Context.DISPLAY_SERVICE);
-
-        // 设置显示器监听器
-        setupDisplayListener();
-
-        // 检查是否有外接显示器
-        checkForExternalDisplay();
-
-        // 如果有外接显示器，启动外接显示器演示，并降低内建屏幕亮度到30%
-        if (useExternalDisplay) {
-            Window window = getWindow();
-            if (window != null) {
-                WindowManager.LayoutParams layoutParams = window.getAttributes();
-                layoutParams.screenBrightness = 0.3f;
-                window.setAttributes(layoutParams);
+        // 初始化外接显示器管理器
+        externalDisplayManager = new ExternalDisplayManager(this, prefConfig, conn, decoderRenderer, pcName, appName);
+        externalDisplayManager.setCallback(new ExternalDisplayManager.ExternalDisplayCallback() {
+            @Override
+            public void onExternalDisplayConnected(Display display) {
+                // 外接显示器连接时的处理
             }
-            startExternalDisplayPresentation();
-        }
+
+            @Override
+            public void onExternalDisplayDisconnected() {
+                // 外接显示器断开时的处理
+            }
+
+            @Override
+            public void onStreamViewReady(StreamView streamView) {
+                // 外接显示器StreamView准备就绪时的处理
+                streamView.setOnGenericMotionListener(Game.this);
+                streamView.setOnKeyListener(Game.this);
+                streamView.setInputCallbacks(Game.this);
+
+                // 设置触摸监听
+                View backgroundTouchView = findViewById(R.id.backgroundTouchView);
+                if (backgroundTouchView != null) {
+                    backgroundTouchView.setOnTouchListener(Game.this);
+                }
+
+                // 设置Surface回调
+                streamView.getHolder().addCallback(Game.this);
+            }
+        });
+        externalDisplayManager.initialize();
     }
 
     private void setPreferredOrientationForCurrentDisplay() {
-        Display display = getTargetDisplay();
+        Display display = externalDisplayManager != null ?
+                externalDisplayManager.getTargetDisplay() : getWindowManager().getDefaultDisplay();
 
         // 首先确定基于分辨率的所需方向
         int desiredOrientation = Configuration.ORIENTATION_UNDEFINED;
@@ -774,7 +801,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     virtualController.hide();
                 }
 
-                performanceOverlayView.setVisibility(View.GONE);
+                if (performanceOverlayManager != null) {
+                    performanceOverlayManager.hideOverlayImmediate();
+                }
                 notificationOverlayView.setVisibility(View.GONE);
 
                 // 隐藏麦克风按钮
@@ -797,7 +826,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     virtualController.show();
                 }
 
-                performanceOverlayView.setVisibility(requestedPerformanceOverlayVisibility);
+                if (performanceOverlayManager != null) {
+                    performanceOverlayManager.applyRequestedVisibility();
+                }
                 if (requestedNotificationOverlayVisibility == View.VISIBLE) {
                     notificationOverlayView.setVisibility(View.VISIBLE);
                 } else {
@@ -818,7 +849,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
 
         // Re-apply display position
-        setupDisplayPosition();
+        refreshDisplayPosition();
     }
 
     @TargetApi(Build.VERSION_CODES.O)
@@ -969,7 +1000,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     }
 
     private float prepareDisplayForRendering() {
-        Display display = getTargetDisplay();
+        Display display = externalDisplayManager != null ?
+                externalDisplayManager.getTargetDisplay() : getWindowManager().getDefaultDisplay();
         WindowManager.LayoutParams windowLayoutParams = getWindow().getAttributes();
         float displayRefreshRate;
 
@@ -1234,24 +1266,14 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             highPerfWifiLock.release();
         }
 
-        if (connectedToUsbDriverService) {
-            // Unbind from the discovery service
-            unbindService(usbDriverServiceConnection);
-        }
+        stopAndUnbindUsbDriverService();
 
         // Destroy the capture provider
         inputCaptureProvider.destroy();
 
-        // 清理外接显示器演示
-        if (externalPresentation != null) {
-            externalPresentation.dismiss();
-            externalPresentation = null;
-        }
-
-        // 取消注册显示器监听器
-        if (displayListener != null && displayManager != null) {
-            displayManager.unregisterDisplayListener(displayListener);
-            displayListener = null;
+        // 清理外接显示器管理器
+        if (externalDisplayManager != null) {
+            externalDisplayManager.cleanup();
         }
 
         // 清理麦克风流
@@ -1754,6 +1776,41 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         inputManager.toggleSoftInput(0, 0);
     }
 
+    /**
+     * 启用或禁用安卓本地鼠标指针
+     */
+    public void enableNativeMousePointer(boolean enable) {
+        LimeLog.info("Setting native mouse pointer: " + enable);
+        
+        prefConfig.enableNativeMousePointer = enable;
+        
+        if (enable) {
+            // 启用本地鼠标指针：释放鼠标捕获但保持键盘捕获
+            inputCaptureProvider.disableCapture();
+            cursorVisible = true;
+            
+            // 显示系统鼠标指针
+            if (inputCaptureProvider != null) {
+                inputCaptureProvider.showCursor();
+            }
+            
+            // 保持键盘快捷键捕获，确保Ctrl+Alt+Shift等组合键仍然工作
+            setMetaKeyCaptureState(true);
+            
+            // 注意：我们不设置 grabbedInput = false，这样按键事件仍能正常处理
+        } else {
+            // 禁用本地鼠标指针：恢复正常的输入捕获状态
+            cursorVisible = false;
+            
+            // 隐藏系统鼠标指针
+            if (inputCaptureProvider != null) {
+                inputCaptureProvider.hideCursor();
+            }
+            
+            setInputGrabState(true);
+        }
+    }
+
     private byte getLiTouchTypeFromEvent(MotionEvent event) {
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
@@ -2140,6 +2197,63 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         int eventSource = event.getSource();
         int deviceSources = event.getDevice() != null ? event.getDevice().getSources() : 0;
+
+        // 本地鼠标指针模式的特殊处理
+        if (prefConfig.enableNativeMousePointer && (eventSource & InputDevice.SOURCE_CLASS_POINTER) != 0) {
+            // 检查是否为真正的鼠标设备（而不是触摸屏）
+            boolean isActualMouse = (eventSource == InputDevice.SOURCE_MOUSE) ||
+                                   (eventSource == InputDevice.SOURCE_MOUSE_RELATIVE) ||
+                                   (event.getPointerCount() >= 1 && 
+                                    event.getToolType(0) == MotionEvent.TOOL_TYPE_MOUSE) ||
+                                   (eventSource == 12290); // Samsung DeX mode
+            
+            if (isActualMouse) {
+                LimeLog.info("Native mouse event (processing): " + event.getActionMasked() + 
+                            ", source: " + eventSource + 
+                            ", x: " + event.getX() + 
+                            ", y: " + event.getY() + 
+                            ", buttons: " + event.getButtonState());
+                
+                // 在本地鼠标指针模式下，直接处理鼠标事件
+                updateMousePosition(view, event);
+                
+                int buttonState = event.getButtonState();
+                int changedButtons = buttonState ^ lastButtonState;
+                
+                if ((changedButtons & MotionEvent.BUTTON_PRIMARY) != 0) {
+                    if ((buttonState & MotionEvent.BUTTON_PRIMARY) != 0) {
+                        conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_LEFT);
+                    } else {
+                        conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_LEFT);
+                    }
+                }
+                if ((changedButtons & MotionEvent.BUTTON_SECONDARY) != 0) {
+                    if ((buttonState & MotionEvent.BUTTON_SECONDARY) != 0) {
+                        conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_RIGHT);
+                    } else {
+                        conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_RIGHT);
+                    }
+                }
+                if ((changedButtons & MotionEvent.BUTTON_TERTIARY) != 0) {
+                    if ((buttonState & MotionEvent.BUTTON_TERTIARY) != 0) {
+                        conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_MIDDLE);
+                    } else {
+                        conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_MIDDLE);
+                    }
+                }
+                
+                // 处理滚轮事件
+                if (event.getActionMasked() == MotionEvent.ACTION_SCROLL) {
+                    conn.sendMouseHighResScroll((short)(event.getAxisValue(MotionEvent.AXIS_VSCROLL) * 120));
+                    conn.sendMouseHighResHScroll((short)(event.getAxisValue(MotionEvent.AXIS_HSCROLL) * 120));
+                }
+                
+                lastButtonState = buttonState;
+                return true;
+            }
+            // 如果不是真正的鼠标设备（比如触摸屏），继续让后续代码处理
+        }
+
         if ((eventSource & InputDevice.SOURCE_CLASS_JOYSTICK) != 0) { //手柄所属条件
             if (controllerHandler.handleMotionEvent(event)) {
                 return true;
@@ -2595,6 +2709,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
             controllerHandler.stop();
 
+            // 停止并释放 USB 控制器接管
+            stopAndUnbindUsbDriverService();
+
             // 停止麦克风流
             if (microphoneManager != null) {
                 microphoneManager.stopMicrophoneStream();
@@ -2800,7 +2917,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 h.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        setInputGrabState(true);
+                        // 根据配置决定是否启用原生鼠标指针
+                        if (prefConfig.enableNativeMousePointer) {
+                            enableNativeMousePointer(true);
+                        } else {
+                            setInputGrabState(true);
+                        }
                     }
                 }, 500);
 
@@ -3116,79 +3238,14 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     @Override
     public void onPerfUpdateV(final PerformanceInfo performanceInfo) {
-        long currentRxBytes = TrafficStats.getTotalRxBytes();
-        long timeMillis = System.currentTimeMillis();
-        long timeMillisInterval = timeMillis - previousTimeMillis;
-
-        // 计算并更新带宽信息
-        performanceInfo.bandWidth = NetHelper.calculateBandwidth(currentRxBytes, previousRxBytes, timeMillisInterval);
-        previousTimeMillis = timeMillis;
-        previousRxBytes = currentRxBytes;
-
-        // 准备性能信息显示
-        String resInfo = String.format("🎬 %dx%d@%.0f", 
-            performanceInfo.initialWidth, performanceInfo.initialHeight, performanceInfo.totalFps);
-            
-        String decoderInfo = performanceInfo.decoder.replaceFirst(".*\\.(avc|hevc|av1).*", "$1").toUpperCase();
-        decoderInfo += prefConfig.enableHdr ? " HDR" : "";
-        
-        String renderFpsInfo = String.format("Rx %.0f / Rd %.0f FPS", 
-            performanceInfo.receivedFps, performanceInfo.renderedFps);
-
-        String packetLossInfo = String.format("📶 %.2f%%", performanceInfo.lostFrameRate);
-
-        String networkLatencyInfo = String.format("%s   %d ± %d ms", 
-            performanceInfo.bandWidth, 
-            (int) (performanceInfo.rttInfo >> 32), 
-            (int) performanceInfo.rttInfo);
-            
-        String decodeLatencyInfo = String.format(performanceInfo.decodeTimeMs < 15 ? 
-            "⏱️ %.2f ms" : "🥵 %.2f ms", performanceInfo.decodeTimeMs);
-            
-        String hostLatencyInfo = performanceInfo.framesWithHostProcessingLatency > 0 ?
-            String.format("🖥 %.1f ms", performanceInfo.aveHostProcessingLatency) : "🧋 Ver.V+";
-
-        String finalDecoderInfo = decoderInfo;
-        runOnUiThread(() -> {
-            // 如果是第一次收到性能数据且性能覆盖层已启用，则等待1秒显示覆盖层
-            if (!hasShownPerfOverlay && requestedPerformanceOverlayVisibility == View.VISIBLE) {
-                performanceOverlayView.setVisibility(View.VISIBLE);
-                performanceOverlayView.setAlpha(1.0f);
-            }
-
-            // 只更新可见的性能指标
-            if (perfResView != null && perfResView.getVisibility() == View.VISIBLE) {
-                perfResView.setText(resInfo);
-            }
-            if (perfDecoderView != null && perfDecoderView.getVisibility() == View.VISIBLE) {
-                perfDecoderView.setText(finalDecoderInfo);
-            }
-            if (perfRenderFpsView != null && perfRenderFpsView.getVisibility() == View.VISIBLE) {
-                perfRenderFpsView.setText(renderFpsInfo);
-            }
-            if (packetLossView != null && packetLossView.getVisibility() == View.VISIBLE) {
-                packetLossView.setText(packetLossInfo);
-                // 根据丢包率设置颜色：小于5%为绿色，否则为红色
-                packetLossView.setTextColor(performanceInfo.lostFrameRate < 5.0f ? 0xFF7D9D7D : 0xFFB57D7D);
-            }
-            if (networkLatencyView != null && networkLatencyView.getVisibility() == View.VISIBLE) {
-                // 当丢包率不显示时，在网络延迟前添加信号图标
-                boolean showPacketLoss = packetLossView != null && packetLossView.getVisibility() == View.VISIBLE;
-                String displayText = showPacketLoss ? networkLatencyInfo : "🌐 " + networkLatencyInfo;
-                networkLatencyView.setText(displayText);
-            }
-            if (decodeLatencyView != null && decodeLatencyView.getVisibility() == View.VISIBLE) {
-                decodeLatencyView.setText(decodeLatencyInfo);
-            }
-            if (hostLatencyView != null && hostLatencyView.getVisibility() == View.VISIBLE) {
-                hostLatencyView.setText(hostLatencyInfo);
-            }
-        });
+        if (performanceOverlayManager != null) {
+            performanceOverlayManager.updatePerformanceInfo(performanceInfo);
+        }
     }
 
     @Override
     public boolean isPerfOverlayVisible() {
-        return requestedPerformanceOverlayVisibility == View.VISIBLE;
+        return performanceOverlayManager != null && performanceOverlayManager.isPerfOverlayVisible();
     }
 
     @Override
@@ -3235,14 +3292,19 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         updatePipAutoEnter();
     }
 
-    @Override
+    /**
+     * 根据当前设置的状态，显示不同的游戏菜单。
+     * @param device 可能是触发菜单的输入设备，可以为 null
+     */
     public void showGameMenu(GameInputDevice device) {
-        if (controllerManager != null && prefConfig.onscreenKeyboard){
+        // 检查用户是否选择了 GAME_MENU
+        if (currentBackKeyMenu) {
+            new GameMenu(this, app, conn, device);
+        } else if (controllerManager != null && prefConfig.onscreenKeyboard) {
             controllerManager.getSuperPagesController().returnOperation();
         } else {
             new GameMenu(this, app, conn, device);
         }
-
     }
 
     @Override
@@ -3280,30 +3342,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     }
 
     public void togglePerformanceOverlay() {
-        if (requestedPerformanceOverlayVisibility == View.VISIBLE) {
-            // 隐藏性能覆盖层 - 使用淡出动画
-            requestedPerformanceOverlayVisibility = View.GONE;
-            hasShownPerfOverlay = false; // 重置显示状态
-            Animation fadeOutAnimation = AnimationUtils.loadAnimation(this, R.anim.perf_overlay_fadeout);
-            performanceOverlayView.startAnimation(fadeOutAnimation);
-            fadeOutAnimation.setAnimationListener(new Animation.AnimationListener() {
-                @Override
-                public void onAnimationStart(Animation animation) {}
-
-                @Override
-                public void onAnimationEnd(Animation animation) {
-                    performanceOverlayView.setVisibility(View.GONE);
-                    performanceOverlayView.setAlpha(0.0f);
-                }
-
-                @Override
-                public void onAnimationRepeat(Animation animation) {}
-            });
-        } else {
-            requestedPerformanceOverlayVisibility = View.VISIBLE;
-            hasShownPerfOverlay = true; // 标记为已显示，避免重复动画
-            performanceOverlayView.setVisibility(View.VISIBLE);
-            performanceOverlayView.setAlpha(1.0f);
+        if (performanceOverlayManager != null) {
+            performanceOverlayManager.togglePerformanceOverlay();
         }
     }
 
@@ -3383,9 +3423,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
      * 刷新性能覆盖层显示项配置（用户更改配置后调用）
      */
     public void refreshPerformanceOverlayConfig() {
-        if (performanceOverlayView != null && requestedPerformanceOverlayVisibility == View.VISIBLE) {
-            configureDisplayItems();
-            configureTextAlignment();
+        if (performanceOverlayManager != null) {
+            performanceOverlayManager.refreshPerformanceOverlayConfig();
         }
     }
 
@@ -3437,88 +3476,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         performanceInfoDisplays.add(performanceInfoDisplay);
     }
 
-    private void setupDisplayPosition() {
-        // 获取当前偏好设置
-        PreferenceConfiguration config = PreferenceConfiguration.readPreferences(this);
-        
-        // 获取视图容器
-        ViewGroup.LayoutParams layoutParams = streamView.getLayoutParams();
-        if (layoutParams instanceof FrameLayout.LayoutParams) {
-            FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) layoutParams;
-            
-            // 根据屏幕位置设置重力属性
-            switch (config.screenPosition) {
-                case TOP_LEFT:
-                    params.gravity = Gravity.TOP | Gravity.LEFT;
-                    break;
-                case TOP_CENTER:
-                    params.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
-                    break;
-                case TOP_RIGHT:
-                    params.gravity = Gravity.TOP | Gravity.RIGHT;
-                    break;
-                case CENTER_LEFT:
-                    params.gravity = Gravity.CENTER_VERTICAL | Gravity.LEFT;
-                    break;
-                case CENTER:
-                    params.gravity = Gravity.CENTER;
-                    break;
-                case CENTER_RIGHT:
-                    params.gravity = Gravity.CENTER_VERTICAL | Gravity.RIGHT;
-                    break;
-                case BOTTOM_LEFT:
-                    params.gravity = Gravity.BOTTOM | Gravity.LEFT;
-                    break;
-                case BOTTOM_CENTER:
-                    params.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
-                    break;
-                case BOTTOM_RIGHT:
-                    params.gravity = Gravity.BOTTOM | Gravity.RIGHT;
-                    break;
-            }
-            
-            // 计算偏移量的像素值
-            DisplayMetrics metrics = new DisplayMetrics();
-            getWindowManager().getDefaultDisplay().getMetrics(metrics);
-            
-            int streamWidth = prefConfig.width;
-            int streamHeight = prefConfig.height;
-            
-            // 将0-100的偏移百分比转换为实际像素值
-            int xOffset = (streamWidth * config.screenOffsetX) / 100;
-            int yOffset = (streamHeight * config.screenOffsetY) / 100;
-            
-            // 应用偏移量
-            if (params.gravity == Gravity.TOP || 
-                params.gravity == (Gravity.TOP | Gravity.CENTER_HORIZONTAL) || 
-                params.gravity == (Gravity.TOP | Gravity.RIGHT)) {
-                params.topMargin = yOffset;
-            } else if (params.gravity == Gravity.BOTTOM || 
-                      params.gravity == (Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL) || 
-                      params.gravity == (Gravity.BOTTOM | Gravity.LEFT)) {
-                params.bottomMargin = yOffset;
-            }
-            
-            if (params.gravity == Gravity.LEFT || 
-                params.gravity == (Gravity.CENTER_VERTICAL | Gravity.LEFT) || 
-                params.gravity == (Gravity.BOTTOM | Gravity.LEFT)) {
-                params.leftMargin = xOffset;
-            } else if (params.gravity == Gravity.RIGHT || 
-                      params.gravity == (Gravity.CENTER_VERTICAL | Gravity.RIGHT) || 
-                      params.gravity == (Gravity.TOP | Gravity.RIGHT)) {
-                params.rightMargin = xOffset;
-            }
-            
-            // 应用更新后的布局参数
-            streamView.setLayoutParams(params);
-        }
-    }
-
     // 更新刷新显示位置方法
     public void refreshDisplayPosition() {
-        if (surfaceCreated) {
-            setupDisplayPosition();
-        }
+        new DisplayPositionManager(this, prefConfig, streamView).refreshDisplayPosition(surfaceCreated);
     }
 
     public StreamView getStreamView() {
@@ -3554,652 +3514,5 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         // Apply background color without animation
         notificationOverlayView.setCardBackgroundColor(backgroundColor);
-    }
-    
-    private void configurePerformanceOverlay() {
-        if (performanceOverlayView == null) {
-            return;
-        }
-        
-        FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) performanceOverlayView.getLayoutParams();
-        
-        // 设置方向
-        if (prefConfig.perfOverlayOrientation == PreferenceConfiguration.PerfOverlayOrientation.VERTICAL) {
-            performanceOverlayView.setOrientation(LinearLayout.VERTICAL);
-            performanceOverlayView.setBackgroundColor(getResources().getColor(R.color.overlay_background_vertical));
-        } else {
-            performanceOverlayView.setOrientation(LinearLayout.HORIZONTAL);
-            performanceOverlayView.setBackgroundColor(getResources().getColor(R.color.overlay_background_horizontal));
-        }
-        
-        // 根据用户配置显示/隐藏特定的性能指标
-        configureDisplayItems();
-        
-        // 从SharedPreferences读取保存的位置
-        SharedPreferences prefs = getSharedPreferences("performance_overlay", MODE_PRIVATE);
-        boolean hasCustomPosition = prefs.getBoolean("has_custom_position", false);
-        
-        if (hasCustomPosition) {
-            // 使用自定义位置
-            layoutParams.gravity = Gravity.NO_GRAVITY;
-            layoutParams.leftMargin = prefs.getInt("left_margin", 0);
-            layoutParams.topMargin = prefs.getInt("top_margin", 0);
-            layoutParams.rightMargin = 0;
-            layoutParams.bottomMargin = 0;
-        } else {
-            // 使用预设位置
-            switch (prefConfig.perfOverlayPosition) {
-                case TOP:
-                    layoutParams.gravity = Gravity.CENTER_HORIZONTAL | Gravity.TOP;
-                    break;
-                case BOTTOM:
-                    layoutParams.gravity = Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM;
-                    break;
-                case TOP_LEFT:
-                    layoutParams.gravity = Gravity.LEFT | Gravity.TOP;
-                    break;
-                case TOP_RIGHT:
-                    layoutParams.gravity = Gravity.RIGHT | Gravity.TOP;
-                    break;
-                case BOTTOM_LEFT:
-                    layoutParams.gravity = Gravity.LEFT | Gravity.BOTTOM;
-                    break;
-                case BOTTOM_RIGHT:
-                    layoutParams.gravity = Gravity.RIGHT | Gravity.BOTTOM;
-                    break;
-                default:
-                    layoutParams.gravity = Gravity.CENTER_HORIZONTAL | Gravity.TOP;
-                    break;
-            }
-            // 清除自定义边距
-            layoutParams.leftMargin = 0;
-            layoutParams.topMargin = 0;
-            layoutParams.rightMargin = 0;
-            layoutParams.bottomMargin = 0;
-        }
-        
-        performanceOverlayView.setLayoutParams(layoutParams);
-        
-        // 根据位置和方向调整文字对齐（延迟执行确保View已测量）
-        performanceOverlayView.post(new Runnable() {
-            @Override
-            public void run() {
-                configureTextAlignment();
-            }
-        });
-        
-        // 设置拖动监听器
-        setupPerformanceOverlayDragging();
-    }
-    
-    private void configureDisplayItems() {
-        // 根据用户配置显示/隐藏特定的性能指标
-        if (perfResView != null) {
-            perfResView.setVisibility(PerfOverlayDisplayItemsPreference.isItemEnabled(this, "resolution") ? 
-                View.VISIBLE : View.GONE);
-        }
-        if (perfDecoderView != null) {
-            perfDecoderView.setVisibility(PerfOverlayDisplayItemsPreference.isItemEnabled(this, "decoder") ? 
-                View.VISIBLE : View.GONE);
-        }
-        if (perfRenderFpsView != null) {
-            perfRenderFpsView.setVisibility(PerfOverlayDisplayItemsPreference.isItemEnabled(this, "render_fps") ? 
-                View.VISIBLE : View.GONE);
-        }
-        if (networkLatencyView != null) {
-            networkLatencyView.setVisibility(PerfOverlayDisplayItemsPreference.isItemEnabled(this, "network_latency") ? 
-                View.VISIBLE : View.GONE);
-        }
-        if (decodeLatencyView != null) {
-            decodeLatencyView.setVisibility(PerfOverlayDisplayItemsPreference.isItemEnabled(this, "decode_latency") ? 
-                View.VISIBLE : View.GONE);
-        }
-        if (hostLatencyView != null) {
-            hostLatencyView.setVisibility(PerfOverlayDisplayItemsPreference.isItemEnabled(this, "host_latency") ? 
-                View.VISIBLE : View.GONE);
-        }
-        if (packetLossView != null) {
-            packetLossView.setVisibility(PerfOverlayDisplayItemsPreference.isItemEnabled(this, "packet_loss") ?
-                    View.VISIBLE : View.GONE);
-        }
-    }
-    
-    private void configureTextAlignment() {
-        if (performanceOverlayView == null) {
-            return;
-        }
-        
-        boolean isVertical = prefConfig.perfOverlayOrientation == PreferenceConfiguration.PerfOverlayOrientation.VERTICAL;
-        boolean isRightSide = determineRightSidePosition(isVertical);
-        
-        // 只在垂直布局且位置在右侧时，将文字设置为右对齐
-        int gravity = (isVertical && isRightSide) ? android.view.Gravity.END : android.view.Gravity.START;
-        
-        // 批量设置所有性能信息文本的对齐方式和阴影效果
-        TextView[] perfViews = {
-            perfResView, perfDecoderView, perfRenderFpsView,
-                networkLatencyView, decodeLatencyView, hostLatencyView, packetLossView
-        };
-        
-        for (TextView textView : perfViews) {
-            if (textView != null && textView.getVisibility() == View.VISIBLE) {
-                configureTextViewStyle(textView, gravity, isVertical);
-            }
-        }
-    }
-    
-    /**
-     * 判断性能覆盖层是否位于右侧
-     */
-    private boolean determineRightSidePosition(boolean isVertical) {
-        SharedPreferences prefs = getSharedPreferences("performance_overlay", MODE_PRIVATE);
-        boolean hasCustomPosition = prefs.getBoolean("has_custom_position", false);
-        
-        if (hasCustomPosition) {
-            // 自定义位置：检查是否接近右侧
-            int[] viewDimensions = getViewDimensions(performanceOverlayView);
-            int viewWidth = viewDimensions[0];
-            int leftMargin = prefs.getInt("left_margin", 0);
-            
-            // 如果距离右边缘小于屏幕宽度的1/3，认为是右侧
-            return (leftMargin + viewWidth) > (streamView.getWidth() * 2 / 3);
-        } else {
-            // 预设位置：检查是否为右侧位置
-            return prefConfig.perfOverlayPosition == PreferenceConfiguration.PerfOverlayPosition.TOP_RIGHT ||
-                   prefConfig.perfOverlayPosition == PreferenceConfiguration.PerfOverlayPosition.BOTTOM_RIGHT;
-        }
-    }
-    
-    /**
-     * 配置单个TextView的样式（对齐方式和阴影效果）
-     */
-    private void configureTextViewStyle(TextView textView, int gravity, boolean isVertical) {
-        // 设置文字对齐方式
-        textView.setGravity(gravity);
-        
-        // 根据布局方向设置阴影效果
-        if (isVertical) {
-            // 竖屏时添加字体阴影，提高可读性
-            textView.setShadowLayer(2.0f, 1.0f, 1.0f, 0x80000000);
-        } else {
-            // 横屏时移除阴影
-            textView.setShadowLayer(0, 0, 0, 0);
-        }
-    }
-    
-    @SuppressLint("ClickableViewAccessibility")
-    private void setupPerformanceOverlayDragging() {
-        if (performanceOverlayView == null) {
-            return;
-        }
-        
-        performanceOverlayView.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                switch (event.getAction()) {
-                    case MotionEvent.ACTION_DOWN:
-                        isDraggingPerfOverlay = true;
-                        perfOverlayStartX = event.getRawX();
-                        perfOverlayStartY = event.getRawY();
-                        FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) v.getLayoutParams();
-                        
-                        // 如果使用预设位置（gravity不为NO_GRAVITY），需要转换为实际坐标
-                        if (layoutParams.gravity != Gravity.NO_GRAVITY) {
-                            int[] viewLocation = new int[2];
-                            int[] parentLocation = new int[2];
-                            v.getLocationInWindow(viewLocation);
-                            ((View)v.getParent()).getLocationInWindow(parentLocation);
-                            
-                            // 将预设位置转换为相对于父容器的leftMargin和topMargin
-                            layoutParams.leftMargin = viewLocation[0] - parentLocation[0];
-                            layoutParams.topMargin = viewLocation[1] - parentLocation[1];
-                            layoutParams.gravity = Gravity.NO_GRAVITY;
-                            v.setLayoutParams(layoutParams);
-                        }
-                        
-                        perfOverlayDeltaX = perfOverlayStartX - layoutParams.leftMargin;
-                        perfOverlayDeltaY = perfOverlayStartY - layoutParams.topMargin;
-                        
-                        // 添加视觉反馈：降低透明度表示正在拖动
-                        v.setAlpha(0.7f);
-                        v.setScaleX(1.05f);
-                        v.setScaleY(1.05f);
-                        return true;
-                        
-                    case MotionEvent.ACTION_MOVE:
-                        if (isDraggingPerfOverlay) {
-                            // 获取父容器和View的尺寸
-                            int[] parentDimensions = getParentDimensions(v);
-                            int[] viewDimensions = getViewDimensions(v);
-                            int parentWidth = parentDimensions[0];
-                            int parentHeight = parentDimensions[1];
-                            int viewWidth = viewDimensions[0];
-                            int viewHeight = viewDimensions[1];
-                            
-                            layoutParams = (FrameLayout.LayoutParams) v.getLayoutParams();
-                            int newLeftMargin = (int) (event.getRawX() - perfOverlayDeltaX);
-                            int newTopMargin = (int) (event.getRawY() - perfOverlayDeltaY);
-                            
-                            // 边界检查，防止移出屏幕
-                            newLeftMargin = Math.max(0, Math.min(newLeftMargin, parentWidth - viewWidth));
-                            newTopMargin = Math.max(0, Math.min(newTopMargin, parentHeight - viewHeight));
-                            
-                            layoutParams.leftMargin = newLeftMargin;
-                            layoutParams.topMargin = newTopMargin;
-                            layoutParams.gravity = Gravity.NO_GRAVITY;
-                            v.setLayoutParams(layoutParams);
-                            
-                            // 拖动过程中实时更新文字对齐
-                            configureTextAlignment();
-                            return true;
-                        }
-                        break;
-                        
-                    case MotionEvent.ACTION_UP:
-                        if (isDraggingPerfOverlay) {
-                            isDraggingPerfOverlay = false;
-                            
-                            // 恢复视觉效果
-                            v.setAlpha(1.0f);
-                            v.setScaleX(1.0f);
-                            v.setScaleY(1.0f);
-                            
-                            snapToNearestPosition(v);
-                            
-                            return true;
-                        }
-                        break;
-                }
-                return false;
-            }
-        });
-    }
-    
-    private void snapToNearestPosition(View view) {
-        // 获取父容器和View的尺寸
-        int[] parentDimensions = getParentDimensions(view);
-        int[] viewDimensions = getViewDimensions(view);
-        int screenWidth = parentDimensions[0];
-        int screenHeight = parentDimensions[1];
-        int viewWidth = viewDimensions[0];
-        int viewHeight = viewDimensions[1];
-        
-        FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) view.getLayoutParams();
-        int currentX = layoutParams.leftMargin + viewWidth / 2;
-        int currentY = layoutParams.topMargin + viewHeight / 2;
-        
-        // 计算到各个吸附位置的距离
-        SnapPosition nearestPosition = SnapPosition.TOP_CENTER;
-        double minDistance = Double.MAX_VALUE;
-        
-        // 定义8个吸附位置
-        int[][] snapPositions = {
-            {viewWidth / 2, viewHeight / 2}, // TOP_LEFT
-            {screenWidth / 2, viewHeight / 2}, // TOP_CENTER  
-            {screenWidth - viewWidth / 2, viewHeight / 2}, // TOP_RIGHT
-            {viewWidth / 2, screenHeight / 2}, // CENTER_LEFT
-            {screenWidth - viewWidth / 2, screenHeight / 2}, // CENTER_RIGHT
-            {viewWidth / 2, screenHeight - viewHeight / 2}, // BOTTOM_LEFT
-            {screenWidth / 2, screenHeight - viewHeight / 2}, // BOTTOM_CENTER
-            {screenWidth - viewWidth / 2, screenHeight - viewHeight / 2} // BOTTOM_RIGHT
-        };
-        
-        SnapPosition[] positions = SnapPosition.values();
-        
-        // 找到最近的吸附位置
-        for (int i = 0; i < snapPositions.length; i++) {
-            double distance = Math.sqrt(
-                Math.pow(currentX - snapPositions[i][0], 2) + 
-                Math.pow(currentY - snapPositions[i][1], 2)
-            );
-            
-            if (distance < minDistance) {
-                minDistance = distance;
-                nearestPosition = positions[i];
-            }
-        }
-        
-        // 吸过来
-        animateToSnapPosition(view, nearestPosition, screenWidth, screenHeight);
-    }
-    
-    private void animateToSnapPosition(View view, SnapPosition position, int screenWidth, int screenHeight) {
-        FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) view.getLayoutParams();
-        int[] viewDimensions = getViewDimensions(view);
-        int viewWidth = viewDimensions[0];
-        int viewHeight = viewDimensions[1];
-        
-        int targetX, targetY;
-        
-        switch (position) {
-            case TOP_LEFT:
-                targetX = 0;
-                targetY = 0;
-                break;
-            case TOP_CENTER:
-                targetX = (screenWidth - viewWidth) / 2;
-                targetY = 0;
-                break;
-            case TOP_RIGHT:
-                targetX = screenWidth - viewWidth;
-                targetY = 0;
-                break;
-            case CENTER_LEFT:
-                targetX = 0;
-                targetY = (screenHeight - viewHeight) / 2;
-                break;
-            case CENTER_RIGHT:
-                targetX = screenWidth - viewWidth;
-                targetY = (screenHeight - viewHeight) / 2;
-                break;
-            case BOTTOM_LEFT:
-                targetX = 0;
-                targetY = screenHeight - viewHeight;
-                break;
-            case BOTTOM_CENTER:
-                targetX = (screenWidth - viewWidth) / 2;
-                targetY = screenHeight - viewHeight;
-                break;
-            case BOTTOM_RIGHT:
-                targetX = screenWidth - viewWidth;
-                targetY = screenHeight - viewHeight;
-                break;
-            default:
-                targetX = (screenWidth - viewWidth) / 2;
-                targetY = 0;
-                break;
-        }
-        
-        // 使用动画平滑移动到目标位置
-        view.animate()
-            .translationX(targetX - layoutParams.leftMargin)
-            .translationY(targetY - layoutParams.topMargin)
-            .setDuration(200)
-            .withEndAction(() -> {
-                // 动画结束后更新实际的布局参数
-                layoutParams.leftMargin = targetX;
-                layoutParams.topMargin = targetY;
-                view.setTranslationX(0);
-                view.setTranslationY(0);
-                view.setLayoutParams(layoutParams);
-                
-                // 保存位置到SharedPreferences
-                savePerformanceOverlayPosition(targetX, targetY);
-                
-                // 重新配置文字对齐
-                configureTextAlignment();
-            })
-            .start();
-    }
-    
-    private void savePerformanceOverlayPosition(int x, int y) {
-        SharedPreferences prefs = getSharedPreferences("performance_overlay", MODE_PRIVATE);
-        prefs.edit()
-            .putBoolean("has_custom_position", true)
-            .putInt("left_margin", x)
-            .putInt("top_margin", y)
-            .apply();
-    }
-    
-    /**
-     * 获取View的实际尺寸，如果未测量则使用估计值
-     */
-    private int[] getViewDimensions(View view) {
-        int width = view.getWidth();
-        int height = view.getHeight();
-        
-        // 如果View尺寸为0（还未测量），使用估计值
-        if (width == 0) {
-            width = 300; // 估计宽度
-        }
-        if (height == 0) {
-            height = 50; // 估计高度
-        }
-        
-        return new int[]{width, height};
-    }
-    
-    /**
-     * 获取父容器的尺寸
-     */
-    private int[] getParentDimensions(View view) {
-        View parent = (View) view.getParent();
-        return new int[]{parent.getWidth(), parent.getHeight()};
-    }
-
-    /**
-     * 设置显示器监听器
-     */
-    private void setupDisplayListener() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            displayListener = new DisplayManager.DisplayListener() {
-                @Override
-                public void onDisplayAdded(int displayId) {
-                    LimeLog.info("Display added: " + displayId);
-                    if (prefConfig.useExternalDisplay && displayId != Display.DEFAULT_DISPLAY) {
-                        // 外接显示器已连接
-                        checkForExternalDisplay();
-                        if (useExternalDisplay) {
-                            startExternalDisplayPresentation();
-                        }
-                    }
-                }
-
-                @Override
-                public void onDisplayRemoved(int displayId) {
-                    LimeLog.info("Display removed: " + displayId);
-                    if (externalDisplay != null && displayId == externalDisplay.getDisplayId()) {
-                        // 外接显示器已断开
-                        if (externalPresentation != null) {
-                            externalPresentation.dismiss();
-                            externalPresentation = null;
-                        }
-                        externalDisplay = null;
-                        useExternalDisplay = false;
-
-                        // 显示主屏幕内容
-                        findViewById(R.id.surfaceView).setVisibility(View.VISIBLE);
-                        Toast.makeText(Game.this, "外接显示器已断开，切换到主屏幕", Toast.LENGTH_SHORT).show();
-                    }
-                }
-
-                @Override
-                public void onDisplayChanged(int displayId) {
-                    LimeLog.info("Display changed: " + displayId);
-                }
-            };
-
-            displayManager.registerDisplayListener(displayListener, null);
-        }
-    }
-
-    /**
-     * 检查并配置外接显示器
-     */
-    private void checkForExternalDisplay() {
-        // 如果用户没有启用外接显示器选项，直接返回
-        if (!prefConfig.useExternalDisplay) {
-            LimeLog.info("External display disabled by user preference");
-            return;
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            Display[] displays = displayManager.getDisplays();
-
-            // 查找外接显示器（不是主显示器）
-            for (Display display : displays) {
-                if (display.getDisplayId() != Display.DEFAULT_DISPLAY) {
-                    externalDisplay = display;
-                    useExternalDisplay = true;
-                    LimeLog.info("Found external display: " + display.getName() +
-                            " (ID: " + display.getDisplayId() + ")");
-                    break;
-                }
-            }
-
-            if (!useExternalDisplay) {
-                LimeLog.info("No external display found, using default display");
-            }
-        }
-    }
-
-    /**
-     * 获取要使用的显示器
-     */
-    private Display getTargetDisplay() {
-        if (useExternalDisplay && externalDisplay != null) {
-            return externalDisplay;
-        }
-        return getWindowManager().getDefaultDisplay();
-    }
-
-    /**
-     * 检查是否有外接显示器连接
-     */
-    public static boolean hasExternalDisplay(Context context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            DisplayManager displayManager = (DisplayManager) context.getSystemService(Context.DISPLAY_SERVICE);
-            if (displayManager != null) {
-                Display[] displays = displayManager.getDisplays();
-                for (Display display : displays) {
-                    if (display.getDisplayId() != Display.DEFAULT_DISPLAY) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    /**
-     * 将Activity移动到外接显示器
-     */
-    private void moveToExternalDisplay() {
-        if (useExternalDisplay && externalDisplay != null &&
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-
-            // 创建WindowManager.LayoutParams for external display
-            WindowManager.LayoutParams params = getWindow().getAttributes();
-            params.preferredDisplayModeId = externalDisplay.getMode().getModeId();
-            getWindow().setAttributes(params);
-
-            // 或者使用Presentation来在外接显示器上显示
-            // 这需要重新设计Activity结构
-        }
-    }
-
-    /**
-     * 外接显示器演示类
-     */
-    private class ExternalDisplayPresentation extends Presentation {
-
-        public ExternalDisplayPresentation(Context outerContext, Display display) {
-            super(outerContext, display);
-        }
-
-        @Override
-        protected void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-
-            // 设置全屏
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-            getWindow().getDecorView().setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
-                            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
-                            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
-
-            // 强制横屏
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-
-            // 设置内容视图
-            setContentView(R.layout.activity_game);
-
-            // 初始化StreamView
-            StreamView externalStreamView = findViewById(R.id.surfaceView);
-            if (externalStreamView != null) {
-                // 替换主Activity的StreamView
-                streamView = externalStreamView;
-                streamView.setOnGenericMotionListener(Game.this);
-                streamView.setOnKeyListener(Game.this);
-                streamView.setInputCallbacks(Game.this);
-
-                // 设置触摸监听
-                View backgroundTouchView = findViewById(R.id.backgroundTouchView);
-                if (backgroundTouchView != null) {
-                    backgroundTouchView.setOnTouchListener(Game.this);
-                }
-                
-                // 初始化通知覆盖层
-                notificationOverlayView = findViewById(R.id.notificationOverlay);
-
-                // 设置Surface回调
-                streamView.getHolder().addCallback(Game.this);
-            }
-        }
-
-        @Override
-        public void onDisplayRemoved() {
-            super.onDisplayRemoved();
-            // 外接显示器被移除时，关闭串流
-            Game.this.finish();
-        }
-    }
-
-    private ExternalDisplayPresentation externalPresentation;
-
-    /**
-     * 启动外接显示器演示
-     */
-    @SuppressLint({"ResourceAsColor", "SetTextI18n"})
-    private void startExternalDisplayPresentation() {
-        if (!(useExternalDisplay && externalDisplay != null && externalPresentation == null)) {
-            return;
-        }
-
-        externalPresentation = new ExternalDisplayPresentation(this, externalDisplay);
-        externalPresentation.show();
-
-        // 隐藏主Activity的内容
-        View surfaceView = findViewById(R.id.surfaceView);
-        if (surfaceView != null) {
-            surfaceView.setVisibility(View.GONE);
-        }
-
-        if (prefConfig.enablePerfOverlay) {
-            // 创建电量显示TextView
-            final TextView batteryTextView = new TextView(this);
-            batteryTextView.setGravity(Gravity.CENTER);
-            batteryTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 48);
-            batteryTextView.setTextColor(getResources().getColor(R.color.scene_color_1));
-
-            // 设置布局参数（居中显示）
-            FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.WRAP_CONTENT,
-                    FrameLayout.LayoutParams.WRAP_CONTENT
-            );
-            params.gravity = Gravity.CENTER;
-            batteryTextView.setLayoutParams(params);
-
-            // 添加到内建屏幕（主Activity）视图的中间
-            FrameLayout rootView = findViewById(android.R.id.content);
-            if (rootView != null) {
-                rootView.addView(batteryTextView);
-            }
-
-            // 创建定时更新任务
-            final Handler handler = new Handler();
-            final Runnable updateBatteryTask = new Runnable() {
-                @Override
-                public void run() {
-                    batteryTextView.setText(String.format("🔋 %d%%", UiHelper.getBatteryLevel(Game.this)));
-                    handler.postDelayed(this, 60000); // 每分钟更新一次
-                }
-            };
-
-            // 立即执行首次更新并启动定时器
-            updateBatteryTask.run();
-        }
-
-        Toast.makeText(this, "串流已切换到外接显示器, 若某些外接设备不能正常横屏显示，请翻滚主机。", Toast.LENGTH_LONG).show();
     }
 }

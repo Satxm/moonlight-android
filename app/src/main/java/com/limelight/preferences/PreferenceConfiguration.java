@@ -8,6 +8,7 @@ import android.preference.PreferenceManager;
 import android.view.Display;
 import android.graphics.Point;
 import android.view.WindowManager;
+import android.view.KeyEvent;
 
 import com.limelight.nvstream.jni.MoonBridge;
 
@@ -94,6 +95,10 @@ public class PreferenceConfiguration {
     private static final String LATENCY_TOAST_PREF_STRING = "checkbox_enable_post_stream_toast";
     private static final String FRAME_PACING_PREF_STRING = "frame_pacing";
     private static final String ABSOLUTE_MOUSE_MODE_PREF_STRING = "checkbox_absolute_mouse_mode";
+    private static final String ENABLE_NATIVE_MOUSE_POINTER_PREF_STRING = "checkbox_enable_native_mouse_pointer";
+    // Card visibility preferences
+    private static final String SHOW_BITRATE_CARD_PREF_STRING = "checkbox_show_bitrate_card";
+    private static final String SHOW_GYRO_CARD_PREF_STRING = "checkbox_show_gyro_card";
 
     private static final String ENABLE_ENHANCED_TOUCH_PREF_STRING = "checkbox_enable_enhanced_touch";
     private static final String ENHANCED_TOUCH_ON_RIGHT_PREF_STRING = "checkbox_enhanced_touch_on_which_side";
@@ -156,6 +161,7 @@ public class PreferenceConfiguration {
     private static final boolean DEFAULT_LATENCY_TOAST = false;
     private static final String DEFAULT_FRAME_PACING = "latency";
     private static final boolean DEFAULT_ABSOLUTE_MOUSE_MODE = false;
+    private static final boolean DEFAULT_ENABLE_NATIVE_MOUSE_POINTER = false;
     private static final boolean DEFAULT_ENABLE_AUDIO_FX = false;
     private static final boolean DEFAULT_REDUCE_REFRESH_RATE = false;
     private static final boolean DEFAULT_FULL_RANGE = false;
@@ -258,6 +264,7 @@ public class PreferenceConfiguration {
     public MoonBridge.AudioConfiguration audioConfiguration;
     public int framePacing;
     public boolean absoluteMouseMode;
+    public boolean enableNativeMousePointer;
     public boolean enableAudioFx;
     public boolean reduceRefreshRate;
     public boolean fullRange;
@@ -265,6 +272,17 @@ public class PreferenceConfiguration {
     public boolean gamepadTouchpadAsMouse;
     public boolean gamepadMotionSensorsFallbackToDevice;
     public boolean reverseResolution;
+    // Runtime-only: enable mapping gyroscope motion to right analog stick
+    public boolean gyroToRightStick;
+    // Runtime-only: sensitivity in deg/s for full stick deflection
+    public float gyroFullDeflectionDps;
+    // Runtime-only: sensitivity multiplier (higher -> faster)
+    public float gyroSensitivityMultiplier;
+    // Runtime-only: activation keycode to hold (Android keycode); 0 means LT analog, 1 means RT analog, otherwise Android key
+    public int gyroActivationKeyCode;
+    // Card visibility
+    public boolean showBitrateCard;
+    public boolean showGyroCard;
 
     // 麦克风设置
     public boolean enableMic;
@@ -724,6 +742,7 @@ public class PreferenceConfiguration {
         config.touchscreenTrackpad = prefs.getBoolean(TOUCHSCREEN_TRACKPAD_PREF_STRING, DEFAULT_TOUCHSCREEN_TRACKPAD);
         config.enableLatencyToast = prefs.getBoolean(LATENCY_TOAST_PREF_STRING, DEFAULT_LATENCY_TOAST);
         config.absoluteMouseMode = prefs.getBoolean(ABSOLUTE_MOUSE_MODE_PREF_STRING, DEFAULT_ABSOLUTE_MOUSE_MODE);
+        config.enableNativeMousePointer = prefs.getBoolean(ENABLE_NATIVE_MOUSE_POINTER_PREF_STRING, DEFAULT_ENABLE_NATIVE_MOUSE_POINTER);
         config.enableAudioFx = prefs.getBoolean(ENABLE_AUDIO_FX_PREF_STRING, DEFAULT_ENABLE_AUDIO_FX);
         config.reduceRefreshRate = prefs.getBoolean(REDUCE_REFRESH_RATE_PREF_STRING, DEFAULT_REDUCE_REFRESH_RATE);
         config.fullRange = prefs.getBoolean(FULL_RANGE_PREF_STRING, DEFAULT_FULL_RANGE);
@@ -731,6 +750,10 @@ public class PreferenceConfiguration {
         config.gamepadMotionSensors = prefs.getBoolean(GAMEPAD_MOTION_SENSORS_PREF_STRING, DEFAULT_GAMEPAD_MOTION_SENSORS);
         config.gamepadMotionSensorsFallbackToDevice = prefs.getBoolean(GAMEPAD_MOTION_FALLBACK_PREF_STRING, DEFAULT_GAMEPAD_MOTION_FALLBACK);
         config.enableSimplifyPerfOverlay = false;
+
+        // Cards visibility (defaults to true)
+        config.showBitrateCard = prefs.getBoolean(SHOW_BITRATE_CARD_PREF_STRING, true);
+        config.showGyroCard = prefs.getBoolean(SHOW_GYRO_CARD_PREF_STRING, true);
 
         // 读取麦克风设置
         config.enableMic = prefs.getBoolean(ENABLE_MIC_PREF_STRING, DEFAULT_ENABLE_MIC);
@@ -786,6 +809,12 @@ public class PreferenceConfiguration {
         
         config.useExternalDisplay = prefs.getBoolean("use_external_display", false);
 
+        // Runtime-only defaults; controlled via in-stream GameMenu
+        config.gyroToRightStick = false;
+        config.gyroFullDeflectionDps = 180.0f;
+        config.gyroSensitivityMultiplier = 1.0f;
+        config.gyroActivationKeyCode = KeyEvent.KEYCODE_BUTTON_L2;
+
         return config;
     }
 
@@ -836,6 +865,8 @@ public class PreferenceConfiguration {
                     .putBoolean(ENABLE_HDR_PREF_STRING, enableHdr)
                     .putBoolean(ENABLE_PERF_OVERLAY_STRING, enablePerfOverlay)
                     .putBoolean(REVERSE_RESOLUTION_PREF_STRING, reverseResolution)
+                    .putBoolean(SHOW_BITRATE_CARD_PREF_STRING, showBitrateCard)
+                    .putBoolean(SHOW_GYRO_CARD_PREF_STRING, showGyroCard)
                     .putString(SCREEN_POSITION_PREF_STRING, positionString)
                     .putInt(SCREEN_OFFSET_X_PREF_STRING, screenOffsetX)
                     .putInt(SCREEN_OFFSET_Y_PREF_STRING, screenOffsetY)
@@ -843,6 +874,7 @@ public class PreferenceConfiguration {
                     .putBoolean(ENABLE_MIC_PREF_STRING, enableMic)
                     .putInt(MIC_BITRATE_PREF_STRING, micBitrate)
                     .putBoolean(ENABLE_ESC_MENU_PREF_STRING, enableEscMenu)
+                    .putBoolean(ENABLE_NATIVE_MOUSE_POINTER_PREF_STRING, enableNativeMousePointer)
                     .apply();
             return true;
         } catch (Exception e) {
@@ -870,6 +902,12 @@ public class PreferenceConfiguration {
         copy.enableMic = this.enableMic;
         copy.micBitrate = this.micBitrate;
         copy.enableEscMenu = this.enableEscMenu;
+        copy.enableNativeMousePointer = this.enableNativeMousePointer;
+        copy.gyroToRightStick = this.gyroToRightStick;
+        copy.gyroFullDeflectionDps = this.gyroFullDeflectionDps;
+        copy.gyroActivationKeyCode = this.gyroActivationKeyCode;
+        copy.showBitrateCard = this.showBitrateCard;
+        copy.showGyroCard = this.showGyroCard;
         return copy;
     }
 }
