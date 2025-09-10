@@ -458,6 +458,7 @@
     <string name="pacing_balanced">平衡</string>
     <string name="pacing_balanced_alt">有FPS限制的平衡</string>
     <string name="pacing_smoothness">优先视频流畅度（可能会显著增大延迟）</string>
+    <string name="pacing_experimental_low_latency">全都要！(超低延迟与超平滑帧率)</string>
 
     <string name="analogscroll_none">默认 (两个摇杆都控制鼠标)</string>
     <string name="analogscroll_left">左摇杆</string>
@@ -486,6 +487,8 @@
     <string name="toast_elements_hidden">虚拟按键已隐藏</string>
     <string name="toast_back_key_menu_switch_1">已退出王冠功能配置</string>
     <string name="toast_back_key_menu_switch_2">已进入王冠功能配置</string>
+    <string name="game_menu_edit_mode">王冠按键编辑模式</string>
+    <string name="game_menu_configure_settings">王冠按键配置模式</string>
 
     <!-- Moonlight V+ PC download -->
     <string name="title_moonlight_vplus_pc_download">Moonlight V+ PC 版下载</string>
@@ -545,6 +548,14 @@
     <string name="toast_delete_failed">删除失败了，试试看再来一次？</string>
     <string name="toast_load_key_list_failed">加载按键列表失败了喵~</string>
     <string name="toast_load_custom_keys_corrupted">加载自定义按键失败了，抱歉抱歉~</string>
+
+    <!-- 陀螺仪相关字符串 -->
+    <string name="gyro_activation_method">激活方式</string>
+    <string name="gyro_invert_x_axis">X 轴反转</string>
+    <string name="gyro_invert_y_axis">Y 轴反转</string>
+    <string name="gyro_sensitivity">灵敏度</string>
+    <string name="gyro_sensitivity_format">灵敏度 %.1fx</string>
+    <string name="gyro_activation_always">常开</string>
 
     <!-- Accessibility -->
     <string name="keyboard_service_label">Moonlight 屏蔽快捷键</string>

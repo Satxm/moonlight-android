@@ -59,6 +59,7 @@ public class PerformanceOverlayManager {
     // 计算带宽用
     private long previousTimeMillis = 0;
     private long previousRxBytes = 0;
+    private String lastValidBandwidth = "N/A";
 
     public PerformanceOverlayManager(Activity activity, PreferenceConfiguration prefConfig) {
         this.activity = activity;
@@ -157,21 +158,14 @@ public class PerformanceOverlayManager {
      * 更新性能信息（带宽、丢包、延迟等）并刷新文案
      */
     public void updatePerformanceInfo(final PerformanceInfo performanceInfo) {
-        long currentRxBytes = TrafficStats.getTotalRxBytes();
-        long timeMillis = System.currentTimeMillis();
-        long timeMillisInterval = timeMillis - previousTimeMillis;
+        // 计算带宽信息
+        updateBandwidthInfo(performanceInfo);
 
-        // 计算并更新带宽信息
-        performanceInfo.bandWidth = NetHelper.calculateBandwidth(currentRxBytes, previousRxBytes, timeMillisInterval);
-        previousTimeMillis = timeMillis;
-        previousRxBytes = currentRxBytes;
-
-        // 准备性能信息显示
+        // 准备性能信息显示文本
         final String resInfo = String.format("🎬 %dx%d@%.0f",
             performanceInfo.initialWidth, performanceInfo.initialHeight, performanceInfo.totalFps);
 
-        String decoderInfo = performanceInfo.decoder.replaceFirst(".*\\.(avc|hevc|av1).*", "$1").toUpperCase();
-        decoderInfo += prefConfig.enableHdr ? " HDR" : "";
+        final String decoderInfo = buildDecoderInfo(performanceInfo);
 
         final String renderFpsInfo = String.format("Rx %.0f / Rd %.0f FPS",
             performanceInfo.receivedFps, performanceInfo.renderedFps);
@@ -189,43 +183,115 @@ public class PerformanceOverlayManager {
         final String hostLatencyInfo = performanceInfo.framesWithHostProcessingLatency > 0 ?
             String.format("🖥 %.1f ms", performanceInfo.aveHostProcessingLatency) : "🧋 Ver.V+";
 
-        final String finalDecoderInfo = decoderInfo;
-
+        // 在UI线程中更新显示
         activity.runOnUiThread(() -> {
-            // 如果是第一次收到性能数据且性能覆盖层已启用，则显示覆盖层
-            if (!hasShownPerfOverlay && requestedPerformanceOverlayVisibility == View.VISIBLE && performanceOverlayView != null) {
-                performanceOverlayView.setVisibility(View.VISIBLE);
-                performanceOverlayView.setAlpha(1.0f);
-            }
-
-            // 只更新可见的性能指标
-            if (perfResView != null && perfResView.getVisibility() == View.VISIBLE) {
-                perfResView.setText(resInfo);
-            }
-            if (perfDecoderView != null && perfDecoderView.getVisibility() == View.VISIBLE) {
-                perfDecoderView.setText(finalDecoderInfo);
-            }
-            if (perfRenderFpsView != null && perfRenderFpsView.getVisibility() == View.VISIBLE) {
-                perfRenderFpsView.setText(renderFpsInfo);
-            }
-            if (packetLossView != null && packetLossView.getVisibility() == View.VISIBLE) {
-                packetLossView.setText(packetLossInfo);
-                // 根据丢包率设置颜色：小于5%为绿色，否则为红色
-                packetLossView.setTextColor(performanceInfo.lostFrameRate < 5.0f ? 0xFF7D9D7D : 0xFFB57D7D);
-            }
-            if (networkLatencyView != null && networkLatencyView.getVisibility() == View.VISIBLE) {
-                // 当丢包率不显示时，在网络延迟前添加信号图标
-                boolean showPacketLoss = packetLossView != null && packetLossView.getVisibility() == View.VISIBLE;
-                String displayText = showPacketLoss ? networkLatencyInfo : "🌐 " + networkLatencyInfo;
-                networkLatencyView.setText(displayText);
-            }
-            if (decodeLatencyView != null && decodeLatencyView.getVisibility() == View.VISIBLE) {
-                decodeLatencyView.setText(decodeLatencyInfo);
-            }
-            if (hostLatencyView != null && hostLatencyView.getVisibility() == View.VISIBLE) {
-                hostLatencyView.setText(hostLatencyInfo);
-            }
+            showOverlayIfNeeded();
+            updatePerformanceViews(resInfo, decoderInfo, renderFpsInfo, packetLossInfo, 
+                                 networkLatencyInfo, decodeLatencyInfo, hostLatencyInfo, performanceInfo);
         });
+    }
+
+    /**
+     * 更新带宽信息
+     */
+    private void updateBandwidthInfo(PerformanceInfo performanceInfo) {
+        long currentRxBytes = TrafficStats.getTotalRxBytes();
+        long timeMillis = System.currentTimeMillis();
+        long timeMillisInterval = timeMillis - previousTimeMillis;
+
+        String calculatedBandwidth = NetHelper.calculateBandwidth(currentRxBytes, previousRxBytes, timeMillisInterval);
+        
+        // 如果时间间隔过长，使用上次有效带宽
+        if (timeMillisInterval > 5000) {
+            performanceInfo.bandWidth = lastValidBandwidth != null ? lastValidBandwidth : "N/A";
+            previousTimeMillis = timeMillis;
+            previousRxBytes = currentRxBytes;
+            return;
+        }
+
+        // 检查计算出的带宽是否可靠
+        if (calculatedBandwidth != null && !calculatedBandwidth.equals("0 K/s")) {
+            performanceInfo.bandWidth = calculatedBandwidth;
+            lastValidBandwidth = calculatedBandwidth;
+            // 只有带宽数据可靠时才更新时间戳
+            previousTimeMillis = timeMillis;
+        } else {
+            // 带宽数据不可靠，使用上次有效值
+            performanceInfo.bandWidth = lastValidBandwidth != null ? lastValidBandwidth : "N/A";
+        }
+
+        // 无论带宽数据是否可靠，都要更新 previousRxBytes 用于下次计算
+        previousRxBytes = currentRxBytes;
+    }
+
+    /**
+     * 构建解码器信息字符串
+     */
+    private String buildDecoderInfo(PerformanceInfo performanceInfo) {
+        String decoderInfo = performanceInfo.decoder.replaceFirst(".*\\.(avc|hevc|av1).*", "$1").toUpperCase();
+        if (prefConfig.enableHdr) {
+            decoderInfo += " HDR";
+        }
+        return decoderInfo;
+    }
+
+    /**
+     * 如果需要则显示覆盖层
+     */
+    private void showOverlayIfNeeded() {
+        if (!hasShownPerfOverlay && requestedPerformanceOverlayVisibility == View.VISIBLE && performanceOverlayView != null) {
+            performanceOverlayView.setVisibility(View.VISIBLE);
+            performanceOverlayView.setAlpha(1.0f);
+            hasShownPerfOverlay = true;
+        }
+    }
+
+    /**
+     * 更新所有性能视图
+     */
+    private void updatePerformanceViews(String resInfo, String decoderInfo, String renderFpsInfo,
+                                      String packetLossInfo, String networkLatencyInfo, 
+                                      String decodeLatencyInfo, String hostLatencyInfo,
+                                      PerformanceInfo performanceInfo) {
+        // 更新分辨率信息
+        if (perfResView != null && perfResView.getVisibility() == View.VISIBLE) {
+            perfResView.setText(resInfo);
+        }
+        
+        // 更新解码器信息
+        if (perfDecoderView != null && perfDecoderView.getVisibility() == View.VISIBLE) {
+            perfDecoderView.setText(decoderInfo);
+        }
+        
+        // 更新渲染FPS信息
+        if (perfRenderFpsView != null && perfRenderFpsView.getVisibility() == View.VISIBLE) {
+            perfRenderFpsView.setText(renderFpsInfo);
+        }
+        
+        // 更新丢包率信息
+        if (packetLossView != null && packetLossView.getVisibility() == View.VISIBLE) {
+            packetLossView.setText(packetLossInfo);
+            // 根据丢包率设置颜色：小于5%为绿色，否则为红色
+            packetLossView.setTextColor(performanceInfo.lostFrameRate < 5.0f ? 0xFF7D9D7D : 0xFFB57D7D);
+        }
+        
+        // 更新网络延迟信息
+        if (networkLatencyView != null && networkLatencyView.getVisibility() == View.VISIBLE) {
+            // 当丢包率不显示时，在网络延迟前添加信号图标
+            boolean showPacketLoss = packetLossView != null && packetLossView.getVisibility() == View.VISIBLE;
+            String displayText = showPacketLoss ? networkLatencyInfo : "🌐 " + networkLatencyInfo;
+            networkLatencyView.setText(displayText);
+        }
+        
+        // 更新解码延迟信息
+        if (decodeLatencyView != null && decodeLatencyView.getVisibility() == View.VISIBLE) {
+            decodeLatencyView.setText(decodeLatencyInfo);
+        }
+        
+        // 更新主机延迟信息
+        if (hostLatencyView != null && hostLatencyView.getVisibility() == View.VISIBLE) {
+            hostLatencyView.setText(hostLatencyInfo);
+        }
     }
 
     private void configurePerformanceOverlay() {

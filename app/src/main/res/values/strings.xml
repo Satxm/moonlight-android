@@ -396,7 +396,7 @@
     <string name="summary_privacy_policy">View Moonlight\'s privacy policy</string>
     <string name="title_about_mode">About</string>
     <string name="summary_about_mode">View app information and project details</string>
-
+    
     <!-- About dialog strings -->
     <string name="about_dialog_description">Moonlight V+ is an enhanced version of Moonlight Android client, providing better streaming experience with additional features.</string>
     <string name="about_dialog_project_info">Based on Moonlight-Android project, enhanced by V+ team</string>
@@ -461,6 +461,7 @@
     <string name="pacing_balanced">Balanced</string>
     <string name="pacing_balanced_alt">Balanced with FPS limit</string>
     <string name="pacing_smoothness">Prefer smoothest video (may significantly increase latency)</string>
+    <string name="pacing_experimental_low_latency">Experimental: Ultra-low latency (advanced)</string>
 
     <string name="analogscroll_none">None (both sticks move the mouse)</string>
     <string name="analogscroll_right">Right analog stick</string>
@@ -489,6 +490,8 @@
     <string name="toast_elements_hidden">Virtual button hidden</string>
     <string name="toast_back_key_menu_switch_1">The crown function configuration has been exited</string>
     <string name="toast_back_key_menu_switch_2">Entered the crown function configuration</string>
+    <string name="game_menu_edit_mode">Crown button editing mode</string>
+    <string name="game_menu_configure_settings">Crown button configuration mode</string>
 
     <!-- Moonlight V+ PC download -->
     <string name="title_moonlight_vplus_pc_download">Moonlight V+ PC Download</string>
@@ -548,6 +551,14 @@
     <string name="toast_delete_failed">Deletion failed</string>
     <string name="toast_load_key_list_failed">Failed to load button list</string>
     <string name="toast_load_custom_keys_corrupted">Failed to load custom button</string>
+
+    <!-- gyro related strings -->
+    <string name="gyro_activation_method">Activation Method</string>
+    <string name="gyro_invert_x_axis">X Rev</string>
+    <string name="gyro_invert_y_axis">Y Rev</string>
+    <string name="gyro_sensitivity">Sensitivity</string>
+    <string name="gyro_sensitivity_format">Sensitivity %.1fx</string>
+    <string name="gyro_activation_always">Always On</string>
 
     <!-- Accessibility -->
     <string name="keyboard_service_label">Block shortcut keys for Moonlight</string>

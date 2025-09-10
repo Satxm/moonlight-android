@@ -1046,18 +1046,27 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         // be required even if the codec died before giving any output.
         doCodecRecoveryIfRequired(CR_FLAG_CHOREOGRAPHER);
 
+        // 实验性低延迟模式：智能帧丢弃和帧率平滑
+        if (prefs.framePacing == PreferenceConfiguration.FRAME_PACING_EXPERIMENTAL_LOW_LATENCY) {
+            smartFrameDrop();
+            applyFrameRateSmoothing(); // 应用帧率平滑算法
+        }
+
         // Request another callback for next frame
         Choreographer.getInstance().postFrameCallback(this);
     }
 
     private void startChoreographerThread() {
-        if (prefs.framePacing != PreferenceConfiguration.FRAME_PACING_BALANCED) {
+        if (prefs.framePacing != PreferenceConfiguration.FRAME_PACING_BALANCED && 
+            prefs.framePacing != PreferenceConfiguration.FRAME_PACING_EXPERIMENTAL_LOW_LATENCY) {
             // Not using Choreographer in this pacing mode
             return;
         }
 
         // We use a separate thread to avoid any main thread delays from delaying rendering
-        choreographerHandlerThread = new HandlerThread("Video - Choreographer", Process.THREAD_PRIORITY_DEFAULT + Process.THREAD_PRIORITY_MORE_FAVORABLE);
+        choreographerHandlerThread = new HandlerThread("Video - Choreographer", 
+            prefs.framePacing == PreferenceConfiguration.FRAME_PACING_EXPERIMENTAL_LOW_LATENCY ?
+            Process.THREAD_PRIORITY_DISPLAY : Process.THREAD_PRIORITY_DEFAULT + Process.THREAD_PRIORITY_MORE_FAVORABLE);
         choreographerHandlerThread.start();
 
         // Start the frame callbacks
@@ -1146,7 +1155,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                             }
 
                             // Add delta time to the totals (excluding probable outliers)
-                            long delta = SystemClock.uptimeMillis() - (presentationTimeUs / 1000);
+                            long delta = calculateDecoderTime(presentationTimeUs);
                             if (delta >= 0 && delta < 1000) {
                                 activeWindowVideoStats.decoderTimeMs += delta;
                                 if (!USE_FRAME_RENDER_TIME) {
@@ -1470,24 +1479,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             float minHostProcessingLatency = (float)lastTwo.minHostProcessingLatency / 10;
             float maxHostProcessingLatency = (float)lastTwo.minHostProcessingLatency / 10;
             float aveHostProcessingLatency = (float)lastTwo.totalHostProcessingLatency / 10 / lastTwo.framesWithHostProcessingLatency;
-
-//            StringBuilder sb = new StringBuilder();
-//            sb.append(context.getString(R.string.perf_overlay_streamdetails, initialWidth + "x" + initialHeight, fps.totalFps)).append('\n');
-//            sb.append(context.getString(R.string.perf_overlay_decoder, decoder)).append('\n');
-//            sb.append(context.getString(R.string.perf_overlay_incomingfps, fps.receivedFps)).append('\n');
-//            sb.append(context.getString(R.string.perf_overlay_renderingfps, fps.renderedFps)).append('\n');
-//            sb.append(context.getString(R.string.perf_overlay_netdrops,
-//                    (float) lastTwo.framesLost / lastTwo.totalFrames * 100)).append('\n');
-//            sb.append(context.getString(R.string.perf_overlay_netlatency,
-//                    (int) (rttInfo >> 32), (int) rttInfo)).append('\n');
-//            if (lastTwo.framesWithHostProcessingLatency > 0) {
-//                sb.append(context.getString(R.string.perf_overlay_hostprocessinglatency,
-//                        (float) lastTwo.minHostProcessingLatency / 10,
-//                        (float) lastTwo.maxHostProcessingLatency / 10,
-//                        (float) lastTwo.totalHostProcessingLatency / 10 / lastTwo.framesWithHostProcessingLatency)).append('\n');
-//            }
-//            sb.append(context.getString(R.string.perf_overlay_dectime, decodeTimeMs));
-//            perfListener.onPerfUpdate(sb.toString());
 
             PerformanceInfo performanceInfo = new PerformanceInfo();
             performanceInfo.context = context;
@@ -2015,5 +2006,71 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
 
             return str;
         }
+    }
+
+    // 实验性低延迟模式：智能帧丢弃 - 采用原有低延迟的激进策略
+    private void smartFrameDrop() {
+        // 采用原有低延迟的激进策略：保持小缓冲，激进丢弃
+        int maxQueueSize = OUTPUT_BUFFER_QUEUE_LIMIT;
+        
+        // 如果队列超过最大大小，激进丢弃旧帧（保持原有低延迟的激进特性）
+        if (outputBufferQueue.size() > maxQueueSize) {
+            int framesToDrop = outputBufferQueue.size() - maxQueueSize;
+            
+            // 激进丢弃：丢弃所有超出限制的旧帧
+            for (int i = 0; i < framesToDrop; i++) {
+                Integer oldFrame = outputBufferQueue.poll();
+                if (oldFrame != null) {
+                    try {
+                        videoDecoder.releaseOutputBuffer(oldFrame, false);
+                    } catch (IllegalStateException e) {}
+                }
+            }
+        }
+    }
+
+    private void applyFrameRateSmoothing() {
+        // 计算目标帧间隔
+        long targetFrameIntervalNs = 1000000000 / refreshRate; // 目标帧间隔（纳秒）
+        
+        // 如果当前帧间隔过短，适当延长以确保平滑
+        long currentFrameIntervalNs = System.nanoTime() - lastRenderedFrameTimeNanos;
+        
+        if (currentFrameIntervalNs < targetFrameIntervalNs * 0.8) {
+            // 帧间隔过短，适当等待以确保平滑
+            // 根据帧率调整等待时间，提高平滑性
+            long waitTimeNs = calculateOptimalWaitTime(targetFrameIntervalNs, currentFrameIntervalNs);
+            
+            if (waitTimeNs > 0) {
+                try {
+                    Thread.sleep(0, (int)waitTimeNs);
+                } catch (InterruptedException e) {
+                    // 忽略中断
+                }
+            }
+        }
+    }
+    
+    // 计算最优等待时间 - 根据帧率和当前间隔智能调整
+    private long calculateOptimalWaitTime(long targetIntervalNs, long currentIntervalNs) {
+        // 基础等待时间：目标间隔的15-25%
+        long baseWaitNs = targetIntervalNs / 6; // 约16.7%
+        
+        // 根据帧率调整等待时间
+        if (refreshRate >= 120) {
+            // 120fps: 更精确的等待，减少掉帧感觉
+            return Math.min(baseWaitNs * 2, 2000000); // 最多2ms
+        } else if (refreshRate >= 60) {
+            // 60fps: 适中的等待，平衡延迟与平滑
+            return Math.min(baseWaitNs * 3, 3000000); // 最多3ms
+        } else {
+            // 30fps: 较长的等待，优先平滑性
+            return Math.min(baseWaitNs * 4, 4000000); // 最多4ms
+        }
+    }
+
+    private long calculateDecoderTime(long presentationTimeUs) {
+        long delta = SystemClock.uptimeMillis() - (presentationTimeUs / 1000);
+        return delta > 0 && delta < 1000 ? delta : 0;
     }
 }

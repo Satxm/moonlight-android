@@ -26,6 +26,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.limelight.binding.input.GameInputDevice;
 import com.limelight.binding.input.KeyboardTranslator;
+import com.limelight.binding.input.advance_setting.ControllerManager;
+import com.limelight.binding.input.advance_setting.element.ElementController;
 import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.http.NvApp;
 import com.limelight.nvstream.input.KeyboardPacket;
@@ -65,6 +67,8 @@ public class GameMenu {
     // 用于存储自定义按键的 SharedPreferences 文件名和键名
     private static final String PREF_NAME = "custom_special_keys";
     private static final String KEY_NAME = "data";
+
+    private static boolean mouse_enable_switch = false;
 
     // 图标映射缓存
     private static final Map<String, Integer> ICON_MAP = new HashMap<>();
@@ -369,23 +373,34 @@ public class GameMenu {
     }
 
     /**
-     * 切换王冠功能
+     * 切换王冠功能并刷新菜单
      */
     private void toggleCrownFeature() {
         game.setCrownFeatureEnabled(!game.isCrownFeatureEnabled());
         Toast.makeText(game, game.isCrownFeatureEnabled() ? getString(R.string.crown_switch_to_crown) : getString(R.string.crown_switch_to_normal), Toast.LENGTH_SHORT).show();
+
+        // 刷新整个菜单以显示王冠功能按钮
+        if (activeDialog != null && activeDialog.isShowing() && game.isCrownFeatureEnabled()) {
+            activeDialog.dismiss(); // 先关闭当前对话框
+            showMenu(); // 重新显示菜单
+        }
+        else if (activeDialog != null && activeDialog.isShowing() && !game.isCrownFeatureEnabled()) {
+            activeDialog.dismiss();
+        }
     }
 
     /**
      * 显示“王冠功能”的二级菜单，包含显隐和配置选项。
      */
     private void showCrownFunctionMenu() {
+        // 从 Game Activity 获取 ControllerManager 实例
+        ControllerManager controllerManager = game.getControllerManager();
+
         // 检查 王冠功能是否开启，如果没有开启则不显示任何选项
         if (!game.isCrownFeatureEnabled()) {
             Toast.makeText(game, "王冠功能未启用", Toast.LENGTH_SHORT).show();
             return;
         }
-
         MenuOption[] crownFunctionOptions = {
                 // --- 选项1: 显示/隐藏虚拟按键 ---
                 new MenuOption(
@@ -395,7 +410,46 @@ public class GameMenu {
                         "crown_function_menu",
                         true
                 ),
-                // --- 选项2: 配置王冠功能 ---
+                new MenuOption(
+                        "开启/关闭触控",
+                        false,
+                        () -> {
+                            controllerManager.getTouchController().enableTouch(mouse_enable_switch);
+                            Toast.makeText(game, mouse_enable_switch ? "触控已开启" : "触控已关闭", Toast.LENGTH_SHORT).show();
+                            mouse_enable_switch = !mouse_enable_switch;
+                        },
+                        "crown_function_menu",
+                        true
+                ),
+                // --- 配置设置 ---
+                new MenuOption(
+                        getString(R.string.game_menu_configure_settings),
+                        false,
+                        () -> {
+                            if (controllerManager != null) {
+                                game.toggleBackKeyMenuType();
+                                game.setcurrentBackKeyMenu(Game.BackKeyMenuMode.NO_MENU);
+                                controllerManager.getPageConfigController().open();
+                            }
+                        },
+                        "crown_function_menu",
+                        true
+                ),
+                // --- 编辑模式 ---
+                new MenuOption(
+                        getString(R.string.game_menu_edit_mode),
+                        false,
+                        () -> {
+                            if (controllerManager != null) {
+                                game.toggleBackKeyMenuType();
+                                controllerManager.getElementController().changeMode(ElementController.Mode.Edit);
+                                controllerManager.getElementController().open();
+                            }
+                        },
+                        "crown_function_menu",
+                        true
+                ),
+                // --- 配置王冠功能 ---
                 new MenuOption(
                         getString(R.string.game_menu_configure_crown_function),
                         false,
@@ -522,7 +576,7 @@ public class GameMenu {
         // 设置超级菜单
         setupSuperMenu(customView, superOptions, dialog);
 
-        // 设置码率调整区域（委托卡片控制器）
+        // 设置码率调整区域
         if (game.prefConfig.showBitrateCard) {
             new BitrateCardController(game, conn).setup(customView, dialog);
         } else {
@@ -530,7 +584,7 @@ public class GameMenu {
             if (bitrate != null) bitrate.setVisibility(View.GONE);
         }
 
-        // 设置陀螺仪控制卡片（委托卡片控制器）
+        // 设置陀螺仪控制卡片
         if (game.prefConfig.showGyroCard) {
             new GyroCardController(game).setup(customView, dialog);
         } else {
@@ -574,10 +628,10 @@ public class GameMenu {
     }
 
     private void showCardEditorDialog() {
-        final String[] items = new String[] {"Bitrate", "Gyro"};
+        final String[] items = new String[] {"码率调整 Bitrate", "体感助手 Gyro"};
         final boolean[] checked = new boolean[] {game.prefConfig.showBitrateCard, game.prefConfig.showGyroCard};
         new AlertDialog.Builder(game, R.style.AppDialogStyle)
-                .setTitle("Visible cards")
+                .setTitle("卡片配置 Visible cards")
                 .setMultiChoiceItems(items, checked, (d, which, isChecked) -> {
                     checked[which] = isChecked;
                 })
@@ -677,7 +731,7 @@ public class GameMenu {
             }
 
             // 添加一些padding和margin
-            totalHeight += (int) ((maxItems*2 + 48) * game.getResources().getDisplayMetrics().density);
+            totalHeight += (int) ((maxItems*2 + 50) * game.getResources().getDisplayMetrics().density);
             totalHeight = Math.max(totalHeight, (int) (270 * game.getResources().getDisplayMetrics().density));
 
             return totalHeight;
@@ -1403,7 +1457,7 @@ public class GameMenu {
                 false, this::showSpecialKeysMenu, "game_menu_send_keys", true, true));
 
         // 本地测试震动
-        normalOptions.add(new MenuOption("震动测试", false, this::testLocalRumbleAll, "game_menu_test_local_rumble", true));
+        // normalOptions.add(new MenuOption("震动测试", false, this::testLocalRumbleAll, "game_menu_test_local_rumble", true));
 
         normalOptions.add(new MenuOption(getString(R.string.game_menu_disconnect), true,
                 game::disconnect, "game_menu_disconnect", true));

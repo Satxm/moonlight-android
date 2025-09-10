@@ -41,6 +41,8 @@ import com.limelight.utils.ShortcutHelper;
 import com.limelight.utils.FullscreenProgressOverlay;
 import com.limelight.utils.UiHelper;
 import com.limelight.utils.NetHelper;
+import com.limelight.utils.AppCacheKeys;
+import com.limelight.utils.AppCacheManager;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
@@ -195,11 +197,23 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private WifiManager.WifiLock lowLatencyWifiLock;
     private Map<Integer, NativeTouchContext.Pointer> nativeTouchPointerMap = new HashMap<>();
 
-    private boolean currentBackKeyMenu = true; //默认为GAME_MENU
+    public enum BackKeyMenuMode {
+        GAME_MENU,     // 游戏菜单模式
+        CROWN_MODE,    // 王冠模式
+        NO_MENU        // 无菜单模式
+    }
 
-    public void currentBackKeyMenu(boolean currentBackKeyMenu){
+
+    private BackKeyMenuMode currentBackKeyMenu = BackKeyMenuMode.GAME_MENU; // 默认为游戏菜单模式
+
+    public void setcurrentBackKeyMenu(BackKeyMenuMode currentBackKeyMenu) {
         this.currentBackKeyMenu = currentBackKeyMenu;
     }
+
+    public BackKeyMenuMode getCurrentBackKeyMenu() {
+        return currentBackKeyMenu;
+    }
+
 
     private boolean areElementsVisible = true; // 用于追踪显隐状态
 
@@ -224,15 +238,29 @@ public class Game extends Activity implements SurfaceHolder.Callback,
      * 王冠功能配置切换
      */
     public void toggleBackKeyMenuType() {
-        if (currentBackKeyMenu) {
-            currentBackKeyMenu = false;
-            areElementsVisible = true;
-            controllerManager.getElementController().showAllElementsForTest();
-            Toast.makeText(this, getString(R.string.toast_back_key_menu_switch_2), Toast.LENGTH_SHORT).show();
-        } else {
-            currentBackKeyMenu = true;
-            Toast.makeText(this, getString(R.string.toast_back_key_menu_switch_1), Toast.LENGTH_SHORT).show();
+        switch (currentBackKeyMenu) {
+            case GAME_MENU:
+                currentBackKeyMenu = BackKeyMenuMode.CROWN_MODE;
+                areElementsVisible = true;
+                controllerManager.getElementController().showAllElementsForTest();
+                Toast.makeText(this, getString(R.string.toast_back_key_menu_switch_2), Toast.LENGTH_SHORT).show();
+                break;
+            case CROWN_MODE:
+                currentBackKeyMenu = BackKeyMenuMode.GAME_MENU;
+                Toast.makeText(this, getString(R.string.toast_back_key_menu_switch_1), Toast.LENGTH_SHORT).show();
+                break;
+            case NO_MENU:
+                currentBackKeyMenu = BackKeyMenuMode.GAME_MENU;
+                break;
         }
+    }
+
+    /**
+     * 提供对 ControllerManager 的公共访问。
+     * @return ControllerManager 实例，如果未初始化则可能为 null。
+     */
+    public ControllerManager getControllerManager() {
+        return this.controllerManager;
     }
 
     private boolean connectedToUsbDriverService = false;
@@ -449,6 +477,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         if (cmdList != null) {
             app.setCmdList(cmdList);
         }
+        
+        // 保存应用信息到SharedPreferences，供下次从捷径恢复时使用
+        if (appId != StreamConfiguration.INVALID_APP_ID && appName != null && !appName.equals("app")) {
+            AppCacheManager cacheManager = new AppCacheManager(this);
+            cacheManager.saveAppInfo(getIntent().getStringExtra(EXTRA_PC_UUID), app);
+        }
 
         // Start the progress overlay
         progressOverlay = new FullscreenProgressOverlay(this, app);
@@ -654,6 +688,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     this);
             virtualController.refreshLayout();
             virtualController.show();
+            
+            virtualController.setGyroEnabled(true);
         }
 
         if (prefConfig.onscreenKeyboard) {
@@ -842,6 +878,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
                 // Enable sensors again after exiting PiP
                 controllerHandler.enableSensors();
+                
+                // 恢复陀螺仪功能（如果之前启用了）
+                controllerHandler.onSensorsReenabled();
 
                 // Update GameManager state to indicate we're out of PiP (gaming, non-interruptible)
                 UiHelper.notifyStreamExitingPiP(this);
@@ -1309,11 +1348,25 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         if (virtualController != null) {
             virtualController.hide();
+            virtualController.cleanup(); // 清理陀螺仪传感器监听
+        }
+
+        String decoderMessage = "UNKNOWN";
+        if (decoderRenderer != null) {
+            int videoFormat = decoderRenderer.getActiveVideoFormat();
+            if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_H264) != 0) {
+                decoderMessage = "H.264";
+            } else if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_H265) != 0) {
+                decoderMessage = "HEVC";
+            } else if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_AV1) != 0) {
+                decoderMessage = "AV1";
+            }
+            if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_10BIT) != 0) {
+                decoderMessage += " HDR";
+            }
         }
 
         if (conn != null) {
-            int videoFormat = decoderRenderer.getActiveVideoFormat();
-
             displayedFailureDialog = true;
             stopConnection();
 
@@ -1334,24 +1387,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 // Add the video codec to the post-stream toast
                 if (message != null) {
                     message += " [";
-
-                    if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_H264) != 0) {
-                        message += "H.264";
-                    }
-                    else if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_H265) != 0) {
-                        message += "HEVC";
-                    }
-                    else if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_AV1) != 0) {
-                        message += "AV1";
-                    }
-                    else {
-                        message += "UNKNOWN";
-                    }
-
-                    if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_10BIT) != 0) {
-                        message += " HDR";
-                    }
-
+                    message += decoderMessage;
                     message += "]";
                 }
 
@@ -3254,9 +3290,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             long currentRxBytes = TrafficStats.getTotalRxBytes();
             long timeMillis = System.currentTimeMillis();
             long timeMillisInterval = timeMillis - previousTimeMillis;
-            if (timeMillisInterval < 3000) {
+            
+            // 只在时间间隔合理时计算带宽，避免异常值
+            if (timeMillisInterval > 0 && timeMillisInterval < 5000) {
                 performanceInfo.bandWidth = NetHelper.calculateBandwidth(currentRxBytes, previousRxBytes, timeMillisInterval);
             }
+            
             previousTimeMillis = timeMillis;
             previousRxBytes = currentRxBytes;
 
@@ -3297,15 +3336,24 @@ public class Game extends Activity implements SurfaceHolder.Callback,
      * @param device 可能是触发菜单的输入设备，可以为 null
      */
     public void showGameMenu(GameInputDevice device) {
-        // 检查用户是否选择了 GAME_MENU
-        if (currentBackKeyMenu) {
-            new GameMenu(this, app, conn, device);
-        } else if (controllerManager != null && prefConfig.onscreenKeyboard) {
-            controllerManager.getSuperPagesController().returnOperation();
-        } else {
-            new GameMenu(this, app, conn, device);
+        switch (currentBackKeyMenu) {
+            case GAME_MENU:
+                new GameMenu(this, app, conn, device);
+                break;
+            case CROWN_MODE:
+                if (controllerManager != null && prefConfig.onscreenKeyboard) {
+                    controllerManager.getSuperPagesController().returnOperation();
+                }
+                break;
+            case NO_MENU:
+                // 无操作，直接返回
+                break;
+            default:
+                new GameMenu(this, app, conn, device);
+                break;
         }
     }
+
 
     @Override
     public boolean onKey(View view, int keyCode, KeyEvent keyEvent) {
