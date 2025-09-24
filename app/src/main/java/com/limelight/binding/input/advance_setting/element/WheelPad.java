@@ -1,3 +1,4 @@
+//轮盘按键
 package com.limelight.binding.input.advance_setting.element;
 
 import android.app.AlertDialog;
@@ -9,7 +10,6 @@ import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
-import android.text.InputFilter;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -20,7 +20,14 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.SeekBar;
+import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.widget.SwitchCompat;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.limelight.Game;
 import com.limelight.R;
 import com.limelight.binding.input.advance_setting.PageDeviceController;
@@ -46,11 +53,21 @@ public class WheelPad extends Element {
     private String centerText;
     private List<String> segmentValues;
     private List<String> segmentNames;
-    private List<List<ElementController.SendEventHandler>> segmentSendHandlersList;
     private int normalColor;
     private int pressedColor;
     private int backgroundColor;
     private int thick;
+    private int normalTextColor;
+    private int pressedTextColor;
+    private int centerTextColor;  // 中心文字颜色，可以与 normalTextColor 分开
+    private int textSizePercent;  // 分区文字大小百分比
+    private int centerTextSizePercent; // 选择预览文字大小百分比
+
+    private int triggerTextSizePercent; // 触发器文字大小百分比
+
+
+    private final int screenWidth;
+    private final int screenHeight;
 
     private final Paint paintBorder = new Paint();
     private final Paint paintSegmentFill = new Paint();
@@ -65,6 +82,7 @@ public class WheelPad extends Element {
     private int activeIndex = -1;
     private int lastActiveIndex = -1;
     private boolean isWheelActive = false;
+    private boolean popupAtScreenCenter;
 
     private SuperPageLayout wheelPadPage;
     private NumberSeekbar centralXNumberSeekbar;
@@ -80,6 +98,9 @@ public class WheelPad extends Element {
 
         DisplayMetrics displayMetrics = new DisplayMetrics();
         ((Game) context).getWindowManager().getDefaultDisplay().getRealMetrics(displayMetrics);
+        this.screenWidth = displayMetrics.widthPixels;
+        this.screenHeight = displayMetrics.heightPixels;
+
         super.centralXMax = displayMetrics.widthPixels;
         super.centralXMin = 0;
         super.centralYMax = displayMetrics.heightPixels;
@@ -123,6 +144,60 @@ public class WheelPad extends Element {
         segmentCount = ((Long) attributesMap.get(COLUMN_INT_ELEMENT_MODE)).intValue();
         innerRadiusPercent = ((Long) attributesMap.get(COLUMN_INT_ELEMENT_SENSE)).intValue();
 
+        // Load the popup behavior flag. Default to true (new behavior) for old configs.
+        Object popupFlagObj = attributesMap.get(COLUMN_INT_ELEMENT_FLAG1);
+        this.popupAtScreenCenter = (popupFlagObj == null) || ((Long) popupFlagObj).intValue() == 1;
+
+        if (attributesMap.containsKey("extra_attributes")) {
+            String extraAttrsJsonString = (String) attributesMap.get("extra_attributes");
+            if (extraAttrsJsonString != null && !extraAttrsJsonString.isEmpty()) {
+                try {
+                    JsonObject extraAttrs = new Gson().fromJson(extraAttrsJsonString, JsonObject.class);
+
+                    // 从 extraAttrs 中安全地读取值
+                    if (extraAttrs.has("normalTextColor")) {
+                        this.normalTextColor = extraAttrs.get("normalTextColor").getAsInt();
+                    } else {
+                        this.normalTextColor = 0xFFFFFFFF;
+                    }
+
+                    if (extraAttrs.has("centerTextColor")) {
+                        this.centerTextColor = extraAttrs.get("centerTextColor").getAsInt();
+                    } else {
+                        this.centerTextColor = 0xFFFFFFFF;
+                    }
+
+                    if (extraAttrs.has("textSizePercent")) {
+                        this.textSizePercent = extraAttrs.get("textSizePercent").getAsInt();
+                    } else {
+                        this.textSizePercent = 35;
+                    }
+
+                    if (extraAttrs.has("centerTextSizePercent")) {
+                        this.centerTextSizePercent = extraAttrs.get("centerTextSizePercent").getAsInt();
+                    } else {
+                        this.centerTextSizePercent = 60;
+                    }
+                    if (extraAttrs.has("triggerTextSizePercent")) {
+                        this.triggerTextSizePercent = extraAttrs.get("triggerTextSizePercent").getAsInt();
+                    } else {
+                        // 提供一个合理的默认值，通常应该比中心预览文字小
+                        this.triggerTextSizePercent = 14;
+                    }
+
+                } catch (Exception e) {
+                    // JSON 解析失败，使用默认值
+                    initializeDefaultFontAttributes();
+                }
+            } else {
+                // 字段存在但为空，使用默认值
+                initializeDefaultFontAttributes();
+            }
+        } else {
+            // 字段不存在（旧数据），使用默认值
+            initializeDefaultFontAttributes();
+        }
+
         String valuesString = (String) attributesMap.get(COLUMN_STRING_ELEMENT_VALUE);
         segmentValues = new ArrayList<>();
         segmentNames = new ArrayList<>();
@@ -137,18 +212,25 @@ public class WheelPad extends Element {
                 segmentNames.add("");
             }
         }
-
-        updateAllSegmentSendHandlers();
     }
 
-    private void updateAllSegmentSendHandlers() {
-        segmentSendHandlersList = new ArrayList<>();
-        for (String value : segmentValues) {
-            segmentSendHandlersList.add(getHandlersForValue(value));
+    private void initializeDefaultFontAttributes() {
+        this.normalTextColor = 0xFFFFFFFF;
+        this.centerTextColor = 0xFFFFFFFF;
+        this.textSizePercent = 35;
+        this.centerTextSizePercent = 60;
+        this.triggerTextSizePercent = 14;
+    }
+
+    public boolean isBeingEdited() {
+        if (elementController != null) {
+            SuperPageLayout currentPage = elementController.getCurrentEditingPage();
+            return this.wheelPadPage != null && currentPage == this.wheelPadPage;
         }
+        return false;
     }
 
-    private List<ElementController.SendEventHandler> getHandlersForValue(String value) {
+    private List<ElementController.SendEventHandler> getHandlersForValueNow(String value) {
         List<ElementController.SendEventHandler> handlers = new ArrayList<>();
         if (value == null || value.isEmpty() || value.equals("null")) {
             return handlers;
@@ -167,7 +249,69 @@ public class WheelPad extends Element {
     @Override
     protected void onElementDraw(Canvas canvas) {
         ElementController.Mode currentMode = elementController.getMode();
+        boolean isTheOneBeingEdited = isBeingEdited();
+        if (isPopupMode && popupAtScreenCenter) {
+            drawInactivePopupCenter(canvas);
+            boolean shouldDrawCentralPreview =
+                    (currentMode == ElementController.Mode.Normal && isWheelActive) ||
+                            (currentMode == ElementController.Mode.Edit && isTheOneBeingEdited);
 
+            if (shouldDrawCentralPreview) {
+                canvas.save();
+                float translateX = (screenWidth / 2.0f) - getElementCentralX();
+                float translateY = (screenHeight / 2.0f) - getElementCentralY();
+                canvas.translate(translateX, translateY);
+                drawFullWheel(canvas);
+                canvas.restore();
+            }
+
+        } else {
+            boolean shouldDrawTriggerInsteadOfFullWheel = isPopupMode && !popupAtScreenCenter &&
+                    currentMode == ElementController.Mode.Normal && !isWheelActive;
+            if (shouldDrawTriggerInsteadOfFullWheel) {
+                drawInactivePopupCenter(canvas);
+            } else {
+                drawFullWheel(canvas);
+            }
+        }
+
+        if (currentMode == ElementController.Mode.Edit || currentMode == ElementController.Mode.Select) {
+            rect.left = rect.top = 2;
+            rect.right = getWidth() - 2;
+            rect.bottom = getHeight() - 2;
+            paintEdit.setColor(editColor);
+            canvas.drawRect(rect, paintEdit);
+        }
+    }
+
+    private void drawInactivePopupCenter(Canvas canvas) {
+        float centerX = getWidth() / 2.0f;
+        float centerY = getHeight() / 2.0f;
+        float fillOuterRadius = (getWidth() / 2.0f) - thick;
+        if (fillOuterRadius < 0) fillOuterRadius = 0;
+        float fillInnerRadius = fillOuterRadius * (innerRadiusPercent / 100.0f);
+        float borderInnerDrawRadius = fillInnerRadius + (thick / 2.0f);
+
+        paintBorder.setColor(normalColor);
+        paintBorder.setStrokeWidth(thick);
+
+        paintSegmentFill.setColor(0x80000000);
+        canvas.drawCircle(centerX, centerY, fillInnerRadius, paintSegmentFill);
+
+        rect.set(centerX - borderInnerDrawRadius, centerY - borderInnerDrawRadius, centerX + borderInnerDrawRadius, centerY + borderInnerDrawRadius);
+        canvas.drawOval(rect, paintBorder);
+
+        // 应用中心文字的颜色和大小 ---
+        paintCenterText.setColor(this.centerTextColor);
+        float triggerTextSize = getWidth() * (this.triggerTextSizePercent / 100.0f);
+        paintCenterText.setTextSize(triggerTextSize);
+
+        float textY = centerY - ((paintCenterText.descent() + paintCenterText.ascent()) / 2);
+        canvas.drawText(centerText, centerX, textY, paintCenterText);
+    }
+
+    private void drawFullWheel(Canvas canvas) {
+        ElementController.Mode currentMode = elementController.getMode();
         float centerX = getWidth() / 2.0f;
         float centerY = getHeight() / 2.0f;
 
@@ -182,82 +326,88 @@ public class WheelPad extends Element {
         paintBorder.setStrokeWidth(thick);
         paintBackground.setColor(0xFF000000);
 
-        boolean shouldHideSegments = isPopupMode && !isWheelActive && currentMode == ElementController.Mode.Normal;
+        paintSegmentFill.setColor(backgroundColor);
+        paintSegmentFillPressed.setColor(pressedColor);
 
-        if (shouldHideSegments) {
-            paintSegmentFill.setColor(0x80000000);
-            canvas.drawCircle(centerX, centerY, fillInnerRadius, paintSegmentFill);
+        paintText.setColor(this.normalTextColor);
+        // 字体大小基于内外半径的差值（环带厚度）来计算，这样更直观
+        float ringThickness = fillOuterRadius - fillInnerRadius;
+        float segmentTextSize = ringThickness * (this.textSizePercent / 100.0f);
+        paintText.setTextSize(segmentTextSize);
 
-            rect.set(centerX - borderInnerDrawRadius, centerY - borderInnerDrawRadius, centerX + borderInnerDrawRadius, centerY + borderInnerDrawRadius);
-            canvas.drawOval(rect, paintBorder);
+        float sweepAngle = 360.0f / segmentCount;
 
-            float textY = centerY - ((paintCenterText.descent() + paintCenterText.ascent()) / 2);
-            canvas.drawText(centerText, centerX, textY, paintCenterText);
-        } else {
-            paintSegmentFill.setColor(backgroundColor);
-            paintSegmentFillPressed.setColor(pressedColor);
-            float sweepAngle = 360.0f / segmentCount;
+        rect.set(centerX - fillOuterRadius, centerY - fillOuterRadius, centerX + fillOuterRadius, centerY + fillOuterRadius);
+        for (int i = 0; i < segmentCount; i++) {
+            float startAngle = (i * sweepAngle) - (sweepAngle / 2) - 90;
+            Paint currentFillPaint = (i == activeIndex) ? paintSegmentFillPressed : paintSegmentFill;
+            canvas.drawArc(rect, startAngle, sweepAngle, true, currentFillPaint);
+        }
 
-            rect.set(centerX - fillOuterRadius, centerY - fillOuterRadius, centerX + fillOuterRadius, centerY + fillOuterRadius);
-            for (int i = 0; i < segmentCount; i++) {
-                float startAngle = (i * sweepAngle) - (sweepAngle / 2) - 90;
-                Paint currentFillPaint = (i == activeIndex) ? paintSegmentFillPressed : paintSegmentFill;
-                canvas.drawArc(rect, startAngle, sweepAngle, true, currentFillPaint);
-            }
+        canvas.drawCircle(centerX, centerY, fillInnerRadius, paintBackground);
 
-            canvas.drawCircle(centerX, centerY, fillInnerRadius, paintBackground);
-
-            float textRadius = fillInnerRadius + (fillOuterRadius - fillInnerRadius) / 2.0f;
-            for (int i = 0; i < segmentCount; i++) {
-                float startAngle = (i * sweepAngle) - (sweepAngle / 2) - 90;
-                float textAngle = (startAngle + sweepAngle / 2.0f);
-                textPath.reset();
-                RectF textRect = new RectF(centerX - textRadius, centerY - textRadius, centerX + textRadius, centerY + textRadius);
-                textPath.addArc(textRect, textAngle - 45, 90);
-                if (i < segmentValues.size()) {
-                    String displayName;
-                    if (i < segmentNames.size() && segmentNames.get(i) != null && !segmentNames.get(i).isEmpty()) {
-                        displayName = segmentNames.get(i);
-                    } else {
-                        displayName = getDisplayStringForValue(segmentValues.get(i));
-                    }
-                    canvas.drawTextOnPath(displayName, textPath, 0, 10, paintText);
+        float textRadius = fillInnerRadius + (fillOuterRadius - fillInnerRadius) / 2.0f;
+        for (int i = 0; i < segmentCount; i++) {
+            float startAngle = (i * sweepAngle) - (sweepAngle / 2) - 90;
+            float textAngle = startAngle + sweepAngle / 2.0f;
+            textPath.reset();
+            RectF textRect = new RectF(centerX - textRadius, centerY - textRadius, centerX + textRadius, centerY + textRadius);
+            textPath.addArc(textRect, textAngle - 45, 90);
+            if (i < segmentValues.size()) {
+                String displayName;
+                if (i < segmentNames.size() && segmentNames.get(i) != null && !segmentNames.get(i).isEmpty()) {
+                    displayName = segmentNames.get(i);
+                } else {
+                    displayName = getDisplayStringForValue(segmentValues.get(i));
                 }
+                canvas.drawTextOnPath(displayName, textPath, 0, 10, paintText);
             }
+        }
 
-            rect.set(centerX - borderOuterDrawRadius, centerY - borderOuterDrawRadius, centerX + borderOuterDrawRadius, centerY + borderOuterDrawRadius);
-            canvas.drawOval(rect, paintBorder);
-            rect.set(centerX - borderInnerDrawRadius, centerY - borderInnerDrawRadius, centerX + borderInnerDrawRadius, centerY + borderInnerDrawRadius);
-            canvas.drawOval(rect, paintBorder);
+        rect.set(centerX - borderOuterDrawRadius, centerY - borderOuterDrawRadius, centerX + borderOuterDrawRadius, centerY + borderOuterDrawRadius);
+        canvas.drawOval(rect, paintBorder);
+        rect.set(centerX - borderInnerDrawRadius, centerY - borderInnerDrawRadius, centerX + borderInnerDrawRadius, centerY + borderInnerDrawRadius);
+        canvas.drawOval(rect, paintBorder);
 
-            for (int i = 0; i < segmentCount; i++) {
-                float angle = (i * sweepAngle) - (sweepAngle / 2) - 90;
-                double angleRad = Math.toRadians(angle);
-                float startX = centerX + (float) (fillInnerRadius * Math.cos(angleRad));
-                float startY = centerY + (float) (fillInnerRadius * Math.sin(angleRad));
-                float endX = centerX + (float) (fillOuterRadius * Math.cos(angleRad));
-                float endY = centerY + (float) (fillOuterRadius * Math.sin(angleRad));
-                canvas.drawLine(startX, startY, endX, endY, paintBorder);
-            }
+        for (int i = 0; i < segmentCount; i++) {
+            float angle = (i * sweepAngle) - (sweepAngle / 2) - 90;
+            double angleRad = Math.toRadians(angle);
+            float startX = centerX + (float) (fillInnerRadius * Math.cos(angleRad));
+            float startY = centerY + (float) (fillInnerRadius * Math.sin(angleRad));
+            float endX = centerX + (float) (fillOuterRadius * Math.cos(angleRad));
+            float endY = centerY + (float) (fillOuterRadius * Math.sin(angleRad));
+            canvas.drawLine(startX, startY, endX, endY, paintBorder);
+        }
 
-            if (isPopupMode && activeIndex != -1 && currentMode == ElementController.Mode.Normal) {
+        boolean showCenterTextInNormalMode = isPopupMode && activeIndex != -1 && currentMode == ElementController.Mode.Normal;
+        boolean showCenterTextInEditMode = currentMode == ElementController.Mode.Edit && isBeingEdited();
+
+        if (showCenterTextInNormalMode || showCenterTextInEditMode) {
+            String displayName;
+
+            if (showCenterTextInNormalMode) {
+                // 正常模式下，显示当前选中的分区文本
                 if (activeIndex < segmentValues.size()) {
-                    String displayName;
                     if (activeIndex < segmentNames.size() && segmentNames.get(activeIndex) != null && !segmentNames.get(activeIndex).isEmpty()) {
                         displayName = segmentNames.get(activeIndex);
                     } else {
                         displayName = getDisplayStringForValue(segmentValues.get(activeIndex));
                     }
-                    float textY = centerY - ((paintCenterText.descent() + paintCenterText.ascent()) / 2);
-                    canvas.drawText(displayName, centerX, textY, paintCenterText);
+                } else {
+                    displayName = "预览"; // 备用
                 }
+            } else {
+                // 编辑模式下，显示固定的示例文本
+                displayName = "预览";
             }
-        }
 
-        if (currentMode == ElementController.Mode.Edit || currentMode == ElementController.Mode.Select) {
-            rect.left = rect.top = 2; rect.right = getWidth() - 2; rect.bottom = getHeight() - 2;
-            paintEdit.setColor(editColor);
-            canvas.drawRect(rect, paintEdit);
+            // 应用中心文字的颜色和大小 (这部分逻辑不变)
+            paintCenterText.setColor(this.centerTextColor);
+            float centerTextSize = fillInnerRadius * 2 * (this.centerTextSizePercent / 100.0f);
+            paintCenterText.setTextSize(centerTextSize);
+
+            float textY = centerY - ((paintCenterText.descent() + paintCenterText.ascent()) / 2);
+            canvas.drawText(displayName, centerX, textY, paintCenterText);
         }
     }
 
@@ -277,8 +427,7 @@ public class WheelPad extends Element {
             return true;
         }
 
-        int action = event.getActionMasked();
-        if (action == MotionEvent.ACTION_DOWN) {
+        if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
             float x = event.getX();
             float y = event.getY();
             float centerX = getWidth() / 2.0f;
@@ -293,8 +442,6 @@ public class WheelPad extends Element {
             if (distance <= innerRadius) {
                 handlePopupModeTouchEvent(event);
                 return true;
-            } else {
-                return false;
             }
         }
         return false;
@@ -337,9 +484,11 @@ public class WheelPad extends Element {
         float y = event.getY();
         float centerX = getWidth() / 2.0f;
         float centerY = getHeight() / 2.0f;
+
         float outerRadius = (getWidth() / 2.0f) - thick;
         if (outerRadius < 0) outerRadius = 0;
         float innerRadius = outerRadius * (innerRadiusPercent / 100.0f);
+
         float dx = x - centerX;
         float dy = y - centerY;
         double distance = Math.sqrt(dx * dx + dy * dy);
@@ -354,6 +503,7 @@ public class WheelPad extends Element {
                 break;
             case MotionEvent.ACTION_MOVE:
                 if (isWheelActive) {
+                    // Touch area is the entire screen outside the central dead zone.
                     if (distance > innerRadius) {
                         double angle = Math.toDegrees(Math.atan2(dy, dx)) + 90;
                         if (angle < 0) angle += 360;
@@ -367,22 +517,20 @@ public class WheelPad extends Element {
                 break;
             case MotionEvent.ACTION_UP:
                 if (isWheelActive) {
-                    if (activeIndex != -1 && activeIndex < segmentSendHandlersList.size()) {
-                        List<ElementController.SendEventHandler> handlers = segmentSendHandlersList.get(activeIndex);
+                    if (activeIndex != -1 && activeIndex < segmentValues.size()) {
+                        String value = segmentValues.get(activeIndex);
+                        // 即时获取 handlers
+                        List<ElementController.SendEventHandler> handlers = getHandlersForValueNow(value);
+
+                        // 按下
                         for (ElementController.SendEventHandler handler : handlers) {
                             handler.sendEvent(true);
                         }
+                        // 释放
                         for (int i = handlers.size() - 1; i >= 0; i--) {
                             handlers.get(i).sendEvent(false);
                         }
                     }
-                    isWheelActive = false;
-                    activeIndex = -1;
-                    invalidate();
-                }
-                break;
-            case MotionEvent.ACTION_CANCEL:
-                if (isWheelActive) {
                     isWheelActive = false;
                     activeIndex = -1;
                     invalidate();
@@ -393,15 +541,21 @@ public class WheelPad extends Element {
 
     private void updateSendingState() {
         if (activeIndex != lastActiveIndex) {
-            if (lastActiveIndex != -1 && lastActiveIndex < segmentSendHandlersList.size()) {
-                List<ElementController.SendEventHandler> lastHandlers = segmentSendHandlersList.get(lastActiveIndex);
+            // --- 释放上一个 ---
+            if (lastActiveIndex != -1 && lastActiveIndex < segmentValues.size()) {
+                String lastValue = segmentValues.get(lastActiveIndex);
+                // 即时获取 handlers
+                List<ElementController.SendEventHandler> lastHandlers = getHandlersForValueNow(lastValue);
                 for (int i = lastHandlers.size() - 1; i >= 0; i--) {
                     lastHandlers.get(i).sendEvent(false);
                 }
             }
 
-            if (activeIndex != -1 && activeIndex < segmentSendHandlersList.size()) {
-                List<ElementController.SendEventHandler> activeHandlers = segmentSendHandlersList.get(activeIndex);
+            // --- 按下新的 ---
+            if (activeIndex != -1 && activeIndex < segmentValues.size()) {
+                String activeValue = segmentValues.get(activeIndex);
+                // 即时获取 handlers
+                List<ElementController.SendEventHandler> activeHandlers = getHandlersForValueNow(activeValue);
                 for (ElementController.SendEventHandler handler : activeHandlers) {
                     handler.sendEvent(true);
                 }
@@ -419,7 +573,12 @@ public class WheelPad extends Element {
             valuesContainer = wheelPadPage.findViewById(R.id.page_wheel_pad_values_container);
         }
 
+        // Find all views
         ElementEditText centerTextInput = wheelPadPage.findViewById(R.id.page_wheel_pad_center_text);
+        final Switch popupSwitch = wheelPadPage.findViewById(R.id.page_wheel_pad_popup_at_center_switch);
+
+        final LinearLayout popupOptionsContainer = wheelPadPage.findViewById(R.id.page_wheel_pad_popup_options_container);
+
         NumberSeekbar sizeNumberSeekbar = wheelPadPage.findViewById(R.id.page_wheel_pad_size);
         NumberSeekbar thickNumberSeekbar = wheelPadPage.findViewById(R.id.page_wheel_pad_thick);
         NumberSeekbar layerNumberSeekbar = wheelPadPage.findViewById(R.id.page_wheel_pad_layer);
@@ -431,9 +590,37 @@ public class WheelPad extends Element {
         NumberSeekbar segmentCountNumberSeekbar = wheelPadPage.findViewById(R.id.page_wheel_pad_segment_count);
         NumberSeekbar innerRadiusNumberSeekbar = wheelPadPage.findViewById(R.id.page_wheel_pad_inner_radius);
 
+        NumberSeekbar textSizeNumberSeekbar = wheelPadPage.findViewById(R.id.page_wheel_pad_text_size);
+        ElementEditText normalTextColorElementEditText = wheelPadPage.findViewById(R.id.page_wheel_pad_normal_text_color);
+        NumberSeekbar centerTextSizeNumberSeekbar = wheelPadPage.findViewById(R.id.page_wheel_pad_center_text_size);
+        ElementEditText centerTextColorElementEditText = wheelPadPage.findViewById(R.id.page_wheel_pad_center_text_color);
+        NumberSeekbar triggerTextSizeNumberSeekbar = wheelPadPage.findViewById(R.id.page_wheel_pad_trigger_text_size);
+
         setupCommonControls(centerTextInput, sizeNumberSeekbar, thickNumberSeekbar, layerNumberSeekbar,
                 normalColorElementEditText, pressedColorElementEditText, backgroundColorElementEditText,
                 copyButton, deleteButton);
+
+        // Setup the switch
+        popupSwitch.setChecked(this.popupAtScreenCenter);
+        popupSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            this.popupAtScreenCenter = isChecked;
+            invalidate();
+            save();
+        });
+
+        // Set the initial visibility based on the current mode
+        boolean isPopup = !this.centerText.isEmpty();
+        popupOptionsContainer.setVisibility(isPopup ? View.VISIBLE : View.GONE);
+
+        // Override the listener to control visibility of the container
+        centerTextInput.setOnTextChangedListener(text -> {
+            setCenterText(text);
+            boolean isPopupNow = !text.isEmpty();
+            // Show/Hide the entire container based on popup mode
+            popupOptionsContainer.setVisibility(isPopupNow ? View.VISIBLE : View.GONE);
+            invalidate();
+            save();
+        });
 
         segmentCountNumberSeekbar.setValueWithNoCallBack(segmentCount);
         segmentCountNumberSeekbar.setOnNumberSeekbarChangeListener(new NumberSeekbar.OnNumberSeekbarChangeListener() {
@@ -468,6 +655,79 @@ public class WheelPad extends Element {
                 save();
             }
         });
+
+        // 分区文字大小
+        textSizeNumberSeekbar.setProgressMin(10); // 10%
+        textSizeNumberSeekbar.setProgressMax(100); // 100%
+        textSizeNumberSeekbar.setValueWithNoCallBack(this.textSizePercent);
+        textSizeNumberSeekbar.setOnNumberSeekbarChangeListener(new NumberSeekbar.OnNumberSeekbarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                textSizePercent = progress;
+                invalidate();
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                save();
+            }
+        });
+
+        // 中心文字大小
+        centerTextSizeNumberSeekbar.setProgressMin(10); // 10%
+        centerTextSizeNumberSeekbar.setProgressMax(150); // 150%
+        centerTextSizeNumberSeekbar.setValueWithNoCallBack(this.centerTextSizePercent);
+        centerTextSizeNumberSeekbar.setOnNumberSeekbarChangeListener(new NumberSeekbar.OnNumberSeekbarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                centerTextSizePercent = progress;
+                invalidate();
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                save();
+            }
+        });
+
+        // 设置颜色选择器 (你需要确保 setupColorPickerButton 方法在 WheelPad.java 中也存在)
+        setupColorPickerButton(normalTextColorElementEditText, () -> this.normalTextColor, color -> {
+            this.normalTextColor = color;
+            invalidate();
+        });
+        setupColorPickerButton(centerTextColorElementEditText, () -> this.centerTextColor, color -> {
+            this.centerTextColor = color;
+            invalidate();
+        });
+        // --- 设置触发器文字大小的 seekbar ---
+        triggerTextSizeNumberSeekbar.setProgressMin(5);
+        triggerTextSizeNumberSeekbar.setProgressMax(150);
+        triggerTextSizeNumberSeekbar.setValueWithNoCallBack(this.triggerTextSizePercent);
+        triggerTextSizeNumberSeekbar.setOnNumberSeekbarChangeListener(new NumberSeekbar.OnNumberSeekbarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                triggerTextSizePercent = progress;
+                invalidate(); // 实时预览
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                save(); // 保存设置
+            }
+        });
+
         updateValuesContainerUI();
         return wheelPadPage;
     }
@@ -487,6 +747,15 @@ public class WheelPad extends Element {
         contentValues.put(COLUMN_INT_ELEMENT_BACKGROUND_COLOR, backgroundColor);
         contentValues.put(COLUMN_INT_ELEMENT_MODE, segmentCount);
         contentValues.put(COLUMN_INT_ELEMENT_SENSE, innerRadiusPercent);
+        contentValues.put(COLUMN_INT_ELEMENT_FLAG1, popupAtScreenCenter ? 1 : 0);
+
+        JsonObject extraAttrs = new JsonObject();
+        extraAttrs.addProperty("normalTextColor", this.normalTextColor);
+        extraAttrs.addProperty("centerTextColor", this.centerTextColor);
+        extraAttrs.addProperty("textSizePercent", this.textSizePercent);
+        extraAttrs.addProperty("centerTextSizePercent", this.centerTextSizePercent);
+        extraAttrs.addProperty("triggerTextSizePercent", this.triggerTextSizePercent);
+        contentValues.put("extra_attributes", new Gson().toJson(extraAttrs));
 
         List<String> combinedSegments = new ArrayList<>();
         for (int i = 0; i < segmentValues.size(); i++) {
@@ -509,7 +778,7 @@ public class WheelPad extends Element {
         contentValues.put(COLUMN_INT_ELEMENT_WIDTH, 400);
         contentValues.put(COLUMN_INT_ELEMENT_HEIGHT, 400);
         contentValues.put(COLUMN_STRING_ELEMENT_TEXT, "");
-        contentValues.put(COLUMN_INT_ELEMENT_LAYER, 50);
+        contentValues.put(COLUMN_INT_ELEMENT_LAYER, 40);
         contentValues.put(COLUMN_INT_ELEMENT_CENTRAL_X, 250);
         contentValues.put(COLUMN_INT_ELEMENT_CENTRAL_Y, 250);
         contentValues.put(COLUMN_INT_ELEMENT_THICK, 5);
@@ -518,6 +787,19 @@ public class WheelPad extends Element {
         contentValues.put(COLUMN_INT_ELEMENT_BACKGROUND_COLOR, 0xAA444444);
         contentValues.put(COLUMN_INT_ELEMENT_MODE, 8);
         contentValues.put(COLUMN_INT_ELEMENT_SENSE, 30);
+        contentValues.put(COLUMN_INT_ELEMENT_FLAG1, 1);
+
+        JsonObject extraAttrs = new JsonObject();
+        // **为所有新的字体属性设置默认值**
+        extraAttrs.addProperty("normalTextColor", 0xFFFFFFFF); // White
+        extraAttrs.addProperty("pressedTextColor", 0xFFFFFFFF); // White
+        extraAttrs.addProperty("centerTextColor", 0xFFFFFFFF); // White
+        extraAttrs.addProperty("textSizePercent", 35); // 35%
+        extraAttrs.addProperty("centerTextSizePercent", 60); // 60%
+        extraAttrs.addProperty("triggerTextSizePercent", 14);
+        // 将 JsonObject 转换为字符串，并存入通用的 "extra_attributes" 列
+        contentValues.put("extra_attributes", new Gson().toJson(extraAttrs));
+
         return contentValues;
     }
 
@@ -526,6 +808,7 @@ public class WheelPad extends Element {
                                      Button copy, Button delete) {
 
         centerTextInput.setTextWithNoTextChangedCallBack(this.centerText);
+        // NOTE: The listener is set/overridden in getInfoPage() to handle the switch logic
         centerTextInput.setOnTextChangedListener(text -> {
             setCenterText(text);
             save();
@@ -637,6 +920,20 @@ public class WheelPad extends Element {
             cv.put(COLUMN_INT_ELEMENT_BACKGROUND_COLOR, this.backgroundColor);
             cv.put(COLUMN_INT_ELEMENT_MODE, this.segmentCount);
             cv.put(COLUMN_INT_ELEMENT_SENSE, this.innerRadiusPercent);
+            cv.put(COLUMN_INT_ELEMENT_FLAG1, this.popupAtScreenCenter ? 1 : 0);
+
+            // 创建一个 JsonObject 来存储所有没有独立数据库列的属性
+            JsonObject extraAttrs = new JsonObject();
+            // **放入所有新的字体属性**
+            extraAttrs.addProperty("normalTextColor", this.normalTextColor);
+            extraAttrs.addProperty("pressedTextColor", this.pressedTextColor);
+            extraAttrs.addProperty("centerTextColor", this.centerTextColor);
+            extraAttrs.addProperty("textSizePercent", this.textSizePercent);
+            extraAttrs.addProperty("centerTextSizePercent", this.centerTextSizePercent);
+            extraAttrs.addProperty("triggerTextSizePercent", this.triggerTextSizePercent);
+
+            // 将 JsonObject 转换为字符串，并存入通用的 "extra_attributes" 列
+            cv.put("extra_attributes", new Gson().toJson(extraAttrs));
 
             List<String> combinedSegments = new ArrayList<>();
             for (int i = 0; i < segmentValues.size(); i++) {
@@ -675,14 +972,12 @@ public class WheelPad extends Element {
             segmentValues.remove(segmentValues.size() - 1);
             segmentNames.remove(segmentNames.size() - 1);
         }
-        updateAllSegmentSendHandlers();
         invalidate();
     }
 
     protected void setSegmentValue(int index, String value) {
         if (index >= 0 && index < segmentValues.size()) {
             segmentValues.set(index, value);
-            segmentSendHandlersList.set(index, getHandlersForValue(value));
             invalidate();
         }
     }
@@ -730,6 +1025,21 @@ public class WheelPad extends Element {
         if (value == null || value.isEmpty() || value.equals("null")) {
             return "空";
         }
+
+        if (value.startsWith("gb")) {
+            try {
+                long elementId = Long.parseLong(value.substring(2));
+                Element element = elementController.findElementById(elementId);
+                if (element instanceof GroupButton) {
+                    return "[组] " + ((GroupButton) element).getText();
+                } else {
+                    return "[无效的组]";
+                }
+            } catch (NumberFormatException e) {
+                return "[格式错误的组ID]";
+            }
+        }
+
         String[] singleKeyValues = value.split("\\+");
         List<String> keyNames = new ArrayList<>();
         for (String singleKeyValue : singleKeyValues) {
@@ -738,16 +1048,83 @@ public class WheelPad extends Element {
         return String.join(" + ", keyNames);
     }
 
-    private void updateKeyCombinationDisplay(LinearLayout keysContainer, List<String> currentKeys) {
+    private void updateKeyCombinationDisplay(LinearLayout keysContainer, List<String> currentKeys, Button addButton, Button addGroupButton, final AlertDialog dialog) {
         keysContainer.removeAllViews();
         Context context = keysContainer.getContext();
+        boolean isGroup = !currentKeys.isEmpty() && currentKeys.get(0).startsWith("gb");
+
+        // 根据是否已选择组按键，更新按钮的可见性
+        if (isGroup) {
+            addButton.setVisibility(View.GONE);
+            addGroupButton.setVisibility(View.GONE);
+        } else {
+            addButton.setVisibility(View.VISIBLE);
+            addGroupButton.setVisibility(View.VISIBLE);
+        }
 
         if (currentKeys.isEmpty()) {
             TextView emptyText = new TextView(context);
-            emptyText.setText("当前无按键，请点击“添加”");
+            emptyText.setText("当前无按键，请点击下方按钮添加");
             emptyText.setPadding(0, 10, 0, 10);
             keysContainer.addView(emptyText);
+        } else if (isGroup) {
+            // --- 显示组按键 ---
+            try {
+                long elementId = Long.parseLong(currentKeys.get(0).substring(2));
+                Element element = elementController.findElementById(elementId);
+                if (element instanceof GroupButton) {
+                    final GroupButton groupButton = (GroupButton) element;
+                    final SuperPageLayout groupButtonSettingsPage = groupButton.getInfoPage();
+                    Button groupBtnDisplay = new Button(context);
+                    groupBtnDisplay.setText("[组] " + groupButton.getText() + " (单击设置/长按删除)");
+                    groupBtnDisplay.setAllCaps(false);
+
+                    // 单击打开组按键设置页
+                    groupBtnDisplay.setOnClickListener(v -> {
+                        if (dialog != null) {
+                            dialog.dismiss();
+                        }
+                        final SuperPageLayout wheelPadSettingsPage = wheelPad.getInfoPage();
+                        groupButtonSettingsPage.setLastPage(wheelPadSettingsPage);
+                        groupButtonSettingsPage.setPageReturnListener(new SuperPageLayout.ReturnListener() {
+                            @Override
+                            public void returnCallBack() {
+                                elementController.getSuperPagesController().openNewPage(wheelPadSettingsPage);
+                            }
+                        });
+                        elementController.getSuperPagesController().openNewPage(groupButtonSettingsPage);
+                    });
+
+                    // 长按删除
+                    groupBtnDisplay.setOnLongClickListener(v -> {
+                        // 清空当前分区的按键设置
+                        currentKeys.clear();
+
+                        // 更新UI以反映移除
+                        updateKeyCombinationDisplay(keysContainer, currentKeys, addButton, addGroupButton, dialog);
+
+                        Toast.makeText(context, "已移除组按键，点击确定保存设置", Toast.LENGTH_SHORT).show();
+
+                        return true; // 返回true表示事件已被消费
+                    });
+                    keysContainer.addView(groupBtnDisplay);
+                } else {
+                    // 如果找到了元素但类型不对，也显示错误
+                    currentKeys.clear();
+                    TextView errorText = new TextView(context);
+                    errorText.setText("错误：ID " + elementId + " 不是一个组按键。");
+                    keysContainer.addView(errorText);
+                    updateKeyCombinationDisplay(keysContainer, currentKeys, addButton, addGroupButton, dialog);
+                }
+            } catch (Exception e) {
+                // 如果解析或查找失败，显示错误信息并允许重新选择
+                currentKeys.clear();
+                TextView errorText = new TextView(context);
+                errorText.setText("错误：关联的组按键已不存在，请重新设置。");
+                keysContainer.addView(errorText);
+            }
         } else {
+            // --- 显示普通按键列表 ---
             for (int i = 0; i < currentKeys.size(); i++) {
                 final int keyIndex = i;
                 TextView keyView = new TextView(context);
@@ -764,7 +1141,7 @@ public class WheelPad extends Element {
 
                 keyView.setOnClickListener(v -> {
                     currentKeys.remove(keyIndex);
-                    updateKeyCombinationDisplay(keysContainer, currentKeys);
+                    updateKeyCombinationDisplay(keysContainer, currentKeys, addButton, addGroupButton, dialog);
                 });
                 keysContainer.addView(keyView);
             }
@@ -775,59 +1152,138 @@ public class WheelPad extends Element {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle("编辑按键(可组合) (分区 " + (index + 1) + ")");
 
-        // 1. 创建主布局 (垂直方向)
         LinearLayout dialogLayout = new LinearLayout(context);
         dialogLayout.setOrientation(LinearLayout.VERTICAL);
         dialogLayout.setPadding(30, 20, 30, 20);
 
-        // 2. 创建用于显示按键的容器
         LinearLayout keysContainer = new LinearLayout(context);
         keysContainer.setOrientation(LinearLayout.VERTICAL);
 
-        // 3. 创建 ScrollView 并将 keysContainer 放入其中
         ScrollView scrollView = new ScrollView(context);
-        // 设置布局参数，让 ScrollView 占据所有可用空间 (权重为1)
         LinearLayout.LayoutParams scrollParams = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
-                0, // 高度设为0，由权重决定
+                0,
                 1.0f
         );
-        scrollParams.setMargins(0,0,0,20); // 给滚动区域和按钮之间增加一些间距
+        scrollParams.setMargins(0, 0, 0, 20);
         scrollView.setLayoutParams(scrollParams);
-        scrollView.addView(keysContainer); // 将按键容器放入滚动视图
+        scrollView.addView(keysContainer);
 
-        // 获取当前按键列表
         String currentValue = segmentValues.get(index);
         final List<String> currentKeys = new ArrayList<>();
         if (currentValue != null && !currentValue.isEmpty() && !currentValue.equals("null")) {
-            currentKeys.addAll(Arrays.asList(currentValue.split("\\+")));
+            // 组按键只有一个值 "gb<ID>", 普通按键用 "+" 分隔
+            if (currentValue.startsWith("gb")) {
+                currentKeys.add(currentValue);
+            } else {
+                currentKeys.addAll(Arrays.asList(currentValue.split("\\+")));
+            }
         }
 
-        // 初始显示
-        updateKeyCombinationDisplay(keysContainer, currentKeys);
+        // --- 新增按钮布局和按钮 ---
+        LinearLayout buttonContainer = new LinearLayout(context);
+        buttonContainer.setOrientation(LinearLayout.HORIZONTAL);
+        buttonContainer.setGravity(Gravity.CENTER);
 
-        // 创建 "添加按键" 按钮
         Button addButton = new Button(context);
         addButton.setText("添加按键");
+        LinearLayout.LayoutParams buttonParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
+        buttonParams.setMarginEnd(10);
+        addButton.setLayoutParams(buttonParams);
 
-        // 4. 按正确的顺序将 ScrollView 和 Button 添加到主布局中
-        dialogLayout.addView(scrollView); // 先添加可滚动区域
-        dialogLayout.addView(addButton);  // 再添加按钮
+        Button addGroupButton = new Button(context);
+        addGroupButton.setText("添加组按键");
+        LinearLayout.LayoutParams groupButtonParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
+        groupButtonParams.setMarginStart(10);
+        addGroupButton.setLayoutParams(groupButtonParams);
 
-        // 设置对话框的视图和按钮
-        builder.setView(dialogLayout);
-        builder.setPositiveButton("确定", (dialog, which) -> {
-            String finalValue = currentKeys.isEmpty() ? "null" : String.join("+", currentKeys);
+        buttonContainer.addView(addButton);
+        buttonContainer.addView(addGroupButton);
+
+        dialogLayout.addView(scrollView);
+        dialogLayout.addView(buttonContainer);
+
+        final AlertDialog dialog = builder.create();
+
+        // 初始状态更新
+        updateKeyCombinationDisplay(keysContainer, currentKeys, addButton, addGroupButton, dialog);
+        dialog.setView(dialogLayout);
+
+        dialog.setButton(AlertDialog.BUTTON_POSITIVE, "确定", (d, which) -> {
+            String finalValue;
+            if (currentKeys.isEmpty()) {
+                finalValue = "null";
+            } else if (currentKeys.get(0).startsWith("gb")) {
+                finalValue = currentKeys.get(0);
+            } else {
+                finalValue = String.join("+", currentKeys);
+            }
             setSegmentValue(index, finalValue);
             valueText.setText(getDisplayStringForValue(finalValue));
             save();
         });
-        builder.setNegativeButton("取消", (dialog, which) -> dialog.dismiss());
+        dialog.setButton(AlertDialog.BUTTON_NEGATIVE, "取消", (d, which) -> d.dismiss());
 
-        // 创建对话框实例
-        final AlertDialog dialog = builder.create();
+        // "添加组按键" 的点击逻辑
+        addGroupButton.setOnClickListener(v -> {
+            // 1. 查找所有现有的 GroupButton
+            List<GroupButton> groupButtons = new ArrayList<>();
+            for (Element el : elementController.getElements()) {
+                if (el instanceof GroupButton) {
+                    groupButtons.add((GroupButton) el);
+                }
+            }
 
-        // 为“添加按键”按钮设置监听器
+            // 2. 创建选项列表
+            final List<String> options = new ArrayList<>();
+            for (GroupButton gb : groupButtons) {
+                options.add(gb.getText() + " (ID: " + gb.elementId + ")");
+            }
+            options.add("创建新的组按键...");
+
+            // 3. 显示选择对话框
+            new AlertDialog.Builder(context)
+                    .setTitle("选择一个组按键")
+                    .setItems(options.toArray(new String[0]), (selectionDialog, which) -> {
+
+                        String selectedValue = null;
+                        Element newElementToEdit = null;
+
+                        if (which == options.size() - 1) {
+                            // --- 用户选择 "创建新的" ---
+                            ContentValues cv = GroupButton.getInitialInfo();
+                            Element newElement = elementController.addElement(cv);
+                            if (newElement != null) {
+                                selectedValue = "gb" + newElement.elementId;
+                                newElementToEdit = newElement; // 记录下来，以便后续打开其设置页
+                            }
+                        } else {
+                            // --- 用户选择一个现有的 ---
+                            GroupButton selectedGb = groupButtons.get(which);
+                            selectedValue = "gb" + selectedGb.elementId;
+                        }
+
+                        if (selectedValue != null) {
+                            // 立即设置值并保存
+                            setSegmentValue(index, selectedValue);
+                            save();
+
+                            // 更新主设置页面上该分区的显示文本
+                            valueText.setText(getDisplayStringForValue(selectedValue));
+
+                            // 关闭“编辑按键”这个主弹窗
+                            dialog.dismiss();
+
+                            // 如果是新创建的，提示用户去配置
+                            if (newElementToEdit != null) {
+                                Toast.makeText(context, "新组按键已创建并关联，请进行配置", Toast.LENGTH_LONG).show();
+                                elementController.toggleInfoPage(newElementToEdit.getInfoPage());
+                            }
+                        }
+                    })
+                    .show();
+        });
+
         addButton.setOnClickListener(v -> {
             dialog.hide();
             PageDeviceController.DeviceCallBack deviceCallBack = new PageDeviceController.DeviceCallBack() {
@@ -835,17 +1291,17 @@ public class WheelPad extends Element {
                 public void OnKeyClick(TextView key) {
                     currentKeys.add(key.getTag().toString());
                     dialog.show();
-                    updateKeyCombinationDisplay(keysContainer, currentKeys);
+                    updateKeyCombinationDisplay(keysContainer, currentKeys, addButton, addGroupButton, dialog);
                 }
             };
             pageDeviceController.open(deviceCallBack, View.VISIBLE, View.VISIBLE, View.VISIBLE);
         });
 
-        // 显示对话框
         dialog.show();
     }
 
     private void updateValuesContainerUI() {
+        if (valuesContainer == null) return;
         valuesContainer.removeAllViews();
         for (int i = 0; i < segmentCount; i++) {
             if (i >= segmentValues.size()) continue;
@@ -884,50 +1340,31 @@ public class WheelPad extends Element {
     private interface IntConsumer {
         void accept(int value);
     }
-    /**
-     * 更新颜色显示按钮的外观（文本、背景色、文本颜色）。
-     */
-    private void updateColorDisplay(ElementEditText colorDisplay, int color) {
-        // 显示十六进制颜色码
-        colorDisplay.setTextWithNoTextChangedCallBack(String.format("%08X", color));
-        // 将背景设置为当前颜色
-        colorDisplay.setBackgroundColor(color);
 
-        // 根据背景色的亮度自动设置文本颜色为黑色或白色，以确保可读性
+    private void updateColorDisplay(ElementEditText colorDisplay, int color) {
+        colorDisplay.setTextWithNoTextChangedCallBack(String.format("%08X", color));
+        colorDisplay.setBackgroundColor(color);
         double luminance = (0.299 * Color.red(color) + 0.587 * Color.green(color) + 0.114 * Color.blue(color)) / 255;
         colorDisplay.setTextColor(luminance > 0.5 ? Color.BLACK : Color.WHITE);
         colorDisplay.setGravity(Gravity.CENTER);
     }
 
-    /**
-     * 配置一个 ElementEditText 控件，使其作为颜色选择器按钮使用。
-     *
-     * @param colorDisplay 用于作为按钮的 ElementEditText 视图。
-     * @param initialColorFetcher 一个用于获取当前颜色值的 Lambda 表达式。
-     * @param colorUpdater      一个用于设置新颜色值的 Lambda 表达式。
-     */
     private void setupColorPickerButton(ElementEditText colorDisplay, IntSupplier initialColorFetcher, IntConsumer colorUpdater) {
-        // 禁输入，让 EditText 表现得像一个按钮
         colorDisplay.setFocusable(false);
         colorDisplay.setCursorVisible(false);
         colorDisplay.setKeyListener(null);
-
-        // 使用传入的 Lambda 获取初始颜色并设置外观
         updateColorDisplay(colorDisplay, initialColorFetcher.get());
-
-        // 设置点击监听器，打开颜色选择器
         colorDisplay.setOnClickListener(v -> {
-            // 再次获取当前颜色，确保打开时颜色是最新的
             new ColorPickerDialog(
                     getContext(),
                     initialColorFetcher.get(),
-                    true, // true 表示显示 Alpha 透明度滑块
+                    true,
                     newColor -> {
-                        colorUpdater.accept(newColor); // 使用传入的 Lambda 更新颜色属性
-                        save();                      // 保存更改
-                        updateColorDisplay(colorDisplay, newColor); // 更新UI显示
+                        colorUpdater.accept(newColor);
+                        save();
+                        updateColorDisplay(colorDisplay, newColor);
                     }
-            ).show(); // <-- 主要变化：在最后调用 .show()
+            ).show();
         });
     }
 }

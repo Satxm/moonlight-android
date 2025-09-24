@@ -2,6 +2,7 @@ package com.limelight;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.content.ContentValues;
 import android.content.Context;
 import android.os.Build;
 import android.os.Handler;
@@ -27,6 +28,7 @@ import com.google.gson.JsonObject;
 import com.limelight.binding.input.GameInputDevice;
 import com.limelight.binding.input.KeyboardTranslator;
 import com.limelight.binding.input.advance_setting.ControllerManager;
+import com.limelight.binding.input.advance_setting.config.PageConfigController;
 import com.limelight.binding.input.advance_setting.element.ElementController;
 import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.http.NvApp;
@@ -315,6 +317,8 @@ public class GameMenu {
                             game.prefConfig.enableNativeMousePointer = false;
                             game.enableNativeMousePointer(false);  // 关闭本地鼠标模式
                             game.setTouchMode(false);
+                            updateEnhancedTouchSetting(true);
+                            updateTouchModeSetting(false);
                             Toast.makeText(game, getString(R.string.toast_touch_mode_enhanced_on), Toast.LENGTH_SHORT).show();
                         },
                         null,
@@ -328,6 +332,8 @@ public class GameMenu {
                             game.prefConfig.enableNativeMousePointer = false;
                             game.enableNativeMousePointer(false);  // 关闭本地鼠标模式
                             game.setTouchMode(false);
+                            updateEnhancedTouchSetting(false);
+                            updateTouchModeSetting(false);
                             Toast.makeText(game, getString(R.string.toast_touch_mode_classic_on), Toast.LENGTH_SHORT).show();
                         },
                         null,
@@ -340,6 +346,7 @@ public class GameMenu {
                             game.prefConfig.enableNativeMousePointer = false;
                             game.enableNativeMousePointer(false);  // 关闭本地鼠标模式
                             game.setTouchMode(true);
+                            updateTouchModeSetting(true);
                             Toast.makeText(game, getString(R.string.toast_touch_mode_trackpad_on), Toast.LENGTH_SHORT).show();
                         },
                         null,
@@ -353,6 +360,7 @@ public class GameMenu {
                             game.prefConfig.enableEnhancedTouch = false;
                             game.setTouchMode(false);
                             game.enableNativeMousePointer(true);
+                            updateTouchModeSetting(false);
                             Toast.makeText(game, getString(R.string.toast_touch_mode_native_mouse_on), Toast.LENGTH_SHORT).show();
                         },
                         null,
@@ -365,6 +373,53 @@ public class GameMenu {
     }
 
     /**
+     * 将当前的触控模式（是否为触摸板模式）保存到数据库中。
+     * @param isTrackpadMode true 表示保存为触摸板板模式，false 表示保存为其他模式。
+     */
+    private void updateTouchModeSetting(boolean isTrackpadMode) {
+        // 从 Game Activity 获取 ControllerManager 实例
+        ControllerManager controllerManager = game.getControllerManager();
+
+        // 添加空值检查
+        if (controllerManager == null) {
+            LimeLog.warning("ControllerManager is null, cannot update touch mode setting");
+            return;
+        }
+
+        // 创建一个 ContentValues 对象，用于存放要更新的数据
+        ContentValues contentValues = new ContentValues();
+
+        // 1. 从 PageConfigController 获取当前正在使用的配置ID
+        Long currentConfigId = controllerManager.getPageConfigController().getCurrentConfigId();
+
+        // 2. 将传入的布尔值转换为字符串，并放入 ContentValues
+        //    键是数据库的列名，值是传入的 isTrackpadMode 的状态
+        contentValues.put(PageConfigController.COLUMN_BOOLEAN_TOUCH_MODE, String.valueOf(isTrackpadMode));
+
+        // 3. 调用数据库帮助类的方法，将数据更新到数据库中
+        controllerManager.getSuperConfigDatabaseHelper().updateConfig(currentConfigId, contentValues);
+    }
+
+    private void updateEnhancedTouchSetting(boolean isEnabled) {
+        // 从 Game Activity 获取 ControllerManager 实例
+        ControllerManager controllerManager = game.getControllerManager();
+
+        // 添加空值检查
+        if (controllerManager == null) {
+            LimeLog.warning("ControllerManager is null, cannot update touch mode setting");
+            return;
+        }
+
+        ContentValues contentValues = new ContentValues();
+        Long currentConfigId = controllerManager.getPageConfigController().getCurrentConfigId();
+
+        contentValues.put(PageConfigController.COLUMN_BOOLEAN_ENHANCED_TOUCH, String.valueOf(isEnabled));
+
+        // 更新到数据库
+        controllerManager.getSuperConfigDatabaseHelper().updateConfig(currentConfigId, contentValues);
+    }
+
+    /**
      * 切换麦克风开关
      */
     private void toggleMicrophone() {
@@ -373,19 +428,61 @@ public class GameMenu {
     }
 
     /**
-     * 切换王冠功能并刷新菜单
+     * 切换王冠功能并即时刷新菜单内容
      */
     private void toggleCrownFeature() {
+        // 切换王冠功能状态
         game.setCrownFeatureEnabled(!game.isCrownFeatureEnabled());
-        Toast.makeText(game, game.isCrownFeatureEnabled() ? getString(R.string.crown_switch_to_crown) : getString(R.string.crown_switch_to_normal), Toast.LENGTH_SHORT).show();
 
-        // 刷新整个菜单以显示王冠功能按钮
-        if (activeDialog != null && activeDialog.isShowing() && game.isCrownFeatureEnabled()) {
-            activeDialog.dismiss(); // 先关闭当前对话框
-            showMenu(); // 重新显示菜单
+        // 显示状态变更提示
+        Toast.makeText(game, game.isCrownFeatureEnabled() ?
+                        getString(R.string.crown_switch_to_crown) :
+                        getString(R.string.crown_switch_to_normal),
+                Toast.LENGTH_SHORT).show();
+
+        // 即时更新菜单内容，而不是重新创建整个对话框
+        if (activeDialog != null && activeDialog.isShowing()) {
+            // 更新标题栏的王冠按钮文本
+            updateCrownToggleButton();
+
+            // 重新构建并更新菜单列表
+            rebuildAndReplaceMenu();
         }
-        else if (activeDialog != null && activeDialog.isShowing() && !game.isCrownFeatureEnabled()) {
-            activeDialog.dismiss();
+    }
+
+    /**
+     * 更新标题栏王冠按钮文本
+     */
+    private void updateCrownToggleButton() {
+        if (activeCustomView != null) {
+            TextView crownToggleButton = activeCustomView.findViewById(R.id.btnCrownToggle);
+            if (crownToggleButton != null) {
+                String crownText = game.isCrownFeatureEnabled() ?
+                        getString(R.string.crown_switch_to_normal) :
+                        getString(R.string.crown_switch_to_crown);
+                crownToggleButton.setText(Html.fromHtml("<u>" + crownText + "</u>"));
+            }
+        }
+    }
+
+    /**
+     * 重新构建并替换菜单内容
+     */
+    private void rebuildAndReplaceMenu() {
+        if (activeDialog == null || activeCustomView == null) return;
+
+        // 重新构建普通菜单选项
+        List<MenuOption> normalOptions = new ArrayList<>();
+        buildNormalMenuOptions(normalOptions);
+
+        // 更新普通菜单列表
+        ListView normalListView = activeCustomView.findViewById(R.id.gameMenuList);
+        if (normalListView != null) {
+            GameMenuAdapter adapter = new GameMenuAdapter(game,
+                    normalOptions.toArray(new MenuOption[0]));
+            normalListView.setAdapter(adapter);
+            // 重新设置点击监听器
+            setupMenu(normalListView, adapter, activeDialog);
         }
     }
 
@@ -731,14 +828,14 @@ public class GameMenu {
             }
 
             // 添加一些padding和margin
-            totalHeight += (int) ((maxItems*2 + 50) * game.getResources().getDisplayMetrics().density);
-            totalHeight = Math.max(totalHeight, (int) (270 * game.getResources().getDisplayMetrics().density));
+            totalHeight += (int) ((maxItems*2 + 8) * game.getResources().getDisplayMetrics().density);
+            totalHeight = Math.max(totalHeight, (int) (320 * game.getResources().getDisplayMetrics().density));
 
             return totalHeight;
 
         } catch (Exception e) {
             // 如果计算失败，返回默认高度
-            return (int) (270 * game.getResources().getDisplayMetrics().density);
+            return (int) (320 * game.getResources().getDisplayMetrics().density);
         }
     }
 
@@ -1033,7 +1130,17 @@ public class GameMenu {
      * 设置空的超级菜单
      */
     private void setupEmptySuperMenu(ListView superListView) {
-        View emptyView = LayoutInflater.from(game).inflate(R.layout.game_menu_super_empty, superListView, false);
+        // 计算当前显示的卡片数量
+        int visibleCardCount = 0;
+        if (game.prefConfig.showBitrateCard) visibleCardCount++;
+        if (game.prefConfig.showGyroCard) visibleCardCount++;
+        
+        // 根据卡片数量决定使用哪个布局
+        int layoutRes = (visibleCardCount >= 2) ? 
+            R.layout.game_menu_super_empty_text_only : 
+            R.layout.game_menu_super_empty;
+            
+        View emptyView = LayoutInflater.from(game).inflate(layoutRes, superListView, false);
         ViewGroup parent = (ViewGroup) superListView.getParent();
         parent.addView(emptyView);
         superListView.setEmptyView(emptyView);

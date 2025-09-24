@@ -57,6 +57,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
 
     private int nextInputBufferIndex = -1;
     private ByteBuffer nextInputBuffer;
+    
 
     private Context context;
     private Activity activity;
@@ -1019,6 +1020,11 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             // frame of buffer to smooth over network/rendering jitter.
             Integer nextOutputBuffer = outputBufferQueue.poll();
             if (nextOutputBuffer != null) {
+                if (prefs.framePacing == PreferenceConfiguration.FRAME_PACING_EXPERIMENTAL_LOW_LATENCY) {
+                    // 实验性低延迟模式：进一步优化V-Sync处理
+                    // 安全的提前量：不超过V-Sync周期的1/2
+                    frameTimeNanos -= 500000000 / refreshRate;
+                }
                 try {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                         videoDecoder.releaseOutputBuffer(nextOutputBuffer, frameTimeNanos);
@@ -1045,12 +1051,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         // Attempt codec recovery even if we have nothing to render right now. Recovery can still
         // be required even if the codec died before giving any output.
         doCodecRecoveryIfRequired(CR_FLAG_CHOREOGRAPHER);
-
-        // 实验性低延迟模式：智能帧丢弃和帧率平滑
-        if (prefs.framePacing == PreferenceConfiguration.FRAME_PACING_EXPERIMENTAL_LOW_LATENCY) {
-            smartFrameDrop();
-            applyFrameRateSmoothing(); // 应用帧率平滑算法
-        }
 
         // Request another callback for next frame
         Choreographer.getInstance().postFrameCallback(this);
@@ -1096,7 +1096,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                             numFramesOut++;
 
                             // Render the latest frame now if frame pacing isn't in balanced mode
-                            if (prefs.framePacing != PreferenceConfiguration.FRAME_PACING_BALANCED) {
+                            if (prefs.framePacing != PreferenceConfiguration.FRAME_PACING_BALANCED && prefs.framePacing != PreferenceConfiguration.FRAME_PACING_EXPERIMENTAL_LOW_LATENCY) {
                                 // Get the last output buffer in the queue
                                 while ((outIndex = videoDecoder.dequeueOutputBuffer(info, 0)) >= 0) {
                                     videoDecoder.releaseOutputBuffer(lastIndex, false);
@@ -1491,6 +1491,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             performanceInfo.lostFrameRate = lostFrameRate;
             performanceInfo.rttInfo = rttInfo;
             performanceInfo.framesWithHostProcessingLatency = frameHostProcessingLatency;
+            performanceInfo.isHdrActive = (currentHdrMetadata != null); // 基于实际HDR元数据状态
             performanceInfo.minHostProcessingLatency = minHostProcessingLatency;
             performanceInfo.maxHostProcessingLatency = maxHostProcessingLatency;
             performanceInfo.aveHostProcessingLatency = aveHostProcessingLatency;
@@ -2005,67 +2006,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             str += originalException.toString();
 
             return str;
-        }
-    }
-
-    // 实验性低延迟模式：智能帧丢弃 - 采用原有低延迟的激进策略
-    private void smartFrameDrop() {
-        // 采用原有低延迟的激进策略：保持小缓冲，激进丢弃
-        int maxQueueSize = OUTPUT_BUFFER_QUEUE_LIMIT;
-        
-        // 如果队列超过最大大小，激进丢弃旧帧（保持原有低延迟的激进特性）
-        if (outputBufferQueue.size() > maxQueueSize) {
-            int framesToDrop = outputBufferQueue.size() - maxQueueSize;
-            
-            // 激进丢弃：丢弃所有超出限制的旧帧
-            for (int i = 0; i < framesToDrop; i++) {
-                Integer oldFrame = outputBufferQueue.poll();
-                if (oldFrame != null) {
-                    try {
-                        videoDecoder.releaseOutputBuffer(oldFrame, false);
-                    } catch (IllegalStateException e) {}
-                }
-            }
-        }
-    }
-
-    private void applyFrameRateSmoothing() {
-        // 计算目标帧间隔
-        long targetFrameIntervalNs = 1000000000 / refreshRate; // 目标帧间隔（纳秒）
-        
-        // 如果当前帧间隔过短，适当延长以确保平滑
-        long currentFrameIntervalNs = System.nanoTime() - lastRenderedFrameTimeNanos;
-        
-        if (currentFrameIntervalNs < targetFrameIntervalNs * 0.8) {
-            // 帧间隔过短，适当等待以确保平滑
-            // 根据帧率调整等待时间，提高平滑性
-            long waitTimeNs = calculateOptimalWaitTime(targetFrameIntervalNs, currentFrameIntervalNs);
-            
-            if (waitTimeNs > 0) {
-                try {
-                    Thread.sleep(0, (int)waitTimeNs);
-                } catch (InterruptedException e) {
-                    // 忽略中断
-                }
-            }
-        }
-    }
-    
-    // 计算最优等待时间 - 根据帧率和当前间隔智能调整
-    private long calculateOptimalWaitTime(long targetIntervalNs, long currentIntervalNs) {
-        // 基础等待时间：目标间隔的15-25%
-        long baseWaitNs = targetIntervalNs / 6; // 约16.7%
-        
-        // 根据帧率调整等待时间
-        if (refreshRate >= 120) {
-            // 120fps: 更精确的等待，减少掉帧感觉
-            return Math.min(baseWaitNs * 2, 2000000); // 最多2ms
-        } else if (refreshRate >= 60) {
-            // 60fps: 适中的等待，平衡延迟与平滑
-            return Math.min(baseWaitNs * 3, 3000000); // 最多3ms
-        } else {
-            // 30fps: 较长的等待，优先平滑性
-            return Math.min(baseWaitNs * 4, 4000000); // 最多4ms
         }
     }
 

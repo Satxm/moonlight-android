@@ -32,6 +32,15 @@ import com.limelight.utils.HelpLauncher;
 import com.limelight.utils.ServerHelper;
 import com.limelight.utils.ShortcutHelper;
 import com.limelight.utils.UiHelper;
+import com.limelight.utils.AppCacheManager;
+import com.limelight.utils.CacheHelper;
+import com.limelight.dialogs.AddressSelectionDialog;
+
+import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.List;
 
 import com.bumptech.glide.Glide;
 
@@ -821,7 +830,38 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         i.putExtra(AppView.UUID_EXTRA, computer.uuid);
         i.putExtra(AppView.NEW_PAIR_EXTRA, newlyPaired);
         i.putExtra(AppView.SHOW_HIDDEN_APPS_EXTRA, showHiddenGames);
+        
+        // 如果activeAddress与默认地址不同，说明用户选择了特定地址，需要传递这个信息
+        if (computer.activeAddress != null) {
+            i.putExtra(AppView.SELECTED_ADDRESS_EXTRA, computer.activeAddress.address);
+            i.putExtra(AppView.SELECTED_PORT_EXTRA, computer.activeAddress.port);
+        }
+        
         startActivity(i);
+    }
+
+    /**
+     * 显示地址选择对话框
+     */
+    private void showAddressSelectionDialog(ComputerDetails computer) {
+        AddressSelectionDialog dialog = new AddressSelectionDialog(this, computer, new AddressSelectionDialog.OnAddressSelectedListener() {
+            @Override
+            public void onAddressSelected(ComputerDetails.AddressTuple address) {
+                // 使用选中的地址创建临时ComputerDetails对象
+                ComputerDetails tempComputer = new ComputerDetails(computer);
+                tempComputer.activeAddress = address;
+                
+                // 使用选中的地址进入应用列表
+                doAppList(tempComputer, false, false);
+            }
+
+            @Override
+            public void onCancelled() {
+                // 用户取消选择，不做任何操作
+            }
+        });
+        
+        dialog.show();
     }
 
     @Override
@@ -865,7 +905,14 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                     return true;
                 }
 
-                ServerHelper.doStart(this, new NvApp("app", computer.details.runningGameId, false), computer.details, managerBinder);
+                // 尝试获取完整的NvApp对象（包括cmdList）
+                NvApp actualApp = getNvAppById(computer.details.runningGameId, computer.details.uuid.toString());
+                if (actualApp != null) {
+                    ServerHelper.doStart(this, actualApp, computer.details, managerBinder);
+                } else {
+                    // 如果找不到完整的应用信息，使用基本的NvApp对象作为备用
+                    ServerHelper.doStart(this, new NvApp("app", computer.details.runningGameId, false), computer.details, managerBinder);
+                }
                 return true;
 
             case QUIT_ID:
@@ -902,6 +949,39 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
 
             default:
                 return super.onContextItemSelected(item);
+        }
+    }
+    
+    /**
+     * 根据应用ID获取完整的NvApp对象（包括cmdList）
+     * @param appId 应用ID
+     * @param uuidString PC的UUID
+     * @return 完整的NvApp对象，如果找不到则返回null
+     */
+    private NvApp getNvAppById(int appId, String uuidString) {
+        try {
+            // 首先尝试从缓存的应用列表中获取
+            String rawAppList = CacheHelper.readInputStreamToString(CacheHelper.openCacheFileForInput(getCacheDir(), "applist", uuidString));
+            if (!rawAppList.isEmpty()) {
+                List<NvApp> applist = NvHTTP.getAppListByReader(new StringReader(rawAppList));
+                for (NvApp app : applist) {
+                    if (app.getAppId() == appId) {
+                        // 保存这个应用信息到SharedPreferences，供下次使用
+                        AppCacheManager cacheManager = new AppCacheManager(this);
+                        cacheManager.saveAppInfo(uuidString, app);
+                        return app;
+                    }
+                }
+            }
+            
+            // 如果在应用列表中找不到，尝试从SharedPreferences获取
+            AppCacheManager cacheManager = new AppCacheManager(this);
+            return cacheManager.getAppInfo(uuidString, appId);
+        } catch (IOException | XmlPullParserException e) {
+            // 如果读取缓存失败，尝试从SharedPreferences获取
+            e.printStackTrace();
+            AppCacheManager cacheManager = new AppCacheManager(this);
+            return cacheManager.getAppInfo(uuidString, appId);
         }
     }
 
@@ -984,7 +1064,12 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
                 // Pair an unpaired machine by default
                 doPair(computer.details);
             } else {
-                doAppList(computer.details, false, false);
+                // 检查是否有多个可用地址
+                if (computer.details.hasMultipleAddresses()) {
+                    showAddressSelectionDialog(computer.details);
+                } else {
+                    doAppList(computer.details, false, false);
+                }
             }
         });
         UiHelper.applyStatusBarPadding(listView);

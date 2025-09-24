@@ -191,6 +191,20 @@
             android:name=".binding.input.driver.UsbDriverService"
             android:label="Usb Driver Service" />
 
+        <service
+            android:name=".services.KeyboardAccessibilityService"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+            android:label="@string/accessibility_service_label"
+            android:exported="false"
+            tools:ignore="AccessibilityPolicy">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_service_config" />
+        </service>
+
         <activity
             android:name=".HelpActivity"
             android:resizeableActivity="true"
@@ -199,21 +213,6 @@
             <meta-data android:name="WindowManagerPreference:FreeformWindowSize" android:value="system-default" />
             <meta-data android:name="WindowManagerPreference:FreeformWindowOrientation" android:value="landscape" />
         </activity>
-
-        <!-- 无障碍 实体键盘 屏蔽某些快捷键 -->
-        <service
-            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
-            android:name="com.limelight.KeyboardAccessibilityService"
-            android:label="@string/keyboard_service_label"
-            android:enabled="true"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="android.accessibilityservice.AccessibilityService" />
-            </intent-filter>
-            <meta-data
-                android:name="android.accessibilityservice"
-                android:resource="@xml/keyboard_accessibility_service" />
-        </service>
 
     </application>
 

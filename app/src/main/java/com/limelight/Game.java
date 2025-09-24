@@ -104,13 +104,17 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Locale;
 
+import com.limelight.services.KeyboardAccessibilityService;
+
 public class Game extends Activity implements SurfaceHolder.Callback,
         OnGenericMotionListener, OnTouchListener, NvConnectionListener, EvdevListener,
         OnSystemUiVisibilityChangeListener, GameGestures, StreamView.InputCallbacks,
-        PerfOverlayListener, UsbDriverService.UsbDriverStateListener, View.OnKeyListener {
+        PerfOverlayListener, UsbDriverService.UsbDriverStateListener, View.OnKeyListener,KeyboardAccessibilityService.KeyEventCallback {
     public static Game instance;
 
     private int lastButtonState = 0;
+    // 这个标志位用于区分事件是来自无障碍服务还是来自UI（如StreamView）
+    private boolean isEventFromAccessibilityService = false;
     private static final int TOUCH_CONTEXT_LENGTH = 2;
 
     // Only 2 touches are supported
@@ -170,6 +174,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private boolean waitingForAllModifiersUp = false;
     private int specialKeyCode = KeyEvent.KEYCODE_UNKNOWN;
     private StreamView streamView;
+    private StreamView externalStreamView; // 外接显示器的StreamView
     private long lastAbsTouchUpTime = 0;
     private long lastAbsTouchDownTime = 0;
     private float lastAbsTouchUpX, lastAbsTouchUpY;
@@ -734,15 +739,33 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             @Override
             public void onExternalDisplayConnected(Display display) {
                 // 外接显示器连接时的处理
+                LimeLog.info("External display connected, reinitializing input capture provider");
+                
+                // 重新初始化输入捕获提供者以支持外接显示器
+                if (inputCaptureProvider != null) {
+                    inputCaptureProvider.disableCapture();
+                }
+                inputCaptureProvider = InputCaptureManager.getInputCaptureProviderForExternalDisplay(Game.this, Game.this);
             }
 
             @Override
             public void onExternalDisplayDisconnected() {
                 // 外接显示器断开时的处理
+                externalStreamView = null;
+                LimeLog.info("External display disconnected, cleared externalStreamView");
+                
+                // 重新初始化输入捕获提供者回到标准模式
+                if (inputCaptureProvider != null) {
+                    inputCaptureProvider.disableCapture();
+                }
+                inputCaptureProvider = InputCaptureManager.getInputCaptureProvider(Game.this, Game.this);
             }
 
             @Override
             public void onStreamViewReady(StreamView streamView) {
+                // 保存外接显示器的StreamView引用
+                externalStreamView = streamView;
+                
                 // 外接显示器StreamView准备就绪时的处理
                 streamView.setOnGenericMotionListener(Game.this);
                 streamView.setOnKeyListener(Game.this);
@@ -756,9 +779,49 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
                 // 设置Surface回调
                 streamView.getHolder().addCallback(Game.this);
+                
+                LimeLog.info("External display StreamView ready: " + streamView.getWidth() + "x" + streamView.getHeight());
             }
         });
         externalDisplayManager.initialize();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // 当 Activity 回到前台时，通知服务开始拦截键盘事件。
+        KeyboardAccessibilityService.setIntercepting(true);
+
+        // 获取服务实例并注册回调，这样我们就能收到从服务传来的按键事件。
+        KeyboardAccessibilityService service = KeyboardAccessibilityService.getInstance();
+        if (service != null) {
+            service.setKeyEventCallback(this);
+        } else {
+            LimeLog.warning("KeyboardAccessibilityService is not running.");
+        }
+        // END: ACCESSIBILITY SERVICE INTEGRATION
+    }
+
+    /**
+     * 实现 KeyEventCallback 接口的方法。
+     * 所有被无障碍服务拦截的按键事件最终都会通过这个方法到达这里。
+     * @param event 从服务传来的按键事件。
+     */
+    @Override
+    public void onKeyEvent(KeyEvent event) {
+        // 在调用处理方法之前，设置标志位
+        isEventFromAccessibilityService = true;
+
+        // 将事件分发到已有的处理逻辑中
+        if (event.getAction() == KeyEvent.ACTION_DOWN) {
+            onKeyDown(event.getKeyCode(), event);
+        } else if (event.getAction() == KeyEvent.ACTION_UP) {
+            onKeyUp(event.getKeyCode(), event);
+        }
+
+        // 处理完毕后，重置标志位
+        isEventFromAccessibilityService = false;
     }
 
     private void setPreferredOrientationForCurrentDisplay() {
@@ -1323,6 +1386,15 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     @Override
     protected void onPause() {
+        // 当 Activity 进入后台时，必须停止拦截，否则会影响手机的正常使用！
+        KeyboardAccessibilityService.setIntercepting(false);
+
+        // 注销回调，防止内存泄漏。
+        KeyboardAccessibilityService service = KeyboardAccessibilityService.getInstance();
+        if (service != null) {
+            service.setKeyEventCallback(null);
+        }
+
         if (isFinishing()) {
             // Stop any further input device notifications before we lose focus (and pointer capture)
             if (controllerHandler != null) {
@@ -1585,6 +1657,26 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     @Override
     public boolean handleKeyDown(KeyEvent event) {
+        switch (event.getKeyCode()) {
+            case KeyEvent.KEYCODE_BACK:
+            case KeyEvent.KEYCODE_HOME:
+            case KeyEvent.KEYCODE_APP_SWITCH:
+                // 如果是系统导航键，则跳过我们的去重逻辑，
+                // 让事件继续被正常处理。
+                break;
+            default:
+                // 只有当事件不是来自服务、服务正在运行、且事件源不是虚拟键盘（即来自物理键盘）时，
+                // 才将其判定为重复事件并忽略。
+                InputDevice device = event.getDevice();
+                if (!isEventFromAccessibilityService &&
+                        KeyboardAccessibilityService.getInstance() != null &&
+                        (device != null && !device.isVirtual())) {
+
+                    return true;
+                }
+                break;
+        }
+
         // Pass-through virtual navigation keys
         if ((event.getFlags() & KeyEvent.FLAG_VIRTUAL_HARD_KEY) != 0) {
             return false;
@@ -1667,6 +1759,24 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     @Override
     public boolean handleKeyUp(KeyEvent event) {
+        switch (event.getKeyCode()) {
+            case KeyEvent.KEYCODE_BACK:
+            case KeyEvent.KEYCODE_HOME:
+            case KeyEvent.KEYCODE_APP_SWITCH:
+                // 如果是系统导航键，则跳过我们的去重逻辑。
+                break;
+            default:
+                // 如果是普通游戏按键，则执行去重逻辑。
+                InputDevice device = event.getDevice();
+                if (!isEventFromAccessibilityService &&
+                        KeyboardAccessibilityService.getInstance() != null &&
+                        (device != null && !device.isVirtual())) {
+
+                    return true;
+                }
+                break;
+        }
+
         if (isPhysicalKeyboardConnected()) {
             // ESC键双击逻辑
             if (event.getKeyCode() == KeyEvent.KEYCODE_ESCAPE && prefConfig.enableEscMenu) {
@@ -1801,6 +1911,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
     }
 
+    public void setEnhancedTouch(boolean enableRelativeTouch){
+        prefConfig.enableEnhancedTouch = enableRelativeTouch;
+    }
+
     @Override
     public void toggleKeyboard() {
         LimeLog.info("Toggling keyboard overlay");
@@ -1890,6 +2004,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
 
     private float[] getStreamViewRelativeNormalizedXY(View view, MotionEvent event, int pointerIndex) {
+        // 获取当前活动的StreamView
+        StreamView activeStreamView = getActiveStreamView();
+        
         float normalizedX;
         float normalizedY;
         if (prefConfig.enableEnhancedTouch) {
@@ -1910,21 +2027,21 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         // For the containing background view, we must subtract the origin
         // of the StreamView to get video-relative coordinates.
-        if (view != streamView) {
-            normalizedX -= streamView.getX();
-            normalizedY -= streamView.getY();
+        if (view != activeStreamView) {
+            normalizedX -= activeStreamView.getX();
+            normalizedY -= activeStreamView.getY();
         }
 
         // 限制坐标范围以避免超出视图边界
         normalizedX = Math.max(normalizedX, 0.0f);
         normalizedY = Math.max(normalizedY, 0.0f);
 
-        normalizedX = Math.min(normalizedX, streamView.getWidth());
-        normalizedY = Math.min(normalizedY, streamView.getHeight());
+        normalizedX = Math.min(normalizedX, activeStreamView.getWidth());
+        normalizedY = Math.min(normalizedY, activeStreamView.getHeight());
 
         // 归一化坐标到0到1的范围
-        normalizedX /= streamView.getWidth();
-        normalizedY /= streamView.getHeight();
+        normalizedX /= activeStreamView.getWidth();
+        normalizedY /= activeStreamView.getHeight();
 
         return new float[] { normalizedX, normalizedY };
     }
@@ -2353,7 +2470,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                         if (prefConfig.absoluteMouseMode) {
                             // NB: view may be null, but we can unconditionally use streamView because we don't need to adjust
                             // relative axis deltas for the position of the streamView within the parent's coordinate system.
-                            conn.sendMouseMoveAsMousePosition(deltaX, deltaY, (short)streamView.getWidth(), (short)streamView.getHeight());
+                            StreamView activeStreamView = getActiveStreamView();
+                            conn.sendMouseMoveAsMousePosition(deltaX, deltaY, (short)activeStreamView.getWidth(), (short)activeStreamView.getHeight());
                         }
                         else {
                             conn.sendMouseMove(deltaX, deltaY);
@@ -2650,19 +2768,22 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     }
 
     private void updateMousePosition(View touchedView, MotionEvent event) {
+        // 获取当前活动的StreamView
+        StreamView activeStreamView = getActiveStreamView();
+        
         // X and Y are already relative to the provided view object
         float eventX, eventY;
 
         // For our StreamView itself, we can use the coordinates unmodified.
-        if (touchedView == streamView) {
+        if (touchedView == activeStreamView) {
             eventX = event.getX(0);
             eventY = event.getY(0);
         }
         else {
             // For the containing background view, we must subtract the origin
             // of the StreamView to get video-relative coordinates.
-            eventX = event.getX(0) - streamView.getX();
-            eventY = event.getY(0) - streamView.getY();
+            eventX = event.getX(0) - activeStreamView.getX();
+            eventY = event.getY(0) - activeStreamView.getY();
         }
 
         if (event.getPointerCount() == 1 && event.getActionIndex() == 0 &&
@@ -2696,10 +2817,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // Normalize these to the view size. We can't just drop them because we won't always get an event
         // right at the boundary of the view, so dropping them would result in our cursor never really
         // reaching the sides of the screen.
-        eventX = Math.min(Math.max(eventX, 0), streamView.getWidth());
-        eventY = Math.min(Math.max(eventY, 0), streamView.getHeight());
+        eventX = Math.min(Math.max(eventX, 0), activeStreamView.getWidth());
+        eventY = Math.min(Math.max(eventY, 0), activeStreamView.getHeight());
 
-        conn.sendMousePosition((short)eventX, (short)eventY, (short)streamView.getWidth(), (short)streamView.getHeight());
+        conn.sendMousePosition((short)eventX, (short)eventY, (short)activeStreamView.getWidth(), (short)activeStreamView.getHeight());
     }
 
     @Override
@@ -3530,6 +3651,16 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     }
 
     public StreamView getStreamView() {
+        return streamView;
+    }
+
+    /**
+     * 获取当前活动的StreamView（优先使用外接显示器的StreamView）
+     */
+    public StreamView getActiveStreamView() {
+        if (externalDisplayManager != null && externalDisplayManager.isUsingExternalDisplay() && externalStreamView != null) {
+            return externalStreamView;
+        }
         return streamView;
     }
 
