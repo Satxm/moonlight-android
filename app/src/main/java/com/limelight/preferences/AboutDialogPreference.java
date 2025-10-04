@@ -18,9 +18,6 @@ import android.app.AlertDialog;
 import com.limelight.R;
 
 public class AboutDialogPreference extends Preference {
-    
-    private static final String GITHUB_REPO_URL = "https://github.com/qiin2333/moonlight-android";
-    private static final String GITHUB_STAR_URL = "https://github.com/qiin2333/moonlight-android/stargazers";
 
     public AboutDialogPreference(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
@@ -70,12 +67,12 @@ public class AboutDialogPreference extends Preference {
         // 设置按钮
         builder.setPositiveButton(R.string.about_dialog_github, (dialog, which) -> {
             // 打开项目仓库
-            openUrl(GITHUB_REPO_URL);
+            openUrl(context.getString(R.string.github_url));
         });
         
         builder.setNeutralButton(R.string.about_dialog_star, (dialog, which) -> {
             // 打开Star页面
-            openUrl(GITHUB_STAR_URL);
+            openUrl(context.getString(R.string.github_url));
         });
         
         builder.setNegativeButton(R.string.about_dialog_close, (dialog, which) -> {

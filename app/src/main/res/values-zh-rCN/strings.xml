@@ -91,6 +91,7 @@
     <string name="conn_terminated_title">连接终结</string>
     <string name="conn_terminated_msg">连接已被终结.</string>
     <string name="error_code_prefix">错误代码:</string>
+    <string name="notification_icon">通知图标</string>
 
     <!-- Copy strings -->
     <string name="copy_content">复制内容</string>
