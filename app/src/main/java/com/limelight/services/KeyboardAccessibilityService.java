@@ -78,11 +78,17 @@ public class KeyboardAccessibilityService extends AccessibilityService {
      */
     @Override
     protected boolean onKeyEvent(KeyEvent event) {
+        // 修复某些设备上 ESC 键识别为 BACK 键
+        if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+            event = new KeyEvent(event.getDownTime(), event.getEventTime(), event.getAction(),
+                    KeyEvent.KEYCODE_ESCAPE, event.getRepeatCount(), event.getMetaState(), event.getDeviceId(),
+                    event.getScanCode(), event.getFlags(), event.getSource());
+        }
         // 在进行任何拦截之前，我们首先检查这个按键是否是手机导航所必需的。
         // 如果是，我们必须立即返回 false，将事件交还给系统正常处理。
         switch (event.getKeyCode()) {
-            case KeyEvent.KEYCODE_BACK:
-            case KeyEvent.KEYCODE_HOME:
+            // case KeyEvent.KEYCODE_BACK:
+            // case KeyEvent.KEYCODE_HOME:
             case KeyEvent.KEYCODE_APP_SWITCH:
             case KeyEvent.KEYCODE_VOLUME_UP:
             case KeyEvent.KEYCODE_VOLUME_DOWN:
