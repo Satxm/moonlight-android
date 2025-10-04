@@ -106,11 +106,11 @@ public class DiskAssetLoader {
                 LimeLog.info("Tuple "+tuple+" decoded from disk cache with sample size: "+options.inSampleSize);
                 
                 // 检查并压缩过大的Bitmap
-                Bitmap compressedBmp = compressLargeBitmap(bmp);
-                if (compressedBmp != bmp) {
-                    bmp.recycle(); // 回收原始Bitmap
-                    bmp = compressedBmp;
-                }
+                // Bitmap compressedBmp = compressLargeBitmap(bmp);
+                // if (compressedBmp != bmp) {
+                    // bmp.recycle(); // 回收原始Bitmap
+                    // bmp = compressedBmp;
+                // }
                 
                 return new ScaledBitmap(decodeOnlyOptions.outWidth, decodeOnlyOptions.outHeight, bmp);
             }
@@ -133,13 +133,13 @@ public class DiskAssetLoader {
                 });
                 
                 // 检查并压缩过大的Bitmap
-                if (scaledBitmap.bitmap != null) {
-                    Bitmap compressedBmp = compressLargeBitmap(scaledBitmap.bitmap);
-                    if (compressedBmp != scaledBitmap.bitmap) {
-                        scaledBitmap.bitmap.recycle(); // 回收原始Bitmap
-                        scaledBitmap.bitmap = compressedBmp;
-                    }
-                }
+                // if (scaledBitmap.bitmap != null) {
+                    // Bitmap compressedBmp = compressLargeBitmap(scaledBitmap.bitmap);
+                    // if (compressedBmp != scaledBitmap.bitmap) {
+                        // scaledBitmap.bitmap.recycle(); // 回收原始Bitmap
+                        // scaledBitmap.bitmap = compressedBmp;
+                    // }
+                // }
                 
                 return scaledBitmap;
             } catch (IOException e) {
