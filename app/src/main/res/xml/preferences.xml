@@ -461,7 +461,7 @@
             android:title="@string/title_enable_perf_overlay"
             android:summary="@string/summary_enable_perf_overlay"
             android:defaultValue="false"/>
-                 <com.limelight.preferences.PerfOverlayOrientationPreference
+        <com.limelight.preferences.PerfOverlayOrientationPreference
             android:key="list_perf_overlay_orientation"
             android:title="@string/title_perf_overlay_orientation"
             android:summary="@string/summary_perf_overlay_orientation"
@@ -507,17 +507,17 @@
         <com.limelight.preferences.WebLauncherPreference
             android:title="@string/title_troubleshooting"
             android:summary="@string/summary_troubleshooting"
-            url="https://github.com/moonlight-stream/moonlight-docs/wiki/Troubleshooting"/> -->
+            url="https://github.com/moonlight-stream/moonlight-docs/wiki/Troubleshooting"/>
         <Preference
             android:key="check_for_updates"
-            android:title="检查更新"
-            android:summary="检查应用是否有新版本可用" />
+            android:title="@string/check_for_updates"
+            android:summary="@string/summary_check_for_updates" /> -->
         <com.limelight.preferences.AboutDialogPreference
             android:title="@string/title_about_mode"
             android:summary="@string/summary_about_mode" />
-        <com.limelight.preferences.WebLauncherPreference
+        <!-- <com.limelight.preferences.WebLauncherPreference
             android:title="@string/title_moonlight_vplus_pc_download"
-            url="https://github.com/qiin2333/moonlight-qt"/>
+            url="https://github.com/qiin2333/moonlight-qt"/> -->
         <com.limelight.preferences.WebLauncherPreference
             android:title="@string/title_privacy_policy"
             android:summary="@string/summary_privacy_policy"

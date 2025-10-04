@@ -35,6 +35,4 @@ public class ConfirmDeleteOscPreference extends DialogPreference {
             Toast.makeText(getContext(), R.string.toast_reset_osc_success, Toast.LENGTH_SHORT).show();
         }
     }
-    
-
 }

@@ -224,10 +224,11 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
             Intent i = new Intent(PcView.this, AddComputerManually.class);
             startActivity(i);
         });
-        helpButton.setOnClickListener(v -> {
-//                HelpLauncher.launchSetupGuide(PcView.this);
-            joinQQGroup("LlbLDIF_YolaM4HZyLx0xAXXo04ZmoBM");
-        });
+        helpButton.setVisibility(View.GONE);
+//         helpButton.setOnClickListener(v -> {
+// //                HelpLauncher.launchSetupGuide(PcView.this);
+//             joinQQGroup("LlbLDIF_YolaM4HZyLx0xAXXo04ZmoBM");
+//         });
 
         // Amazon review didn't like the help button because the wiki was not entirely
         // navigable via the Fire TV remote (though the relevant parts were). Let's hide
@@ -629,12 +630,12 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
             }
 
             menu.add(Menu.NONE, FULL_APP_LIST_ID, 4, getResources().getString(R.string.pcview_menu_app_list));
-            menu.add(Menu.NONE, SLEEP_ID, 8, "发送睡眠指令");
+            menu.add(Menu.NONE, SLEEP_ID, 8, getResources().getString(R.string.pcview_menu_send_sleep));
         }
 
         menu.add(Menu.NONE, TEST_NETWORK_ID, 5, getResources().getString(R.string.pcview_menu_test_network));
         menu.add(Menu.NONE, DELETE_ID, 6, getResources().getString(R.string.pcview_menu_delete_pc));
-        menu.add(Menu.NONE, VIEW_DETAILS_ID, 7,  getResources().getString(R.string.pcview_menu_details));
+        menu.add(Menu.NONE, VIEW_DETAILS_ID, 7, getResources().getString(R.string.pcview_menu_details));
     }
 
     @Override

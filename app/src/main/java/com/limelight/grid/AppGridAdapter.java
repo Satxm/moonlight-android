@@ -6,7 +6,6 @@ import android.content.ContextWrapper;
 import android.graphics.BitmapFactory;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.limelight.AppView;
@@ -127,7 +126,7 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
     public CachedAppAssetLoader getLoader() {
         return loader;
     }
-    
+
     private static void sortList(List<AppView.AppObject> list) {
         Collections.sort(list, new Comparator<AppView.AppObject>() {
             @Override

@@ -66,7 +66,6 @@ public class GameMenu {
     private static final long SLEEP_DELAY = 200L;
     private static final float DIALOG_ALPHA = 0.7f;
     private static final float DIALOG_DIM_AMOUNT = 0.3f;
-    private static final String GAME_MENU_TITLE = "🍥🍬 V+ GAME MENU";
 
     // 用于存储自定义按键的 SharedPreferences 文件名和键名
     private static final String PREF_NAME = "custom_special_keys";
@@ -1505,7 +1504,7 @@ public class GameMenu {
         // 构建超级菜单项
         buildSuperMenuOptions(superOptions);
 
-        showMenuDialog(GAME_MENU_TITLE,
+        showMenuDialog(getString(R.string.game_menu),
                 normalOptions.toArray(new MenuOption[0]),
                 superOptions.toArray(new MenuOption[0]));
     }

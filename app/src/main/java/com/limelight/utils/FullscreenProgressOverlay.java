@@ -39,7 +39,7 @@ public class FullscreenProgressOverlay {
         this.app = app;
 
         this.random = new Random();
-        
+
         // 初始化提示数组
         this.tips = new String[]{
             activity.getString(R.string.tip_esc_exit),
@@ -63,18 +63,18 @@ public class FullscreenProgressOverlay {
 
         // 获取根视图
         rootView = (ViewGroup) activity.findViewById(android.R.id.content);
-        
+
         // 创建覆盖层视图
         LayoutInflater inflater = LayoutInflater.from(activity);
         overlayView = inflater.inflate(R.layout.fullscreen_progress_overlay, rootView, false);
-        
+
         // 初始化视图组件
         statusText = overlayView.findViewById(R.id.statusText);
         progressText = overlayView.findViewById(R.id.progressText);
         randomTip = overlayView.findViewById(R.id.randomTip);
         appPosterBackground = overlayView.findViewById(R.id.appPosterBackground);
         progressBar = overlayView.findViewById(R.id.progressBar);
-        
+
         // 设置初始状态
         overlayView.setVisibility(View.GONE);
     }
@@ -89,19 +89,19 @@ public class FullscreenProgressOverlay {
                 // 设置状态文字
                 statusText.setText(title);
                 progressText.setText(message);
-                
+
                 // 设置随机提示
                 String tip = tips[random.nextInt(tips.length)];
                 randomTip.setText(tip);
-                
+
                 // 添加到根视图
                 if (overlayView.getParent() == null) {
                     rootView.addView(overlayView);
                 }
-                
+
                 overlayView.setVisibility(View.VISIBLE);
                 isShowing = true;
-                
+
                 loadAppImage();
             }
         });
@@ -205,14 +205,14 @@ public class FullscreenProgressOverlay {
     public boolean isShowing() {
         return isShowing;
     }
-    
+
     /**
      * 设置computer信息
      */
     public void setComputer(ComputerDetails computer) {
         this.computer = computer;
     }
-    
+
 
 
     private void loadAppImage() {
