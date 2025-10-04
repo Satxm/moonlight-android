@@ -52,24 +52,6 @@ jobs:
       - name: Remove local.properties (if present)
         run: rm -f local.properties
 
-      - name: Create google-services.json from secrets
-        shell: bash
-        run: |
-          if [ -n "${{ secrets.GOOGLE_SERVICES_JSON }}" ]; then
-            mkdir -p app
-            # 清理并验证 JSON 格式
-            echo '${{ secrets.GOOGLE_SERVICES_JSON }}' | tr -d '\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' > app/google-services.json
-            # 验证 JSON 格式
-            if python3 -m json.tool app/google-services.json > /dev/null 2>&1; then
-              echo "Created valid google-services.json from secrets"
-            else
-              echo "ERROR: Invalid JSON format in GOOGLE_SERVICES_JSON secret"
-              exit 1
-            fi
-          else
-            echo "GOOGLE_SERVICES_JSON not set; skipping file creation"
-          fi
-
       - name: Grant execute permission for Gradle
         run: chmod +x gradlew
 
@@ -159,27 +141,9 @@ jobs:
           set -e
           DATE=$(date +'%Y-%m-%d')
           V="${VERSION_NAME:-${GITHUB_REF#refs/tags/}}"; V="${V#v}"
-          CUR_TAG="${GITHUB_REF#refs/tags/}"
-          PREV_TAG=$(git tag --sort=-creatordate | sed -n '2p' || true)
-          if [ -n "$PREV_TAG" ]; then
-            CHANGES=$(git log --pretty=format:'- %s (%h)' "${PREV_TAG}..${CUR_TAG}" || true)
-          else
-            CHANGES=$(git log --pretty=format:'- %s (%h)' -n 100 || true)
-          fi
-          [ -z "$CHANGES" ] && CHANGES="- 初始发布"
+
           cat > release_notes.md << EOF
           ## 🌙 Moonlight V+ ${V}
-
-          感谢你使用 Moonlight V+！如果喜欢，记得点亮一颗 ⭐～
-
-          ### ✨ 更新内容
-          ${CHANGES}
-
-          ### 📦 下载
-          - APK 文件：Moonlight.V+.${V}.apk
-
-          ### 🧭 另外
-          - 如遇到问题，请在 Issues 反馈。祝你游戏顺利、低延迟满帧！🎮
 
           —— 发布于 ${DATE}
           EOF
