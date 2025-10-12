@@ -109,6 +109,11 @@
             android:summary="@string/summary_checkbox_enable_audiofx"
             android:defaultValue="false" />
         <CheckBoxPreference
+            android:key="checkbox_enable_spatializer"
+            android:title="@string/title_checkbox_enable_spatializer"
+            android:summary="@string/summary_checkbox_enable_spatializer"
+            android:defaultValue="false" />
+        <CheckBoxPreference
             android:key="checkbox_enable_mic"
             android:title="@string/title_checkbox_enable_mic"
             android:summary="@string/summary_checkbox_enable_mic"
@@ -383,6 +388,11 @@
             android:title="@string/title_checkbox_host_audio"
             android:summary="@string/summary_checkbox_host_audio"
             android:defaultValue="false" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="checkbox_lock_screen_after_disconnect"
+            android:summary="@string/summary_checkbox_lock_screen_after_disconnect"
+            android:title="@string/title_checkbox_lock_screen_after_disconnect" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_ui_settings"
         android:key="category_ui_settings"
@@ -490,11 +500,6 @@
             android:title="@string/title_enable_post_stream_toast"
             android:summary="@string/summary_enable_post_stream_toast"
             android:defaultValue="false"/>
-        <CheckBoxPreference
-            android:defaultValue="false"
-            android:key="checkbox_lock_screen_after_disconnect"
-            android:summary="@string/summary_checkbox_lock_screen_after_disconnect"
-            android:title="@string/title_checkbox_lock_screen_after_disconnect" />
 
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_help"

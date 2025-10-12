@@ -122,6 +122,40 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
     private long lastRenderedFrameTimeNanos;
     private HandlerThread choreographerHandlerThread;
     private Handler choreographerHandler;
+    
+    // Surface Flinger Raw模式相关变量
+    private Thread surfaceFlingerThread;
+    private volatile boolean surfaceFlingerActive;
+    private long surfaceFlingerLastFrameTime;
+    private long surfaceFlingerFrameInterval;
+    private int surfaceFlingerFrameCount;
+    private int surfaceFlingerSkippedFrames; // 记录跳过的帧数
+
+    // 高精度帧率控制
+    private long surfaceFlingerTargetTime; // 目标渲染时间（绝对时间）
+    private long surfaceFlingerTimingError; // 累积时间误差
+    
+    /**
+     * 安全地设置线程优先级
+     */
+    private void setThreadPrioritySafely(Thread thread, int priority) {
+        try {
+            // 首先尝试设置目标优先级
+            thread.setPriority(priority);
+            LimeLog.info("成功设置Surface Flinger线程优先级为: " + priority);
+        } catch (IllegalArgumentException e) {
+            LimeLog.warning("线程优先级 " + priority + " 超出范围，尝试使用次高优先级");
+            try {
+                // 尝试使用次高优先级
+                thread.setPriority(Process.THREAD_PRIORITY_DISPLAY);
+                LimeLog.info("成功设置Surface Flinger线程优先级为: " + Process.THREAD_PRIORITY_DISPLAY);
+            } catch (IllegalArgumentException e2) {
+                // 最后使用标准高优先级
+                thread.setPriority(Thread.NORM_PRIORITY + 2);
+                LimeLog.warning("使用标准高优先级: " + (Thread.NORM_PRIORITY + 2));
+            }
+        }
+    }
 
     private int numSpsIn;
     private int numPpsIn;
@@ -725,6 +759,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                     // 过滤掉异常值
                     if (delta >= 0 && delta < 1000) {
                         activeWindowVideoStats.renderingTimeMs += delta;
+                        activeWindowVideoStats.totalTimeMs += delta;
                     }
                 }
             }, null);
@@ -1085,6 +1120,117 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         });
     }
 
+    private void startSurfaceFlingerThread() {
+        if (prefs.framePacing != PreferenceConfiguration.FRAME_PACING_SURFACE_FLINGER_RAW) {
+            return;
+        }
+
+        LimeLog.info("启动Surface Flinger Raw模式");
+        
+        surfaceFlingerActive = true;
+        surfaceFlingerFrameInterval = 1000000000L / refreshRate; // 纳秒
+        surfaceFlingerTargetTime = System.nanoTime() + surfaceFlingerFrameInterval;
+        surfaceFlingerLastFrameTime = System.nanoTime();
+        surfaceFlingerFrameCount = 0;
+        surfaceFlingerSkippedFrames = 0;
+        surfaceFlingerTimingError = 0;
+
+        surfaceFlingerThread = new Thread() {
+            @Override
+            public void run() {
+                Thread.currentThread().setName("Video - Surface Flinger Raw");
+                // 使用安全的线程优先级设置
+                setThreadPrioritySafely(Thread.currentThread(), Process.THREAD_PRIORITY_URGENT_DISPLAY);
+                
+                while (surfaceFlingerActive && !stopping) {
+                    try {
+                        long currentTime = System.nanoTime();
+
+                        // 使用绝对目标时间而不是相对时间间隔
+                        if (currentTime >= surfaceFlingerTargetTime) {
+                            // 检查是否有待渲染的帧
+                            Integer nextOutputBuffer = outputBufferQueue.poll();
+                            if (nextOutputBuffer != null) {
+                                // 直接释放缓冲区进行渲染，不使用时间戳
+                                try {
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                        // Surface Flinger Raw模式：直接渲染，让系统处理同步
+                                        videoDecoder.releaseOutputBuffer(nextOutputBuffer, 0);
+                                    } else {
+                                        videoDecoder.releaseOutputBuffer(nextOutputBuffer, true);
+                                    }
+                                    
+                                    surfaceFlingerLastFrameTime = currentTime;
+                                    surfaceFlingerFrameCount++;
+                                    activeWindowVideoStats.totalFramesRendered++;
+
+                                    // 计算时间误差并进行补偿
+                                    long actualInterval = currentTime - surfaceFlingerLastFrameTime;
+                                    surfaceFlingerTimingError += (actualInterval - surfaceFlingerFrameInterval);
+                                    
+                                    // 每100帧记录一次性能数据
+                                    if (surfaceFlingerFrameCount % 100 == 0) {
+                                        float avgError = surfaceFlingerTimingError / 1000000.0f / surfaceFlingerFrameCount;
+                                        LimeLog.info(String.format("SF Raw: %d帧, 跳帧: %d, 平均误差: %.3fms",
+                                                surfaceFlingerFrameCount, surfaceFlingerSkippedFrames, avgError));
+                                    }
+                                    
+                                } catch (IllegalStateException e) {
+                                    LimeLog.warning("Surface Flinger Raw渲染异常: " + e.getMessage());
+                                    handleDecoderException(e);
+                                }
+                            } else {
+                                // 没有可用的帧，记录为跳帧
+                                surfaceFlingerSkippedFrames++;
+                            }
+
+                            // 更新下一帧的绝对目标时间
+                            surfaceFlingerTargetTime += surfaceFlingerFrameInterval;
+
+                            // 如果累积误差过大（>2帧），重新同步
+                            if (Math.abs(currentTime - surfaceFlingerTargetTime) > surfaceFlingerFrameInterval * 2) {
+                                LimeLog.warning("SF Raw: 时间漂移过大，重新同步");
+                                surfaceFlingerTargetTime = currentTime + surfaceFlingerFrameInterval;
+                                surfaceFlingerTimingError = 0;
+                            }
+                        }
+
+                        // 精确休眠到下一帧
+                        currentTime = System.nanoTime();
+                        long sleepTimeNs = surfaceFlingerTargetTime - currentTime;
+
+                        if (sleepTimeNs > 2000000) { // 超过2ms，使用sleep
+                            // 提前1ms醒来，用忙等待精确控制
+                            long sleepMs = (sleepTimeNs - 1000000) / 1000000;
+                            if (sleepMs > 0) {
+                                Thread.sleep(sleepMs);
+                            }
+                        }
+
+                        // 忙等待最后的微秒级精度
+                        while (System.nanoTime() < surfaceFlingerTargetTime) {
+                            // 短暂让出CPU，避免100%占用
+                            if (surfaceFlingerTargetTime - System.nanoTime() > 100000) {
+                                Thread.yield();
+                            }
+                        }
+                        
+                    } catch (InterruptedException e) {
+                        LimeLog.info("Surface Flinger线程被中断");
+                        break;
+                    } catch (Exception e) {
+                        LimeLog.warning("Surface Flinger线程异常: " + e.getMessage());
+                        e.printStackTrace();
+                    }
+                }
+                
+                LimeLog.info("Surface Flinger Raw线程结束");
+            }
+        };
+        
+        surfaceFlingerThread.start();
+    }
+
     private void startRendererThread()
     {
         rendererThread = new Thread() {
@@ -1101,8 +1247,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
 
                             numFramesOut++;
 
-                            // Render the latest frame now if frame pacing isn't in balanced mode
-                            if (prefs.framePacing != PreferenceConfiguration.FRAME_PACING_BALANCED && prefs.framePacing != PreferenceConfiguration.FRAME_PACING_EXPERIMENTAL_LOW_LATENCY) {
+                            // Render the latest frame now if frame pacing isn't in balanced mode or Surface Flinger mode
+                            if (prefs.framePacing != PreferenceConfiguration.FRAME_PACING_BALANCED && 
+                                prefs.framePacing != PreferenceConfiguration.FRAME_PACING_EXPERIMENTAL_LOW_LATENCY &&
+                                prefs.framePacing != PreferenceConfiguration.FRAME_PACING_SURFACE_FLINGER_RAW) {
                                 // Get the last output buffer in the queue
                                 while ((outIndex = videoDecoder.dequeueOutputBuffer(info, 0)) >= 0) {
                                     videoDecoder.releaseOutputBuffer(lastIndex, false);
@@ -1119,18 +1267,15 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                                         // Use a PTS that will cause this frame to never be dropped
                                         videoDecoder.releaseOutputBuffer(lastIndex, 0);
-                                    }
-                                    else {
+                                    } else {
                                         videoDecoder.releaseOutputBuffer(lastIndex, true);
                                     }
-                                }
-                                else {
+                                } else {
                                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                                         // Use a PTS that will cause this frame to be dropped if another comes in within
                                         // the same V-sync period
                                         videoDecoder.releaseOutputBuffer(lastIndex, System.nanoTime());
-                                    }
-                                    else {
+                                    } else {
                                         videoDecoder.releaseOutputBuffer(lastIndex, true);
                                     }
                                 }
@@ -1138,8 +1283,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                                 activeWindowVideoStats.totalFramesRendered++;
                             }
                             else {
-                                // For balanced frame pacing case, the Choreographer callback will handle rendering.
-                                // We just put all frames into the output buffer queue and let it handle things.
+                                // For balanced frame pacing, experimental low latency, and Surface Flinger modes
+                                // The respective callback threads will handle rendering.
+                                // We just put all frames into the output buffer queue and let them handle things.
 
                                 // Discard the oldest buffer if we've exceeded our limit.
                                 //
@@ -1272,6 +1418,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
     public void start() {
         startRendererThread();
         startChoreographerThread();
+        startSurfaceFlingerThread();
     }
 
     // !!! May be called even if setup()/start() fails !!!
@@ -1282,6 +1429,12 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         // Halt the rendering thread
         if (rendererThread != null) {
             rendererThread.interrupt();
+        }
+
+        // Stop Surface Flinger thread
+        surfaceFlingerActive = false;
+        if (surfaceFlingerThread != null) {
+            surfaceFlingerThread.interrupt();
         }
 
         // Stop any active codec recovery operations
@@ -1314,6 +1467,20 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         if (choreographerHandlerThread != null) {
             try {
                 choreographerHandlerThread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+
+                // InterruptedException clears the thread's interrupt status. Since we can't
+                // handle that here, we will re-interrupt the thread to set the interrupt
+                // status back to true.
+                Thread.currentThread().interrupt();
+            }
+        }
+
+        // Wait for the Surface Flinger thread to shut down
+        if (surfaceFlingerThread != null) {
+            try {
+                surfaceFlingerThread.join();
             } catch (InterruptedException e) {
                 e.printStackTrace();
 
@@ -1485,13 +1652,14 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             float minHostProcessingLatency = (float)lastTwo.minHostProcessingLatency / 10;
             float maxHostProcessingLatency = (float)lastTwo.minHostProcessingLatency / 10;
             float aveHostProcessingLatency = (float)lastTwo.totalHostProcessingLatency / 10 / lastTwo.framesWithHostProcessingLatency;
+            
             // 计算平均“解码+渲染”总时间
             float aveTotalProcessingTimeMs = 0;
             if (lastTwo.totalFramesRendered > 0) {
-                aveTotalProcessingTimeMs = (float) lastTwo.renderingTimeMs / lastTwo.totalFramesRendered;
+                aveTotalProcessingTimeMs = (float) lastTwo.totalTimeMs / lastTwo.totalFramesRendered;
             }
 
-            // 计算平均“纯渲染延迟”
+            // 计算平均"纯渲染延迟"
             // 注意：这里用总处理时间减去解码时间。如果结果为负，说明数据有抖动，取0即可。
             float avePureRenderingLatencyMs = Math.max(0, aveTotalProcessingTimeMs - decodeTimeMs);
 
@@ -1512,6 +1680,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             performanceInfo.aveHostProcessingLatency = aveHostProcessingLatency;
             performanceInfo.decodeTimeMs = decodeTimeMs;
             performanceInfo.renderingLatencyMs = avePureRenderingLatencyMs;
+            performanceInfo.totalTimeMs = aveTotalProcessingTimeMs;
 
             perfListener.onPerfUpdateV(performanceInfo);
             perfListener.onPerfUpdateWG(performanceInfo);
@@ -1870,6 +2039,31 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             return 0;
         }
         return (int)(globalVideoStats.decoderTimeMs / globalVideoStats.totalFramesReceived);
+    }
+
+    public String getSurfaceFlingerStats() {
+        if (prefs.framePacing != PreferenceConfiguration.FRAME_PACING_SURFACE_FLINGER_RAW) {
+            return null;
+        }
+        
+        if (globalVideoStats.totalFramesReceived == 0) {
+            return null;
+        }
+        
+        // 计算跳帧率
+        // surfaceFlingerSkippedFrames: Surface Flinger线程因缓冲区为空而跳过的帧
+        // 总跳帧 = SF线程跳帧 + 网络丢帧
+        long totalFramesExpected = surfaceFlingerFrameCount + surfaceFlingerSkippedFrames;
+        float skipRate = 0f;
+        
+        if (totalFramesExpected > 0) {
+            skipRate = (float)surfaceFlingerSkippedFrames / totalFramesExpected * 100f;
+        }
+        
+        return String.format("[SF Raw: %d渲染/%d接收, 跳帧率: %.1f%%]", 
+            (int)globalVideoStats.totalFramesRendered, 
+            (int)globalVideoStats.totalFramesReceived, 
+            skipRate);
     }
 
     static class DecoderHungException extends RuntimeException {
