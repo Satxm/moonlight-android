@@ -52,6 +52,9 @@
         android:required="false"/>
 
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    
+    <!-- 高采样率传感器权限 -->
+    <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS" />
 
     <application
         android:allowBackup="true"

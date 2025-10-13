@@ -575,6 +575,11 @@ public class ComputerManagerService extends Service {
             return null;
         } catch (IOException e) {
             return null;
+        } catch (InterruptedException e) {
+            // Thread was interrupted during HTTP request (e.g., when parallel polling is cancelled)
+            // This is expected behavior, just return null to indicate polling failed
+            Thread.currentThread().interrupt(); // Restore interrupt status
+            return null;
         }
     }
 
@@ -936,6 +941,10 @@ public class ComputerManagerService extends Service {
                             e.printStackTrace();
                         } catch (XmlPullParserException e) {
                             e.printStackTrace();
+                        } catch (InterruptedException e) {
+                            // Thread was interrupted, exit gracefully
+                            LimeLog.info("App list polling thread interrupted for " + computer.name);
+                            break;
                         }
                     } while (waitPollingDelay());
                 }
