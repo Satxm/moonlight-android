@@ -278,6 +278,8 @@
     <string name="category_input_settings">⌨️ 输入设置</string>
     <string name="title_checkbox_touchscreen_trackpad">将触控屏作为触控板使用</string>
     <string name="summary_checkbox_touchscreen_trackpad">如果启用，则将触控屏作为触控板使用。如果禁用，则启用多点触控模式</string>
+    <string name="title_enable_double_click_drag">启用触控板双击拖动</string>
+    <string name="summary_enable_double_click_drag">双击并按住后可拖动选择</string>
     <string name="title_checkbox_sync_touch_event_with_display">触控事件与显示刷新同步</string>
     <string name="summary_checkbox_sync_touch_event_with_display">打开后触控事件上报率与显示刷新率同步，比如显示为60Hz，那么触控与之同步。不一定有用，习惯哪个用哪个。Moonlight原版相当于禁用该项。</string>
     <string name="title_checkbox_enable_keyboard_toggle_in_native_touch">多点触控模式下打开本地键盘切换</string>
@@ -391,7 +393,7 @@
     <string name="summary_enable_post_stream_toast">串流结束后显示延迟信息</string>
     <string name="title_checkbox_lock_screen_after_disconnect">断开并退出串流时锁定屏幕</string>
     <string name="summary_checkbox_lock_screen_after_disconnect">在断开并退出串流后自动锁定设备屏幕(通过特殊技巧锁定远程电脑：程序会先快速打开屏幕键盘再发送锁屏指令。此操作依赖时序，偶尔可能因网络或电脑性能影响而锁定失败。注意：这会在您下次登录时留下一个需要手动关闭的屏幕键盘窗口。)</string>
-    <string name="mic_stats_continuity">音频连续性：%.1f%% (捕获:%d 编码:%d 发送:%d 丢弃:%d)</string>
+    <string name="mic_stats_continuity">音频连续性: %.1f%% (捕获:%d 编码:%d 发送:%d 丢弃:%d)</string>
 
     <string name="category_help">📋 帮助</string>
     <string name="title_setup_guide">安装向导</string>

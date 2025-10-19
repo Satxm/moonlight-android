@@ -281,6 +281,8 @@
     <string name="category_input_settings">⌨️ Input Settings</string>
     <string name="title_checkbox_touchscreen_trackpad">Use the touchscreen as a trackpad</string>
     <string name="summary_checkbox_touchscreen_trackpad">If enabled, the touchscreen acts like a trackpad. If disabled, multi-point touch will be enabled.</string>
+    <string name="title_enable_double_click_drag">Enabl double-click drag</string>
+    <string name="summary_enable_double_click_drag">Double-click and hold to drag and select</string>
     <string name="title_checkbox_sync_touch_event_with_display">Synchronize touch event with display refresh </string>
     <string name="summary_checkbox_sync_touch_event_with_display">If enabled, touch event will be synchronized with display refresh rate, like 60Hz.</string>
     <string name="title_checkbox_enable_keyboard_toggle_in_native_touch">Enable keyboard toggle in multi-point touch mode </string>
@@ -393,7 +395,7 @@
     <string name="title_enable_post_stream_toast">Show latency message after streaming</string>
     <string name="summary_enable_post_stream_toast">Display a latency information message after the stream ends</string>
     <string name="title_checkbox_lock_screen_after_disconnect">Lock screen when disconnecting and exiting the stream</string>
-    <string name="summary_checkbox_lock_screen_after_disconnect">Automatically lock the device screen after disconnecting and exiting the stream</string>
+    <string name="summary_checkbox_lock_screen_after_disconnect">Automatically lock the device screen after disconnecting and exiting the stream (you need to manually turn on the on-screen keyboard, which is the host keyboard in the menu)</string>
     <string name="mic_stats_continuity">Audio continuity: %.1f%% (Captured:%d Encoded:%d Sent:%d Dropped:%d)</string>
 
     <string name="category_help">📋 Help</string>
