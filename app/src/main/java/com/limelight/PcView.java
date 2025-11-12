@@ -27,6 +27,7 @@ import com.limelight.preferences.StreamSettings;
 import com.limelight.ui.AdapterFragment;
 import com.limelight.ui.AdapterFragmentCallbacks;
 import com.limelight.utils.Dialog;
+import com.limelight.utils.EasyTierController;
 import com.limelight.utils.HelpLauncher;
 import com.limelight.utils.Iperf3Tester;
 import com.limelight.utils.ServerHelper;
@@ -55,6 +56,7 @@ import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
+import android.net.VpnService;
 import android.opengl.GLSurfaceView;
 import android.os.Build;
 import android.os.Bundle;
@@ -91,14 +93,17 @@ import android.content.SharedPreferences;
 import android.hardware.SensorManager;
 
 import com.squareup.seismic.ShakeDetector;
+import com.easytier.jni.EasyTierManager;
 
-public class PcView extends Activity implements AdapterFragmentCallbacks, ShakeDetector.Listener {
+public class PcView extends Activity implements AdapterFragmentCallbacks, ShakeDetector.Listener, EasyTierController.VpnPermissionCallback {
     private RelativeLayout noPcFoundLayout;
     private PcGridAdapter pcGridAdapter;
     private ShortcutHelper shortcutHelper;
     private int selectedPosition = -1;
     private ComputerManagerService.ComputerManagerBinder managerBinder;
     private boolean freezeUpdates, runningPolling, inForeground, completeOnCreateCalled;
+
+    private EasyTierController easyTierController;
     
     private ShakeDetector shakeDetector;
     private long lastShakeTime = 0;
@@ -167,6 +172,10 @@ public class PcView extends Activity implements AdapterFragmentCallbacks, ShakeD
 
     public String clientName;
     private LruCache<String, Bitmap> bitmapLruCache;
+    private EasyTierManager easyTierManager;
+    private static final int VPN_PERMISSION_REQUEST_CODE = 101;
+    private static final String EASYTIER_PREFS = "easytier_preferences";
+    private static final String KEY_TOML_CONFIG = "toml_config_string";
 
     // 添加场景配置相关常量
     private static final String SCENE_PREF_NAME = "SceneConfigs";
@@ -246,6 +255,11 @@ public class PcView extends Activity implements AdapterFragmentCallbacks, ShakeD
         ImageButton addComputerButton = findViewById(R.id.manuallyAddPc);
         ImageButton helpButton = findViewById(R.id.helpButton);
         ImageButton restoreSessionButton = findViewById(R.id.restoreSessionButton);
+
+        ImageButton easyTierButton = findViewById(R.id.easyTierControlButton);
+        if (easyTierButton != null) {
+            easyTierButton.setOnClickListener(v -> showEasyTierControlDialog());
+        }
 
         settingsButton.setOnClickListener(v -> startActivity(new Intent(PcView.this, StreamSettings.class)));
         addComputerButton.setOnClickListener(v -> {
@@ -383,6 +397,8 @@ public class PcView extends Activity implements AdapterFragmentCallbacks, ShakeD
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        easyTierController = new EasyTierController(this, this);
+
         // Assume we're in the foreground when created to avoid a race
         // between binding to CMS and onResume()
         inForeground = true;
@@ -460,7 +476,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks, ShakeD
         }
     }
 
-    @SuppressLint("DefaultLocale")
+    @SuppressLint({"DefaultLocale", "StringFormatMatches"})
     private void applySceneConfiguration(int sceneNumber) {
         try {
             SharedPreferences prefs = getSharedPreferences(SCENE_PREF_NAME, MODE_PRIVATE);
@@ -598,6 +614,10 @@ public class PcView extends Activity implements AdapterFragmentCallbacks, ShakeD
     @Override
     public void onDestroy() {
         super.onDestroy();
+
+        if (easyTierController != null) {
+            easyTierController.onDestroy();
+        }
 
         if (managerBinder != null) {
             unbindService(serviceConnection);
@@ -1413,6 +1433,40 @@ public class PcView extends Activity implements AdapterFragmentCallbacks, ShakeD
         } catch (Exception e) {
             // 未安装手Q或安装的版本不支持
             return false;
+        }
+    }
+
+    /**
+     * 显示集成了状态显示和配置编辑的 EasyTier 控制面板。
+     */
+    private void showEasyTierControlDialog() {
+        if (easyTierController != null) {
+            easyTierController.showControlDialog();
+        }
+    }
+
+
+    //  VPN 权限请求和结果处理逻辑
+    /**
+     * 检查并请求 VPN 权限。
+     */
+    @Override
+    public void requestVpnPermission() {
+        Intent intent = VpnService.prepare(this);
+        if (intent != null) {
+            startActivityForResult(intent, VPN_PERMISSION_REQUEST_CODE);
+        } else {
+            onActivityResult(VPN_PERMISSION_REQUEST_CODE, RESULT_OK, null);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == VPN_PERMISSION_REQUEST_CODE) {
+            if (easyTierController != null) {
+                easyTierController.handleVpnPermissionResult(resultCode);
+            }
         }
     }
 }
