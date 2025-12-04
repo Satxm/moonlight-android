@@ -105,6 +105,8 @@ public class PcView extends Activity implements AdapterFragmentCallbacks, ShakeD
 
     private EasyTierController easyTierController;
     
+    private AddressSelectionDialog currentAddressDialog;
+    
     private ShakeDetector shakeDetector;
     private long lastShakeTime = 0;
     private static final long SHAKE_DEBOUNCE_INTERVAL = 3000; // 3 seconds debounce
@@ -517,6 +519,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks, ShakeD
                 Toast.makeText(this, getResources().getString(R.string.scene_not_configured, sceneNumber), Toast.LENGTH_SHORT).show();
             }
         } catch (Exception e) {
+            LimeLog.warning("Scene apply failed: "+ e);
             runOnUiThread(() -> Toast.makeText(PcView.this, getResources().getString(R.string.config_apply_failed), Toast.LENGTH_SHORT).show());
         }
     }
@@ -622,6 +625,12 @@ public class PcView extends Activity implements AdapterFragmentCallbacks, ShakeD
         if (managerBinder != null) {
             unbindService(serviceConnection);
         }
+        
+        // 关闭地址选择对话框
+        if (currentAddressDialog != null) {
+            currentAddressDialog.dismiss();
+            currentAddressDialog = null;
+        }
     }
 
     @Override
@@ -668,6 +677,12 @@ public class PcView extends Activity implements AdapterFragmentCallbacks, ShakeD
         super.onStop();
 
         Dialog.closeDialogs();
+        
+        // 关闭地址选择对话框
+        if (currentAddressDialog != null) {
+            currentAddressDialog.dismiss();
+            currentAddressDialog = null;
+        }
     }
 
     @Override
@@ -950,16 +965,25 @@ public class PcView extends Activity implements AdapterFragmentCallbacks, ShakeD
      * 显示地址选择对话框
      */
     private void showAddressSelectionDialog(ComputerDetails computer) {
-        AddressSelectionDialog dialog = new AddressSelectionDialog(this, computer, address -> {
+        // 如果已经有对话框在显示，先关闭它
+        if (currentAddressDialog != null) {
+            currentAddressDialog.dismiss();
+            currentAddressDialog = null;
+        }
+        
+        currentAddressDialog = new AddressSelectionDialog(this, computer, address -> {
             // 使用选中的地址创建临时ComputerDetails对象
             ComputerDetails tempComputer = new ComputerDetails(computer);
             tempComputer.activeAddress = address;
 
             // 使用选中的地址进入应用列表
             doAppList(tempComputer, false, false);
+            
+            // 清除对话框引用
+            currentAddressDialog = null;
         });
         
-        dialog.show();
+        currentAddressDialog.show();
     }
 
     @Override

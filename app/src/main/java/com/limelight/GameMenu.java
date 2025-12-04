@@ -309,7 +309,10 @@ public class GameMenu {
         boolean isTouchscreenTrackpad = game.prefConfig.touchscreenTrackpad;
         boolean isNativeMousePointer = game.prefConfig.enableNativeMousePointer;
 
-        MenuOption[] touchModeOptions = {
+        // 创建一个列表来存储菜单选项
+        List<MenuOption> touchModeOptionsList = new ArrayList<>();
+
+        touchModeOptionsList.add(
                 new MenuOption(
                         getString(R.string.game_menu_touch_mode_enhanced),
                         isEnhancedTouch && !isTouchscreenTrackpad && !isNativeMousePointer,
@@ -324,7 +327,8 @@ public class GameMenu {
                         },
                         null,
                         false
-                ),
+                ));
+        touchModeOptionsList.add(
                 new MenuOption(
                         getString(R.string.game_menu_touch_mode_classic),
                         !isEnhancedTouch && !isTouchscreenTrackpad && !isNativeMousePointer,
@@ -339,7 +343,8 @@ public class GameMenu {
                         },
                         null,
                         false
-                ),
+                ));
+        touchModeOptionsList.add(
                 new MenuOption(
                         getString(R.string.game_menu_touch_mode_trackpad),
                         isTouchscreenTrackpad && !isNativeMousePointer,
@@ -352,21 +357,23 @@ public class GameMenu {
                         },
                         null,
                         false
-                ),
+                ));
+        touchModeOptionsList.add(
                 new MenuOption(
-                        getString(R.string.game_menu_touch_mode_trackpad) + " - " + 
-                        (game.prefConfig.enableDoubleClickDrag ? "关闭双击按住" : "开启双击按住"),
+                        getString(R.string.game_menu_touch_mode_trackpad) + " - " +
+                                (game.prefConfig.enableDoubleClickDrag ? "关闭双击按住" : "开启双击按住"),
                         false,
                         () -> {
                             game.prefConfig.enableDoubleClickDrag = !game.prefConfig.enableDoubleClickDrag;
                             // 不保存到持久化存储，只在当前会话中生效
-                            Toast.makeText(game, 
-                                game.prefConfig.enableDoubleClickDrag ? "已开启双击按住功能" : "已关闭双击按住功能", 
-                                Toast.LENGTH_SHORT).show();
+                            Toast.makeText(game,
+                                    game.prefConfig.enableDoubleClickDrag ? "已开启双击按住功能" : "已关闭双击按住功能",
+                                    Toast.LENGTH_SHORT).show();
                         },
                         null,
                         false
-                ),
+                ));
+        touchModeOptionsList.add(
                 new MenuOption(
                         getString(R.string.game_menu_touch_mode_native_mouse),
                         isNativeMousePointer,
@@ -380,8 +387,31 @@ public class GameMenu {
                         },
                         null,
                         false
-                )
-        };
+                ));
+
+        if (game.prefConfig.enableNativeMousePointer) {
+            touchModeOptionsList.add(
+                    new MenuOption(
+                            getString(R.string.game_menu_toggle_remote_mouse),
+                            false,
+                            () -> {
+                                sendKeys(new short[]{
+                                        KeyboardTranslator.VK_LCONTROL,
+                                        KeyboardTranslator.VK_MENU,
+                                        KeyboardTranslator.VK_LSHIFT,
+                                        KeyboardTranslator.VK_N
+                                });
+                                Toast.makeText(game, getString(R.string.toast_remote_mouse_toast), Toast.LENGTH_SHORT).show();
+                            },
+                            null,
+                            false
+                    )
+            );
+
+        }
+
+        // 将列表转换为数组
+        MenuOption[] touchModeOptions = touchModeOptionsList.toArray(new MenuOption[0]);
 
         // 3. 显示为子菜单（在活动对话框内替换普通菜单区域）
         showSubMenu(getString(R.string.game_menu_switch_touch_mode), touchModeOptions);
@@ -1541,17 +1571,9 @@ public class GameMenu {
                 () -> sendKeys(new short[]{KeyboardTranslator.VK_LWIN, KeyboardTranslator.VK_LCONTROL, KeyboardTranslator.VK_O}),
                 "game_menu_toggle_host_keyboard", true));
 
-        // 显示当前触控模式
-        String touchModeText = getString(R.string.game_menu_switch_touch_mode) + ": " +
-                (game.prefConfig.enableNativeMousePointer ? getString(R.string.game_menu_touch_mode_native_mouse) :
-                        game.prefConfig.touchscreenTrackpad ? getString(R.string.game_menu_touch_mode_trackpad) :
-                                game.prefConfig.enableEnhancedTouch ? getString(R.string.game_menu_touch_mode_enhanced) :
-                                        getString(R.string.game_menu_touch_mode_classic));
-
-
         // 此菜单是 UI 操作，不应该依赖游戏窗口焦点
         normalOptions.add(new MenuOption(
-                touchModeText,
+                getTouchModeDescription(),
                 false,
                 this::showTouchModeMenu,
                 "mouse_mode",
@@ -1584,8 +1606,18 @@ public class GameMenu {
             normalOptions.addAll(device.getGameMenuOptions());
         }
 
-        normalOptions.add(new MenuOption(getString(R.string.game_menu_toggle_performance_overlay),
-                false, game::togglePerformanceOverlay, "game_menu_toggle_performance_overlay", true));
+        // 性能显示
+        normalOptions.add(new MenuOption(
+                getPerfOverlayMenuLabel(),
+                false,
+                ()->{
+                    game.togglePerformanceOverlay();
+                    rebuildAndReplaceMenu();
+                },
+                "game_menu_toggle_performance_overlay",
+                true,
+                 true
+        ));
 
         // 只有在启用了虚拟手柄时才显示虚拟手柄切换选项
         if (game.prefConfig.onscreenController) {
@@ -1611,6 +1643,41 @@ public class GameMenu {
                 }, "game_menu_disconnect_and_quit", true));
 
         // normalOptions.add(new MenuOption(getString(R.string.game_menu_cancel), false, null, null, true));
+    }
+
+    private String getTouchModeDescription() {
+        String touchModeText = getString(R.string.game_menu_switch_touch_mode) + ": ";
+
+        if (game.prefConfig.enableNativeMousePointer) {
+            touchModeText += getString(R.string.game_menu_touch_mode_native_mouse);
+        } else if (game.prefConfig.touchscreenTrackpad) {
+            touchModeText += getString(R.string.game_menu_touch_mode_trackpad);
+        } else if (game.prefConfig.enableEnhancedTouch) {
+            touchModeText += getString(R.string.game_menu_touch_mode_enhanced);
+        } else {
+            touchModeText += getString(R.string.game_menu_touch_mode_classic);
+        }
+        return touchModeText;
+    }
+
+    private String getPerfOverlayMenuLabel() {
+        String status;
+
+        // 1. 如果未开启 -> 显示 "关闭"
+        if (!game.prefConfig.enablePerfOverlay) {
+            status = getString(R.string.perf_overlay_hidden);
+        }
+        // 2. 如果开启且锁定 -> 显示 "固定"
+        else if (game.prefConfig.perfOverlayLocked) {
+            status = getString(R.string.perf_overlay_locked);
+        }
+        // 3. 如果开启且未锁定 -> 显示 "悬浮"
+        else {
+            status = getString(R.string.perf_overlay_floating);
+        }
+
+        // 拼接结果，例如 "性能监控：悬浮"
+        return getString(R.string.game_menu_toggle_performance_overlay) + ": " + status;
     }
 
     // 由于不能直接发送win+L来锁定屏幕，可以先打开Windows的屏幕键盘，再发送win+L

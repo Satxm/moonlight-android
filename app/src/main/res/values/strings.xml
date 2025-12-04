@@ -148,6 +148,9 @@
     <string name="game_menu">🍥🍬 V+ Game Menu</string>
     <string name="game_menu_toggle_keyboard">Toggle On-screen Keyboard</string>
     <string name="game_menu_toggle_performance_overlay">Toggle Performance Overlay</string>
+    <string name="perf_overlay_hidden">CLOSE</string>
+    <string name="perf_overlay_floating">SUSPENSION</string>
+    <string name="perf_overlay_locked">Fixed</string>
     <string name="game_menu_toggle_virtual_controller">Toggle Virtual Controller</string>
     <string name="game_menu_toggle_host_keyboard">Toggle Host Keyboard</string>
     <string name="game_menu_toggle_all_keyboard">Toggle PC Keyboard</string>
@@ -613,7 +616,7 @@
     <string name="app_last_settings_use_checkbox">Use last settings</string>
     <string name="app_last_settings_apply_success">Applied last settings</string>
     <string name="app_last_settings_start_with_last">Started with last settings</string>
-    
+
     <!-- Setting detail strings -->
     <string name="setting_resolution">Resolution: %1$dx%2$d</string>
     <string name="setting_fps">Frame Rate: %1$dfps</string>
@@ -626,7 +629,7 @@
     <string name="setting_gyro_sensitivity">Gyroscope: %1$.1fx</string>
     <string name="setting_bitrate_card_enabled">Bitrate Card: Enabled</string>
     <string name="setting_gyro_card_enabled">Gyro Card: Enabled</string>
-    
+
     <!-- Time format strings -->
     <string name="time_just_now">Just now</string>
     <string name="time_minutes_ago">%1$d minutes ago</string>
@@ -644,7 +647,7 @@
     <string name="image_saved_successfully">Image successfully saved to system directory (Picture/setu)</string>
     <string name="image_save_failed_with_error">Image save failed: %1$s</string>
     <string name="config_save_failed">Configuration save failed</string>
-    <string name="scene_config_applied">Applied scene %1$d configuration: %2$dx%3$d@%4$dFPS %.2fMbps %5$s HDR %6$s</string>
+    <string name="scene_config_applied">Applied scene %1$d configuration: %2$dx%3$d@%4$dFPS %5.2fMbps %6$s HDR %7$s</string>
     <string name="scene_not_configured">Scene %1$d not configured</string>
     <string name="config_apply_failed">Configuration apply failed</string>
     <string name="save_to_scene">Save to Scene %1$d</string>
@@ -661,5 +664,8 @@
     <string name="background_refreshed_with_remaining">Background refreshed! (%1$d left today)</string>
     <string name="refresh_failed_please_retry">Refresh failed, please retry</string>
     <string name="refresh_failed_with_error">Refresh failed: %1$s</string>
+
+    <string name="game_menu_toggle_remote_mouse">Show/Hide Remote Mouse</string>
+    <string name="toast_remote_mouse_toast">Remote mouse displayed/hidden</string>
 
 </resources>
