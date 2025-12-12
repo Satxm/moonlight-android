@@ -245,6 +245,8 @@
     <string name="summary_language_list"> 选择Moonlight显示的语言 </string>
     <string name="title_checkbox_small_icon_mode"> 使用小图标 </string>
     <string name="summary_checkbox_small_icon_mode"> 使用小图标以在屏幕上显示更多项目 </string>
+    <string name="title_checkbox_resume_stream">自动恢复串流</string>
+    <string name="summary_checkbox_resume_stream">当从后台切回Moonlight时，自动恢复串流会话</string>
     <string name="category_host_settings">🖥️ 主机设置</string>
     <string name="title_checkbox_enable_sops"> 自动优化主机设置 </string>
     <string name="summary_checkbox_enable_sops"> 允许主机自动更改为与客户端最佳匹配的显示设置 </string>
@@ -460,6 +462,10 @@
     <string name="dialog_title_background_image_api">背景图片API</string>
     <string name="dialog_message_background_image_api">请输入完整的图片API</string>
     
+    <!-- Local image picker -->
+    <string name="title_local_image_picker">选择本地图片</string>
+    <string name="summary_local_image_picker">从本地相册中选择一张图片作为背景</string>
+    
     <!-- Reverse resolution -->
     <string name="title_checkbox_reverse_resolution">反转分辨率</string>
     <string name="summary_checkbox_reverse_resolution">交换宽度和高度值，用于特殊显示需求</string>
@@ -491,6 +497,7 @@
     <string name="game_menu_touch_mode_enhanced">增强式多点触控</string>
     <string name="game_menu_touch_mode_classic">经典鼠标模式</string>
     <string name="game_menu_touch_mode_trackpad">触控板模式</string>
+    <string name="game_menu_local_cursor_rendering">本地光标渲染</string>
     <string name="game_menu_touch_mode_native_mouse">本地鼠标指针</string>
     <string name="toast_touch_mode_enhanced_on">增强式多点触控已开启</string>
     <string name="toast_touch_mode_classic_on">经典鼠标模式已开启</string>
@@ -584,6 +591,7 @@
     <string name="setting_gyro_sensitivity">陀螺仪：%1$.1fx</string>
     <string name="setting_bitrate_card_enabled">码率卡片：开启</string>
     <string name="setting_gyro_card_enabled">陀螺仪卡片：开启</string>
+    <string name="setting_QuickKey_card_enabled">特殊按键卡片：开启</string>
 
     <!-- Time format strings -->
     <string name="time_just_now">刚刚</string>
