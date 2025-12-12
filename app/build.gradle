@@ -11,8 +11,8 @@ android {
         minSdk 22
         targetSdk 35
 
-        versionName "12.4.1"
-        versionCode = 346
+        versionName "12.4.5"
+        versionCode = 350
 
         // Generate native debug symbols to allow Google Play to symbolicate our native crashes
         ndk.debugSymbolLevel = 'FULL'
@@ -99,7 +99,7 @@ android {
 
     buildTypes {
         debug {
-            applicationIdSuffix ".debug"
+            applicationIdSuffix ".vplus_debug"
             resValue "string", "app_label", "Moonlight V+"
             resValue "string", "app_label_root", "Moonlight V+ (Root)"
 
@@ -173,6 +173,7 @@ dependencies {
     implementation 'androidx.recyclerview:recyclerview:1.4.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:5.0.5'
     implementation 'com.squareup:seismic:1.0.3'
+    implementation 'com.google.android.flexbox:flexbox:3.0.0'
 
     // Firebase Analytics
     implementation platform('com.google.firebase:firebase-bom:32.7.0')

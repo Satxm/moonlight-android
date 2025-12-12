@@ -212,8 +212,14 @@
     <string name="title_checkbox_stretch_video">将画面拉伸至全屏</string>
     <string name="title_checkbox_reverse_resolution">反转分辨率</string>
     <string name="summary_checkbox_reverse_resolution">交换宽度和高度值，用于特殊显示需求</string>
+    <string name="title_checkbox_rotable_screen">允许屏幕旋转</string>
+    <string name="summary_checkbox_rotable_screen">允许在串流时旋转屏幕（不会改变视频分辨率）</string>
 
     <string name="category_screen_position_settings">📺 显示设置</string>
+    <string name="title_checkbox_enable_pip">启用画中画观察模式</string>
+    <string name="summary_checkbox_enable_pip">允许多任务时观看串流画面（但不操作）</string>
+    <string name="title_use_external_display">使用外接显示器</string>
+    <string name="summary_use_external_display">如果连接了外接显示器，则在外接显示器上显示串流画面</string>
     <string name="title_screen_position">画面位置</string>
     <string name="summary_screen_position">选择非全屏分辨率时画面的位置</string>
     <string name="title_screen_offset_x">水平偏移</string>
@@ -249,27 +255,31 @@
     <string name="title_seekbar_mic_bitrate">麦克风比特率</string>
     <string name="summary_seekbar_mic_bitrate">调整麦克风重定向的音频质量。更高的比特率提供更好的音频质量，但会使用更多的带宽。</string>
     <string name="suffix_seekbar_mic_bitrate_kbps">kbps</string>
+    <string name="title_list_mic_icon_color">麦克风图标颜色</string>
+    <string name="summary_list_mic_icon_color">选择麦克风按钮图标的颜色</string>
+    <string name="title_checkbox_enable_background_audio">后台音频模式</string>
+    <string name="summary_checkbox_enable_background_audio">隐藏整个窗口并在后台播放音频，让您在听音时使用其他应用</string>
 
     <string name="category_gamepad_settings">🎮 手柄设置</string>
-    <string name="title_checkbox_multi_controller">自动检测手柄</string>
-    <string name="summary_checkbox_multi_controller">禁用此项所有手柄将视为一个手柄</string>
-    <string name="title_checkbox_vibrate_fallback">用设备震动模拟游戏震动效果</string>
-    <string name="summary_checkbox_vibrate_fallback">如果你的手柄不支持震动，则震动设备以模拟游戏震动效果</string>
-    <string name="title_seekbar_vibrate_fallback_strength">调整模拟震动强度</string>
-    <string name="summary_seekbar_vibrate_fallback_strength">增强或减弱设备的震动强度</string>
-    <string name="suffix_seekbar_vibrate_fallback_strength">％</string>
     <string name="title_seekbar_deadzone">调整摇杆死区</string>
     <string name="summary_seekbar_deadzone">注意：有些游戏可以执行一个比Moonlight摇杆配置的更大的盲区。</string>
     <string name="suffix_seekbar_deadzone">%</string>
+    <string name="title_checkbox_multi_controller">自动检测手柄</string>
+    <string name="summary_checkbox_multi_controller">禁用此项所有手柄将视为一个手柄</string>
     <string name="title_checkbox_xb1_driver">Xbox 360/One 手柄驱动</string>
     <string name="summary_checkbox_xb1_driver">为缺少原生Xbox手柄支持的设备启用内置USB驱动</string>
     <string name="title_checkbox_usb_bind_all">覆盖安卓手柄支持</string>
     <string name="summary_checkbox_usb_bind_all">强制Moonlight的USB驱动接管所有受支持的Xbox手柄</string>
     <string name="title_checkbox_mouse_emulation">通过手柄模拟鼠标</string>
-    <string name="title_checkbox_flip_face_buttons">反转技能键</string>
     <string name="summary_checkbox_mouse_emulation">长按开始键将手柄切换为鼠标模式</string>
     <string name="title_analog_scrolling">使用摇杆控制鼠标移动</string>
     <string name="summary_analog_scrolling">在鼠标模式下选择用哪个摇杆控制鼠标移动</string>
+    <string name="title_checkbox_vibrate_fallback">用设备震动模拟游戏震动效果</string>
+    <string name="summary_checkbox_vibrate_fallback">如果你的手柄不支持震动，则震动设备以模拟游戏震动效果</string>
+    <string name="title_seekbar_vibrate_fallback_strength">调整模拟震动强度</string>
+    <string name="summary_seekbar_vibrate_fallback_strength">增强或减弱设备的震动强度</string>
+    <string name="suffix_seekbar_vibrate_fallback_strength">％</string>
+    <string name="title_checkbox_flip_face_buttons">反转技能键</string>
     <string name="summary_checkbox_flip_face_buttons">为手柄和虚拟手柄调转A/B和X/Y技能键</string>
     <string name="title_checkbox_gamepad_touchpad_as_mouse">始终使用触摸板控制鼠标</string>
     <string name="summary_checkbox_gamepad_touchpad_as_mouse">强制使用手柄触摸板来控制主机鼠标，即使在使用触摸板模拟游戏板时也是如此。</string>
@@ -283,6 +293,8 @@
     <string name="summary_checkbox_touchscreen_trackpad">如果启用，则将触控屏作为触控板使用。如果禁用，则启用多点触控模式</string>
     <string name="title_enable_double_click_drag">启用触控板双击拖动</string>
     <string name="summary_enable_double_click_drag">双击并按住后可拖动选择</string>
+    <string name="title_enable_local_cursor_rendering">显示一个本地光标</string>
+    <string name="summary_enable_local_cursor_rendering">显示一个本地光标，可通过触摸板模式控制光标</string>
     <string name="title_checkbox_sync_touch_event_with_display">触控事件与显示刷新同步</string>
     <string name="summary_checkbox_sync_touch_event_with_display">打开后触控事件上报率与显示刷新率同步，比如显示为60Hz，那么触控与之同步。不一定有用，习惯哪个用哪个。Moonlight原版相当于禁用该项。</string>
     <string name="title_checkbox_enable_keyboard_toggle_in_native_touch">多点触控模式下打开本地键盘切换</string>
@@ -292,6 +304,8 @@
     <string name="suffix_seekbar_keyboard_toggle_fingers_native_touch"> </string>
     <string name="title_checkbox_mouse_nav_buttons">启用前进后退鼠标键</string>
     <string name="summary_checkbox_mouse_nav_buttons">在一些支持不佳的设备上启用此项可能会使其右键失效</string>
+    <string name="title_list_native_mouse_mode_preset">鼠标模式预设</string>
+    <string name="summary_list_native_mouse_mode_preset">选择鼠标/触控模式的配置</string>
     <string name="title_checkbox_absolute_mouse_mode">适合远程桌面的鼠标模式</string>
     <string name="summary_checkbox_absolute_mouse_mode">这可以使得鼠标加速在远程桌面使用中表现得更自然，但它与许多游戏不兼容。</string>
     <string name="title_checkbox_enable_esc_menu">允许 ESC 键打开返回菜单</string>
@@ -327,6 +341,8 @@
     <string name="summary_only_l3r3">隐藏除L3和R3外的所有虚拟按钮</string>
     <string name="title_show_guide_button">显示引导按钮</string>
     <string name="summary_show_guide_button">在屏幕上显示引导按钮</string>
+    <string name="title_half_height_osc_portrait">竖屏模式半高</string>
+    <string name="summary_half_height_osc_portrait">竖屏下控制按钮将显示于下半屏</string>
     <string name="title_osc_opacity">更改屏幕按钮透明度</string>
     <string name="summary_osc_opacity">令屏幕按钮变得更透明/更不透明</string>
     <string name="dialog_title_osc_opacity">透明度</string>
@@ -344,28 +360,36 @@
     <string name="summary_export_super_config">导出自定义按钮的和串流内设置的配置文件</string>
     <string name="title_import_super_config">导入配置文件</string>
     <string name="summary_import_super_config">导入自定义按钮的和串流内设置的配置文件</string>
+    <string name="title_merge_super_config">合并配置</string>
+    <string name="summary_merge_super_config">将新的配置的按键合并到现有配置中</string>
     <string name="title_about_author">这是 威力加强 × 王冠 版</string>
     <string name="summary_about_author">威力加强版：作者：Qiin2333，Github：https://github.com//moonlight-android \n王冠版：作者：ACrown，请关注他的B站：西瓜hub，Github：https://github.com/WACrown/moonlight-android</string>
-
-    <string name="category_ui_settings">🎨 界面设置</string>
-    <string name="title_checkbox_enable_pip">启用画中画观察模式</string>
-    <string name="summary_checkbox_enable_pip">允许多任务时观看串流画面（但不操作）</string>
-    <string name="title_use_external_display">使用外接显示器</string>
-    <string name="summary_use_external_display">如果连接了外接显示器，则在外接显示器上显示串流画面</string>
-    <string name="title_language_list">语言</string>
-    <string name="summary_language_list">选择 Moonlight 显示的语言</string>
-    <string name="title_checkbox_small_icon_mode">使用小图标</string>
-    <string name="summary_checkbox_small_icon_mode">使用小图标以在屏幕上显示更多项目</string>
-    <string name="title_background_image_api">背景图片 API</string>
-    <string name="summary_background_image_api">输入自定义背景图片的 API，也可以是单张图片地址哦，留空就是看随机涩图</string>
-    <string name="dialog_title_background_image_api">背景图片 API</string>
-    <string name="dialog_message_background_image_api">请输入完整的图片 API 地址</string>
 
     <string name="category_host_settings">🖥️ 主机设置</string>
     <string name="title_checkbox_enable_sops">优化游戏设置</string>
     <string name="summary_checkbox_enable_sops">允许GFE为最佳串流效果自动更改游戏设置</string>
     <string name="title_checkbox_host_audio">在电脑上播放声音</string>
     <string name="summary_checkbox_host_audio">在电脑和本设备同时输出声音</string>
+    <string name="title_checkbox_lock_screen_after_disconnect">断开并退出串流时锁定屏幕</string>
+    <string name="summary_checkbox_lock_screen_after_disconnect">在断开并退出串流后自动锁定设备屏幕(通过特殊技巧锁定远程电脑：程序会先快速打开屏幕键盘再发送锁屏指令。此操作依赖时序，偶尔可能因网络或电脑性能影响而锁定失败。注意：这会在您下次登录时留下一个需要手动关闭的屏幕键盘窗口。)</string>
+    <string name="title_checkbox_swap_quit_and_disconnect">切换“退出”按钮功能</string>
+    <string name="summary_checkbox_swap_quit_and_disconnect">启用后，“退出”按钮将改为仅断开连接而不退出应用</string>
+
+    <string name="category_ui_settings">🎨 界面设置</string>
+    <string name="title_language_list"> 语言 </string>
+    <string name="summary_language_list"> 选择Moonlight显示的语言 </string>
+    <string name="title_checkbox_small_icon_mode"> 使用小图标 </string>
+    <string name="summary_checkbox_small_icon_mode"> 使用小图标以在屏幕上显示更多项目 </string>
+    <string name="title_background_image_api">背景图片API</string>
+    <string name="summary_background_image_api">输入自定义背景图片的API，也可以是单张图片地址哦，留空就是看随机涩图</string>
+    <string name="dialog_title_background_image_api">背景图片API</string>
+    <string name="dialog_message_background_image_api">请输入完整的图片API</string>
+    <string name="title_local_image_picker">选择本地图片</string>
+    <string name="summary_local_image_picker">从本地相册中选择一张图片作为背景</string>
+    <string name="title_enable_analytics">启用统计分析</string>
+    <string name="summary_enable_analytics">通过分享匿名使用统计数据来帮助改进应用</string>
+    <string name="title_checkbox_resume_stream">自动恢复串流</string>
+    <string name="summary_checkbox_resume_stream">当从后台切回Moonlight时，自动恢复串流会话</string>
 
     <string name="category_advanced_settings">🔧 高级设置</string>
     <string name="title_unlock_fps">解锁所有可用帧数</string>
@@ -394,21 +418,23 @@
     <string name="summary_perf_overlay_display_items">选择要在性能覆盖层中显示的信息项目</string>
     <string name="title_enable_post_stream_toast">串流完毕显示延迟信息</string>
     <string name="summary_enable_post_stream_toast">串流结束后显示延迟信息</string>
-    <string name="title_checkbox_lock_screen_after_disconnect">断开并退出串流时锁定屏幕</string>
-    <string name="summary_checkbox_lock_screen_after_disconnect">在断开并退出串流后自动锁定设备屏幕(通过特殊技巧锁定远程电脑：程序会先快速打开屏幕键盘再发送锁屏指令。此操作依赖时序，偶尔可能因网络或电脑性能影响而锁定失败。注意：这会在您下次登录时留下一个需要手动关闭的屏幕键盘窗口。)</string>
-    <string name="title_checkbox_swap_quit_and_disconnect">切换“退出”按钮功能</string>
-    <string name="summary_checkbox_swap_quit_and_disconnect">启用后，“退出”按钮将改为仅断开连接而不退出应用</string>
-    <string name="mic_stats_continuity">音频连续性: %.1f%% (捕获:%d 编码:%d 发送:%d 丢弃:%d)</string>
+    <string name="title_checkbox_enable_stun">获取公网 IP</string>
+    <string name="summary_checkbox_enable_stun">这会尝试利用 STUN 服务器获取被控端的公网访问方式，以便在离开局域网环境后继续连接。但此功能可能会导致无公网 IP 用户扫描变慢</string>
 
     <string name="category_help">📋 帮助</string>
     <string name="title_setup_guide">安装向导</string>
     <string name="summary_setup_guide">查看有关如何设置游戏电脑以进行流传输的说明</string>
     <string name="title_troubleshooting">解决方案向导</string>
     <string name="summary_troubleshooting">查看有关诊断和修复常见流传输问题的提示</string>
-    <string name="title_privacy_policy">隐私政策</string>
-    <string name="summary_privacy_policy">查看 Moonlight 隐私政策</string>
+    <string name="check_for_updates">检查更新</string>
+    <string name="summary_check_for_updates">检查是否有新版本可用</string>
     <string name="title_about_mode">关于</string>
     <string name="summary_about_mode">查看应用信息和项目详情</string>
+    <string name="title_moonlight_vplus_pc_download">Moonlight V+ PC 版下载</string>
+    <string name="title_privacy_policy">隐私政策</string>
+    <string name="summary_privacy_policy">查看 Moonlight 隐私政策</string>
+
+    <string name="mic_stats_continuity">音频连续性: %.1f%% (捕获:%d 编码:%d 发送:%d 丢弃:%d)</string>
 
     <!-- About dialog strings -->
     <string name="about_dialog_description">Moonlight V+ 是 Moonlight Android 客户端的增强版，通过附加功能提供更佳的串流体验。</string>
@@ -417,10 +443,6 @@
     <string name="about_dialog_github">GitHub</string>
     <string name="about_dialog_star">给我们一个 Star</string>
     <string name="about_dialog_close">关闭</string>
-    <string name="check_for_updates">检查更新</string>
-    <string name="summary_check_for_updates">检查是否有新版本可用</string>
-    <string name="title_merge_super_config">合并配置</string>
-    <string name="summary_merge_super_config">将新的配置的按键合并到现有配置中</string>
 
     <!-- Toasts -->
     <string name="toast_controller_type_changed">游戏手柄类型可能会因运动传感器模拟而改变</string>
@@ -475,11 +497,10 @@
     <string name="pacing_balanced_alt">有FPS限制的平衡</string>
     <string name="pacing_smoothness">优先视频流畅度（可能会显著增大延迟）</string>
     <string name="pacing_experimental_low_latency">全都要！(超低延迟与超平滑帧率)</string>
-    <string name="pacing_surface_flinger_raw">Surface Flinger Raw (GPU Direct)</string>
 
     <string name="analogscroll_none">默认 (两个摇杆都控制鼠标)</string>
-    <string name="analogscroll_left">左摇杆</string>
     <string name="analogscroll_right">右摇杆</string>
+    <string name="analogscroll_left">左摇杆</string>
 
     <string name="mic_button">麦克风</string>
     <string name="mic_enabled">麦克风已启用</string>
@@ -507,13 +528,6 @@
     <string name="game_menu_edit_mode">王冠按键编辑模式</string>
     <string name="game_menu_configure_settings">王冠按键配置模式</string>
 
-    <!-- Moonlight V+ PC download -->
-    <string name="title_moonlight_vplus_pc_download">Moonlight V+ PC 版下载</string>
-
-    <!-- Analytics settings -->
-    <string name="title_enable_analytics">启用统计分析</string>
-    <string name="summary_enable_analytics">通过分享匿名使用统计数据来帮助改进应用</string>
-
     <!-- Tip strings -->
     <string name="tip_esc_exit">💡 串流小课堂：使用"退出"按钮可以快速完全地退出串流，让屏幕恢复到串流前的状态哦～</string>
     <string name="tip_double_tap_mouse">💡 串流小课堂：主机列表页面长按顶部空白区域可以下载当前涩图呢～</string>
@@ -538,11 +552,18 @@
     <string name="game_menu_touch_mode_enhanced">增强式多点触控</string>
     <string name="game_menu_touch_mode_classic">经典鼠标模式</string>
     <string name="game_menu_touch_mode_trackpad">触控板模式</string>
+    <string name="game_menu_local_cursor_rendering">本地光标渲染</string>
     <string name="game_menu_touch_mode_native_mouse">本地鼠标指针</string>
     <string name="toast_touch_mode_enhanced_on">增强式多点触控已开启</string>
     <string name="toast_touch_mode_classic_on">经典鼠标模式已开启</string>
     <string name="toast_touch_mode_trackpad_on">触控板模式已开启</string>
     <string name="toast_touch_mode_native_mouse_on">本地鼠标指针已开启</string>
+
+    <!-- 本地鼠标模式预设 -->    <string name="native_mouse_mode_preset_enhanced">增强式多点触控</string>
+    <string name="native_mouse_mode_preset_classic">经典鼠标模式</string>
+    <string name="native_mouse_mode_preset_trackpad">触控板模式</string>
+    <string name="native_mouse_mode_preset_native">本地鼠标指针</string>
+    <string name="toast_preset_applied">预设已应用: %s</string>
 
     <!-- 自定义特殊按键 -->
     <!-- 菜单项 -->
@@ -623,6 +644,7 @@
     <string name="setting_gyro_sensitivity">陀螺仪：%1$.1fx</string>
     <string name="setting_bitrate_card_enabled">码率卡片：开启</string>
     <string name="setting_gyro_card_enabled">陀螺仪卡片：开启</string>
+    <string name="setting_QuickKey_card_enabled">特殊按键卡片：开启</string>
 
     <!-- Time format strings -->
     <string name="time_just_now">刚刚</string>
