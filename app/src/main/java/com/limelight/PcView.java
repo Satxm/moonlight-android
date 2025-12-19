@@ -33,6 +33,8 @@ import com.limelight.utils.Iperf3Tester;
 import com.limelight.utils.ServerHelper;
 import com.limelight.utils.ShortcutHelper;
 import com.limelight.utils.UiHelper;
+// import com.limelight.utils.AnalyticsManager;
+// import com.limelight.utils.UpdateManager;
 import com.limelight.utils.AppCacheManager;
 import com.limelight.utils.CacheHelper;
 import com.limelight.dialogs.AddressSelectionDialog;
@@ -179,6 +181,7 @@ public class PcView extends Activity implements AdapterFragmentCallbacks, ShakeD
 
     public String clientName;
     private LruCache<String, Bitmap> bitmapLruCache;
+    // private AnalyticsManager analyticsManager;
     private EasyTierManager easyTierManager;
     private static final int VPN_PERMISSION_REQUEST_CODE = 101;
     private static final String EASYTIER_PREFS = "easytier_preferences";
@@ -287,10 +290,10 @@ public class PcView extends Activity implements AdapterFragmentCallbacks, ShakeD
             startActivity(i);
         });
         helpButton.setVisibility(View.GONE);
-//         helpButton.setOnClickListener(v -> {
-// //                HelpLauncher.launchSetupGuide(PcView.this);
-//             joinQQGroup("LlbLDIF_YolaM4HZyLx0xAXXo04ZmoBM");
-//         });
+        // helpButton.setOnClickListener(v -> {
+		        // HelpLauncher.launchSetupGuide(PcView.this);
+                // joinQQGroup("LlbLDIF_YolaM4HZyLx0xAXXo04ZmoBM");
+        // });
         restoreSessionButton.setOnClickListener(v -> restoreLastSession());
 
         // Amazon review didn't like the help button because the wiki was not entirely
@@ -597,6 +600,13 @@ public class PcView extends Activity implements AdapterFragmentCallbacks, ShakeD
 
         UiHelper.setLocale(this);
 
+        // 初始化统计分析管理器
+        // analyticsManager = AnalyticsManager.getInstance(this);
+        // analyticsManager.logAppLaunch();
+
+        // 检查应用更新
+        // UpdateManager.checkForUpdatesOnStartup(this);
+
         // Bind to the computer manager service
         bindService(new Intent(PcView.this, ComputerManagerService.class), serviceConnection,
                 Service.BIND_AUTO_CREATE);
@@ -618,7 +628,11 @@ public class PcView extends Activity implements AdapterFragmentCallbacks, ShakeD
             }
         };
         IntentFilter filter = new IntentFilter("com.limelight.REFRESH_BACKGROUND_IMAGE");
-        registerReceiver(backgroundImageRefreshReceiver, filter);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(backgroundImageRefreshReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            registerReceiver(backgroundImageRefreshReceiver, filter);
+        }
 
         initializeViews();
     }
@@ -687,6 +701,10 @@ public class PcView extends Activity implements AdapterFragmentCallbacks, ShakeD
             }
         }
 
+        // 清理统计分析资源
+        // if (analyticsManager != null) {
+            // analyticsManager.cleanup();
+        // }
     }
 
     @Override
@@ -698,6 +716,11 @@ public class PcView extends Activity implements AdapterFragmentCallbacks, ShakeD
 
         inForeground = true;
         startComputerUpdates();
+        
+        // 开始记录使用时长
+        // if (analyticsManager != null) {
+            // analyticsManager.startUsageTracking();
+        // }
         
         if (shakeDetector != null) {
             try {
@@ -718,6 +741,11 @@ public class PcView extends Activity implements AdapterFragmentCallbacks, ShakeD
 
         inForeground = false;
         stopComputerUpdates(false);
+        
+        // 停止记录使用时长
+        // if (analyticsManager != null) {
+            // analyticsManager.stopUsageTracking();
+        // }
         
         if (shakeDetector != null) {
             try {

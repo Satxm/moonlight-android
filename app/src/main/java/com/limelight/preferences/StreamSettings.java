@@ -56,6 +56,7 @@ import com.limelight.binding.video.MediaCodecHelper;
 import com.limelight.utils.AspectRatioConverter;
 import com.limelight.utils.Dialog;
 import com.limelight.utils.UiHelper;
+//import com.limelight.utils.UpdateManager;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -1065,6 +1066,12 @@ public class StreamSettings extends Activity {
                 startActivity(intent);
                 return true;
             });
+
+            // 添加检查更新选项的点击事件
+            // findPreference("check_for_updates").setOnPreferenceClickListener(preference -> {
+            //     UpdateManager.checkForUpdates(getActivity(), true);
+            //     return true;
+            // });
 
             // 对于没有触摸屏的设备，只提供本地鼠标指针选项
             ListPreference mouseModePresetPref = (ListPreference) findPreference(PreferenceConfiguration.NATIVE_MOUSE_MODE_PRESET_PREF_STRING);

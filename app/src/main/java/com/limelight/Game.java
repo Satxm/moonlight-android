@@ -45,6 +45,7 @@ import com.limelight.utils.ShortcutHelper;
 import com.limelight.utils.FullscreenProgressOverlay;
 import com.limelight.utils.UiHelper;
 import com.limelight.utils.NetHelper;
+//import com.limelight.utils.AnalyticsManager;
 import com.limelight.utils.AppCacheManager;
 import com.limelight.utils.AppSettingsManager;
 
@@ -123,7 +124,16 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private final TouchContext[] absoluteTouchContextMap = new TouchContext[TOUCH_CONTEXT_LENGTH];
     private final TouchContext[] relativeTouchContextMap = new TouchContext[TOUCH_CONTEXT_LENGTH];
     private long multiFingerDownTime = 0;
-
+    
+    // 双指右键检测
+    private long twoFingerDownTime = 0;
+    private long firstFingerUpTime = 0;
+    private boolean twoFingerTapPending = false;
+    private boolean twoFingerMoved = false;
+    private float twoFingerStartX = 0, twoFingerStartY = 0;
+    private static final int TWO_FINGER_TAP_THRESHOLD = 100;
+    private static final float TWO_FINGER_MOVE_THRESHOLD = 30f;
+    
     public static final int REFERENCE_HORIZ_RES = 1280;
     public static final int REFERENCE_VERT_RES = 720;
 
@@ -163,6 +173,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private boolean autoEnterPip = false;
     private boolean surfaceCreated = false;
     private boolean attemptedConnection = false;
+    // private AnalyticsManager analyticsManager;
+    // private long streamStartTime;
     private int suppressPipRefCount = 0;
     private String pcName;
     private String appName;
@@ -332,6 +344,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     public static final String EXTRA_SERVER_CERT = "ServerCert";
     public static final String EXTRA_PC_USEVDD = "usevdd";
     public static final String EXTRA_APP_CMD = "CmdList";
+    public static final String EXTRA_DISPLAY_NAME = "DisplayName";
 
     private ExternalDisplayManager externalDisplayManager;
 
@@ -507,6 +520,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         appName = Game.this.getIntent().getStringExtra(EXTRA_APP_NAME);
         pcName = Game.this.getIntent().getStringExtra(EXTRA_PC_NAME);
+        
+        // 初始化统计分析管理器
+        // analyticsManager = AnalyticsManager.getInstance(this);
 
         String host = Game.this.getIntent().getStringExtra(EXTRA_HOST);
         int port = Game.this.getIntent().getIntExtra(EXTRA_PORT, NvHTTP.DEFAULT_HTTP_PORT);
@@ -518,6 +534,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         boolean pcUseVdd = Game.this.getIntent().getBooleanExtra(EXTRA_PC_USEVDD, false);
         byte[] derCertData = Game.this.getIntent().getByteArrayExtra(EXTRA_SERVER_CERT);
         String cmdList = Game.this.getIntent().getStringExtra(EXTRA_APP_CMD);
+        String displayName = Game.this.getIntent().getStringExtra(EXTRA_DISPLAY_NAME);
 
         app = new NvApp(appName != null ? appName : "app", appId, appSupportsHdr);
         if (cmdList != null) {
@@ -700,13 +717,15 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 .setPersistGamepadsAfterDisconnect(!prefConfig.multiController)
                 .setUseVdd(pcUseVdd)
                 .setEnableMic(prefConfig.enableMic)
+                .setControlOnly(prefConfig.controlOnly)
+                .setCustomScreenMode(prefConfig.screenCombinationMode)
                 .build();
 
         // Initialize the connection
         conn = new NvConnection(getApplicationContext(),
                 new ComputerDetails.AddressTuple(host, port),
                 httpsPort, uniqueId, pairName, config,
-                PlatformBinding.getCryptoProvider(this), serverCert);
+                PlatformBinding.getCryptoProvider(this), serverCert, displayName);
         controllerHandler = new ControllerHandler(this, conn, this, prefConfig);
         keyboardTranslator = new KeyboardTranslator();
 
@@ -1899,11 +1918,27 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             }
         }
 
-        if (shouldResumeSession) {
-            LimeLog.info("应用进入后台，保持 Activity 存活以备快速恢复。连接已断开。");
-        } else {
-            finish();
-        }
+        // 记录游戏流媒体结束事件
+        // if (analyticsManager != null && pcName != null && streamStartTime > 0) {
+            // long streamDuration = System.currentTimeMillis() - streamStartTime;
+            
+            // 收集性能数据
+            // int resolutionWidth = 0;
+            // int resolutionHeight = 0;
+            // int averageEndToEndLatency = 0;
+            // int averageDecoderLatency = 0;
+            
+            // if (decoderRenderer != null) {
+                // resolutionWidth = prefConfig.width;
+                // resolutionHeight = prefConfig.height;
+                // averageEndToEndLatency = decoderRenderer.getAverageEndToEndLatency();
+                // averageDecoderLatency = decoderRenderer.getAverageDecoderLatency();
+            // }
+            
+            // analyticsManager.logGameStreamEnd(pcName, appName, streamDuration,
+                // decoderMessage, resolutionWidth, resolutionHeight,
+                // averageEndToEndLatency, averageDecoderLatency);
+        // }
 
         if (shouldResumeSession) {
             LimeLog.info("应用进入后台，保持 Activity 存活以备快速恢复。连接已断开。");
@@ -3145,6 +3180,16 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                         for (TouchContext touchContext : touchContextMap) {
                             touchContext.setPointerCount(event.getPointerCount());
                         }
+                        
+                        // 双指右键检测
+                        if (event.getPointerCount() == 2 && prefConfig.touchscreenTrackpad) {
+                            twoFingerDownTime = event.getEventTime();
+                            twoFingerStartX = event.getX(0);
+                            twoFingerStartY = event.getY(0);
+                            twoFingerMoved = false;
+                            twoFingerTapPending = false;
+                        }
+                        
                         context.touchDownEvent((int) normalizedCoords[0], (int) normalizedCoords[1], event.getEventTime(), true);
                         break;
                     }
@@ -3152,12 +3197,44 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     case MotionEvent.ACTION_UP: {
                         // 对主触摸点进行转换
                         float[] normalizedCoords = getNormalizedCoordinates(streamView, event.getX(actionIndex), event.getY(actionIndex));
+                        
+                        // 双指右键检测（仅触控板模式）
+                        if (event.getPointerCount() == 2 && !twoFingerMoved && prefConfig.touchscreenTrackpad) {
+                            if (event.getEventTime() - twoFingerDownTime < TWO_FINGER_TAP_THRESHOLD) {
+                                // 第二根手指抬起，立即触发右键
+                                conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_RIGHT);
+                                conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_RIGHT);
+                                twoFingerTapPending = false;
+                                twoFingerMoved = true;
+                                for (TouchContext touchContext : touchContextMap) {
+                                    touchContext.setPointerCount(event.getPointerCount() - 1);
+                                }
+                                return true;
+                            } else {
+                                firstFingerUpTime = event.getEventTime();
+                                twoFingerTapPending = true;
+                            }
+                        }
+                        
                         if (event.getPointerCount() == 1 &&
                                 (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || (event.getFlags() & MotionEvent.FLAG_CANCELED) == 0)) {
-                            // All fingers up
+                            // 双指点击检测：两个手指都抬起时
+                            if (twoFingerTapPending && !twoFingerMoved && prefConfig.touchscreenTrackpad) {
+                                if (event.getEventTime() - firstFingerUpTime < TWO_FINGER_TAP_THRESHOLD) {
+                                    conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_RIGHT);
+                                    conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_RIGHT);
+                                    twoFingerTapPending = false;
+                                    for (TouchContext touchContext : touchContextMap) {
+                                        touchContext.cancelTouch();
+                                        touchContext.setPointerCount(0);
+                                    }
+                                    return true;
+                                }
+                            }
+                            twoFingerTapPending = false;
+                            
+                            // 三指点击：弹出键盘
                             if (event.getEventTime() - multiFingerDownTime < MULTI_FINGER_TAP_THRESHOLD) {
-                                // This is a 3 finger tap to bring up the keyboard
-                                // multiFingerDownTime, previously threeFingerDowntime, is also used in native-touch for keyboard toggle.
                                 toggleKeyboard();
                                 return true;
                             }
@@ -3183,6 +3260,15 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                         break;
                     }
                 case MotionEvent.ACTION_MOVE:
+                    // 双指移动检测
+                    if (event.getPointerCount() == 2 && !twoFingerMoved && prefConfig.touchscreenTrackpad) {
+                        float dx = event.getX(0) - twoFingerStartX;
+                        float dy = event.getY(0) - twoFingerStartY;
+                        if (Math.sqrt(dx * dx + dy * dy) > TWO_FINGER_MOVE_THRESHOLD) {
+                            twoFingerMoved = true;
+                        }
+                    }
+                    
                     // ACTION_MOVE 的处理需要更仔细，因为它有历史事件
                     // 首先处理历史事件
                     for (int i = 0; i < event.getHistorySize(); i++) {
@@ -3644,6 +3730,53 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     microphoneManager.setDefaultStateOff();
                 }
             });
+        }
+        
+        // 记录游戏流媒体开始事件
+        // streamStartTime = System.currentTimeMillis();
+        // if (analyticsManager != null && pcName != null) {
+            // analyticsManager.logGameStreamStart(pcName, appName);
+        // }
+
+        // 1. 获取并保存 IP (存到全局变量)
+        this.currentHostAddress = getIntent().getStringExtra(EXTRA_HOST);
+
+        // 2. 调用统一的状态管理方法
+        updateCursorServiceState(prefConfig.enableLocalCursorRendering && prefConfig.touchscreenTrackpad);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        if (shouldResumeSession) {
+            LimeLog.info("从后台恢复，正在快速重连...");
+
+            // 强制关闭所有残留的 Dialog
+            // 即使之前的 connectionTerminated 漏网弹出了对话框，现在也把它关掉
+            Dialog.closeDialogs();
+
+            // 重置状态，准备迎接新的连接
+            // 只有回到前台准备重连了，我们才再次关心连接失败的弹窗
+            shouldResumeSession = false;
+            displayedFailureDialog = false;
+
+            // 重新显示加载遮罩
+            progressOverlay = new FullscreenProgressOverlay(this, app);
+            ComputerDetails computer = new ComputerDetails();
+            computer.name = pcName;
+            computer.uuid = getIntent().getStringExtra(EXTRA_PC_UUID);
+            progressOverlay.setComputer(computer);
+            progressOverlay.show(getResources().getString(R.string.conn_establishing_title),
+                    getResources().getString(R.string.conn_establishing_msg));
+
+            // 重新准备连接对象
+            prepareConnection();
+
+            // 重置连接状态标志
+            attemptedConnection = false;
+            connecting = false;
+            connected = false;
         }
     }
 
