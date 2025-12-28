@@ -121,7 +121,7 @@
 
     <!-- AppList activity -->
     <string name="applist_connect_msg">正在连接电脑……</string>
-    <string name="applist_menu_start_with_vdd">使用虚拟显示器开始串流</string>
+    <string name="applist_menu_start_with_vdd">就是要用虚拟显示器～</string>
     <string name="applist_menu_start_with_last_settings">使用上一次设置启动</string>
     <string name="applist_menu_resume">恢复串流</string>
     <string name="applist_menu_quit">退出串流</string>
@@ -313,8 +313,10 @@
     <string name="summary_list_native_mouse_mode_preset">选择鼠标/触控模式的配置</string>
     <string name="title_checkbox_absolute_mouse_mode">适合远程桌面的鼠标模式</string>
     <string name="summary_checkbox_absolute_mouse_mode">这可以使得鼠标加速在远程桌面使用中表现得更自然，但它与许多游戏不兼容。</string>
-    <string name="title_checkbox_enable_esc_menu">允许 ESC 键打开返回菜单</string>
-    <string name="summary_checkbox_enable_esc_menu">启用时，双击 ESC 键会打开流返回菜单，单击 ESC 键则传递给主机。</string>
+    <string name="title_checkbox_enable_esc_menu">允许自定义键打开返回菜单</string>
+    <string name="summary_checkbox_enable_esc_menu">启用后，双击所选按键可以打开串流返回菜单，单次按键会透传给主机</string>
+    <string name="title_list_esc_menu_key">返回菜单激活按键</string>
+    <string name="summary_list_esc_menu_key">选择双击哪个按键来打开返回菜单</string>
 
     <string name="category_enhanced_touch_settings">👆 多点触控设置</string>
     <string name="title_checkbox_enable_enhanced_touch">打开增强型触控</string>
@@ -391,6 +393,8 @@
     <string name="dialog_message_background_image_api">请输入完整的图片API</string>
     <string name="title_local_image_picker">选择本地图片</string>
     <string name="summary_local_image_picker">从本地相册中选择一张图片作为背景</string>
+    <string name="title_reset_background_image">恢复默认背景</string>
+    <string name="summary_reset_background_image">清除自定义设置，恢复为默认的随机背景图片</string>
     <string name="title_enable_analytics">启用统计分析</string>
     <string name="summary_enable_analytics">通过分享匿名使用统计数据来帮助改进应用</string>
     <string name="title_checkbox_resume_stream">自动恢复串流</string>
