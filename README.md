@@ -8,12 +8,14 @@
   **基于 Moonlight 的增强版 Android 串流客户端** 🎮
   
   *让您的 Android 设备成为强大的游戏串流终端！Gawr！* ✨
+
 </div>
 
 
 ## 🚀 快速开始
 
 ### 系统要求
+
 - Android 5.0 (API 22) 或更高版本
 - 支持 HEVC 解码的设备
 - 稳定的网络连接
@@ -26,6 +28,7 @@
 3. 按照应用内指引完成设置
 
 #### 方式二：从源码编译
+
 ```bash
 # 克隆仓库
 git clone https://github.com/Satxm/moonlight-vplus.git

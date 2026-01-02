@@ -446,11 +446,12 @@
     <string name="mic_stats_continuity">音频连续性: %.1f%% (捕获:%d 编码:%d 发送:%d 丢弃:%d)</string>
 
     <!-- About dialog strings -->
-    <string name="about_dialog_description">Moonlight V+ 是 Moonlight Android 客户端的增强版，通过附加功能提供更佳的串流体验。</string>
-    <string name="about_dialog_project_info">基于 Moonlight-Android 项目，由 V+ 团队开发</string>
-    <string name="about_dialog_thanks">感谢您使用 Moonlight V+！如果您喜欢，请在 GitHub 上给我们一个 Star。</string>
+    <string name="about_dialog_description">Moonlight V+ 是专为 Foundation Sunshine 打造的增强客户端，为您带来极致的游戏串流体验。</string>
+    <string name="about_dialog_project_info">基于 Moonlight-Android 开源项目，由基地社区倾力打造</string>
+    <string name="about_dialog_thanks">感谢您选择 Moonlight V+！如果觉得好用，欢迎在 GitHub 上点个 Star 支持我们 ⭐</string>
     <string name="about_dialog_github">GitHub</string>
-    <string name="about_dialog_star">给我们一个 Star</string>
+    <string name="about_dialog_star">Star 项目</string>
+    <string name="about_dialog_qq">加入QQ群</string>
     <string name="about_dialog_close">关闭</string>
 
     <!-- Toasts -->
