@@ -1,7 +1,7 @@
 <div align="center">
   <img src="./app/src/main/res/drawable-xhdpi/atv_banner.png" alt="Moonlight V+ Logo">
   
-  # Moonlight V+ 威力加强版
+  # Moonlight V+
 
   [![GitHub Release](https://img.shields.io/github/v/release/Satxm/moonlight-vplus?logo=github&label=Release)](https://github.com/Satxm/moonlight-vplus/releases/latest)
 

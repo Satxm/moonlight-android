@@ -437,8 +437,8 @@
     <string name="summary_troubleshooting">查看有关诊断和修复常见流传输问题的提示</string>
     <string name="check_for_updates">检查更新</string>
     <string name="summary_check_for_updates">检查是否有新版本可用</string>
-    <string name="title_about_mode">关于</string>
-    <string name="summary_about_mode">查看应用信息和项目详情</string>
+    <string name="title_about_mode">关于 Moonlight V+</string>
+    <string name="summary_about_mode">请前往GitHub查看，喜欢的话点个Star支持一下我们吧</string>
     <string name="title_moonlight_vplus_pc_download">Moonlight V+ PC 版下载</string>
     <string name="title_privacy_policy">隐私政策</string>
     <string name="summary_privacy_policy">查看 Moonlight 隐私政策</string>
@@ -493,6 +493,7 @@
     <string name="pacing_balanced_alt">有FPS限制的平衡</string>
     <string name="pacing_smoothness">优先视频流畅度（可能会显著增大延迟）</string>
     <string name="pacing_experimental_low_latency">全都要！(超低延迟与超平滑帧率)</string>
+    <string name="pacing_precise_sync">精准同步</string>
 
     <string name="analogscroll_none">默认 (两个摇杆都控制鼠标)</string>
     <string name="analogscroll_right">右摇杆</string>
@@ -555,7 +556,8 @@
     <string name="toast_touch_mode_trackpad_on">触控板模式已开启</string>
     <string name="toast_touch_mode_native_mouse_on">本地鼠标指针已开启</string>
 
-    <!-- 本地鼠标模式预设 -->    <string name="native_mouse_mode_preset_enhanced">增强式多点触控</string>
+    <!-- 本地鼠标模式预设 -->
+    <string name="native_mouse_mode_preset_enhanced">增强式多点触控</string>
     <string name="native_mouse_mode_preset_classic">经典鼠标模式</string>
     <string name="native_mouse_mode_preset_trackpad">触控板模式</string>
     <string name="native_mouse_mode_preset_native">本地鼠标指针</string>
@@ -591,7 +593,7 @@
     <string name="toast_load_custom_keys_corrupted">加载自定义按键失败了，抱歉抱歉~</string>
 
     <!-- 陀螺仪相关字符串 -->
-    <string name="gyro_activation_method">激活方式</string>
+    <string name="gyro_activation_method">激活按键</string>
     <string name="gyro_invert_x_axis">X 轴反转</string>
     <string name="gyro_invert_y_axis">Y 轴反转</string>
     <string name="gyro_sensitivity">灵敏度</string>
@@ -620,6 +622,7 @@
     <string name="perf_decode_latency_info">解码延迟表示解码视频帧所需的时间。\n\n延迟范围：\n• &lt;5ms：极佳解码器性能\n• 5–10ms：良好解码器性能\n• 10–20ms：一般解码器性能\n• &gt;20ms：较差解码器性能\n\n影响因素：\n• 硬件解码器性能\n• 视频编码复杂度\n• 设备CPU/GPU负载\n• 当解码延迟低于10ms时更应关注设备的其他性能(比如帧率、分辨率、画质等)</string>
     <string name="perf_host_latency_title">🖥 主机延迟信息</string>
     <string name="perf_host_latency_info">主机延迟表示主机处理帧所需的时间。\n\n延迟范围：\n• &lt;5ms：极佳主机性能\n• 5–10ms：良好主机性能\n• 10–20ms：一般主机性能\n• &gt;20ms：较差主机性能\n\n影响因素：\n• 主机硬件性能\n• 游戏负载\n• 后台程序使用\n\nVer.V+：\n• 表示版本信息\n• 当没有主机延迟数据时显示</string>
+
     <!-- Performance Overlay Info Dialogs - Battery Information -->
     <string name="perf_battery_info_title">🔋 电池信息</string>
     <string name="perf_battery_status_sufficient">电池电量充足</string>
@@ -686,6 +689,11 @@
     <string name="game_menu_toggle_remote_mouse">显示/隐藏远程鼠标</string>
     <string name="toast_remote_mouse_toast">远程鼠标已显示/隐藏。</string>
 
+    <!-- 输出缓冲区队列大小 -->
+    <string name="title_seekbar_output_buffer_queue_limit">输出缓冲区队列大小</string>
+    <string name="summary_seekbar_output_buffer_queue_limit">控制渲染前可排队的解码帧数上限。较小值可降低延迟但可能导致丢帧，较大值可提升流畅度但会增加延迟。默认值：2</string>
+    <string name="suffix_seekbar_output_buffer_queue_limit">帧</string>
+
     <!-- 屏幕组合模式 -->
     <string name="title_screen_combination_mode">屏幕组合模式 (Sunshine 基地适用)</string>
     <string name="summary_screen_combination_mode">控制主机在启动串流时如何管理屏幕组合，此处配置将覆盖主机端配置。</string>
@@ -694,4 +702,7 @@
     <string name="screen_mode_ensure_active">确保串流屏幕已开启</string>
     <string name="screen_mode_ensure_primary">确保串流屏幕为主屏幕</string>
     <string name="screen_mode_ensure_only_display">仅启用串流屏幕（关闭其他屏幕）</string>
+    <string name="unpaired_devices_shown">已显示未配对设备</string>
+    <string name="unpaired_devices_hidden">已隐藏未配对设备</string>
+    <string name="new_unpaired_device_shown">检测到新的未配对设备，已自动显示未配对设备</string>
 </resources>

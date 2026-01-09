@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="author_web">https://space.bilibili.com/393593468</string>
-    <string name="github_url">https://github.com/Satxm/moonlight-android</string>
+    <string name="github_url">https://github.com/satxm/moonlight-vplus</string>
 
     <!-- Shortcut strings -->
     <string name="scut_deleted_pc">PC deleted</string>
@@ -510,7 +510,7 @@
     <string name="pacing_balanced_alt">Balanced with FPS limit</string>
     <string name="pacing_smoothness">Prefer smoothest video (may significantly increase latency)</string>
     <string name="pacing_experimental_low_latency">Experimental: Ultra-low latency (advanced)</string>
-    <string name="pacing_surface_flinger_raw">Surface Flinger Raw (GPU Direct)</string>
+    <string name="pacing_precise_sync">Precise Sync</string>
 
     <string name="analogscroll_none">None (both sticks move the mouse)</string>
     <string name="analogscroll_right">Right analog stick</string>
@@ -610,7 +610,7 @@
     <string name="toast_load_custom_keys_corrupted">Failed to load custom button</string>
 
     <!-- gyro related strings -->
-    <string name="gyro_activation_method">Activation Method</string>
+    <string name="gyro_activation_method">Act Key</string>
     <string name="gyro_invert_x_axis">X Rev</string>
     <string name="gyro_invert_y_axis">Y Rev</string>
     <string name="gyro_sensitivity">Sensitivity</string>
@@ -639,7 +639,6 @@
     <string name="perf_decode_latency_info">Decode latency represents the time required to decode video frames.\n\nLatency Range:\n• &lt;5ms: Excellent decoder performance\n• 5-10ms: Good decoder performance\n• 10-20ms: Fair decoder performance\n• &gt;20ms: Poor decoder performance\n\nInfluencing Factors:\n• Hardware decoder performance\n• Video encoding complexity\n• Device CPU/GPU load\n• When decode latency is less than 10ms, it is recommended to pay attention to other performance of the device (e.g. frame rate, resolution, image quality, etc.)</string>
     <string name="perf_host_latency_title">🖥️ Host Latency Information</string>
     <string name="perf_host_latency_info">Host latency represents the time for the game host to process frames.\n\nLatency Range:\n• &lt;5ms: Strong host performance\n• 5-10ms: Good host performance\n• 10-20ms: Fair host performance\n• &gt;20ms: Weak host performance\n\nInfluencing Factors:\n• Host hardware performance\n• Game load\n• Background program usage\n\nVer.V+:\n• Indicates version information\n• Displayed when no host latency data available</string>
-
 
     <!-- Performance Overlay Info Dialogs - Battery Information -->
     <string name="perf_battery_info_title">🔋 Battery Information</string>
@@ -707,6 +706,11 @@
     <string name="game_menu_toggle_remote_mouse">Show/Hide Remote Mouse</string>
     <string name="toast_remote_mouse_toast">Remote mouse displayed/hidden</string>
 
+    <!-- Output Buffer Queue Limit -->
+    <string name="title_seekbar_output_buffer_queue_limit">Output Buffer Queue Limit</string>
+    <string name="summary_seekbar_output_buffer_queue_limit">Controls the maximum number of decoded frames that can be queued before rendering. Lower values reduce latency but may cause frame drops. Higher values improve smoothness but increase latency. Default: 2</string>
+    <string name="suffix_seekbar_output_buffer_queue_limit">frames</string>
+
     <!-- 屏幕组合模式 -->
     <string name="title_screen_combination_mode">Screen Combination Mode (Compatible with Sunshine Foundation )</string>
     <string name="summary_screen_combination_mode">This controls how the host manages the screen composition when the stream starts; this configuration overrides the host-side configuration.</string>
@@ -715,4 +719,7 @@
     <string name="screen_mode_ensure_active">Ensure the streaming screen is active</string>
     <string name="screen_mode_ensure_primary">Ensure the streaming screen is primary screen</string>
     <string name="screen_mode_ensure_only_display">Only active the streaming screen (Turn off other screens)</string>
+    <string name="unpaired_devices_shown">Unpaired devices shown</string>
+    <string name="unpaired_devices_hidden">Unpaired devices hidden</string>
+    <string name="new_unpaired_device_shown">New unpaired device detected, showing unpaired devices</string>
 </resources>
