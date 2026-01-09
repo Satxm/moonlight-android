@@ -804,6 +804,12 @@ public class PcView extends Activity implements AdapterFragmentCallbacks, ShakeD
             refreshHandler.removeCallbacks(pendingRefreshRunnable);
             pendingRefreshRunnable = null;
         }
+        
+        // 清理防抖刷新 Handler
+        if (pendingRefreshRunnable != null) {
+            refreshHandler.removeCallbacks(pendingRefreshRunnable);
+            pendingRefreshRunnable = null;
+        }
     }
 
     @Override
